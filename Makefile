@@ -4,12 +4,13 @@ BUILD=build
 RED=\033[0;32m
 NC=\033[0m # No Color
 
-obj= boot.o kernel.o uart.o
+obj= boot.o kernel.o uart.o vga.o
 
 kernel:
 	@cd $(SRC) && i686-elf-as boot.s -o boot.o -g
 	@cd $(SRC) && i686-elf-g++ -c kernel.cpp -o kernel.o -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -g
 	@cd $(SRC) && i686-elf-g++ -c uart.cpp -o uart.o -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -g
+	@cd $(SRC) && i686-elf-g++ -c vga.cpp -o vga.o -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -g
 	@cd $(SRC) && i686-elf-gcc -T linker.ld -o ../$(BUILD)/myos.bin -ffreestanding -nostdlib -lgcc -g $(obj)
 	@printf "${RED}Build kernel success!\n${NC}"
 
