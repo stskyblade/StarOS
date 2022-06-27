@@ -1,4 +1,3 @@
-#include "types.h"
 #include "kernel.h"
 
 /* Check if the compiler thinks you are targeting the wrong operating system. */
@@ -12,14 +11,16 @@
 #error "This tutorial needs to be compiled with a ix86-elf compiler"
 #endif
 
-
 extern "C" { // use c linkage to avoiding name mangling
 void kernel_main(void) {
-    /* Initialize terminal interface */
-    terminal_initialize();
-    init_serial();
+    print("\nHello, World!\n");
 
-    /* Newline support is left as an exercise. */
-    terminal_writestring("\nHello, World!\n");
+    // for (int i = 0; i < 256; i++) {
+    //     uchar c = i;
+    //     printf("0x%x %x \n", c, c + 1);
+    // }
+
+    uchar buffer[512 * 10];
+    read_sector(1, 1, buffer);
 }
 }
