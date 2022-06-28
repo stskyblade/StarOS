@@ -2,3 +2,4 @@ build
 isodir
 *.o
 disk.img
+*.img

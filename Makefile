@@ -39,6 +39,8 @@ debug: kernel
 gdb:
 	gdb
 
+fs:
+	g++ src/tool/makefs.cpp -o makefs && ./makefs
 
 clean:
 	rm src/*.o
