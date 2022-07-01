@@ -6,6 +6,8 @@
 #include <iostream>
 #include <string>
 
+#define FILE_TYPE 1
+
 namespace fs = std::filesystem;
 using namespace std;
 
@@ -14,6 +16,10 @@ typedef unsigned int block_addr_t;
 constexpr long long disk_size = 200 * 1024 * 1024; // in Bytes
 long long block_amount = disk_size / 512;
 unsigned char file_buf[disk_size];
+
+block_addr_t next_datablock = 0;
+block_addr_t next_inodeblock = 0;
+block_addr_t next_dirblock = 0;
 
 struct superblock_t {
     block_addr_t bitmap_start;
@@ -62,6 +68,10 @@ void init_superblock() {
     sb.end = block_amount - 1;
 
     memcopy((unsigned char *)&file_buf[512], (unsigned char *)&sb, sizeof(sb));
+
+    next_datablock = sb.datablock_start;
+    next_inodeblock = sb.inodeblock_start;
+    next_dirblock = sb.dirblock_start;
 }
 
 void package_root_directory() {
@@ -69,15 +79,42 @@ void package_root_directory() {
     for (const auto &entry : fs::directory_iterator(root_dir)) {
         cout << entry.path() << endl;
 
-        if (entry.is_file()) {
-            // TODO:
+        if (entry.is_regular_file()) {
+            // allocate inode
+            inode_t i;
+            i.size = std::filesystem::file_size(entry.path());
+            int index = 0;
+
+            // read file
+            fstream f(entry.path());
+            while (!f.eof()) {
+                f.read((char *)&file_buf[next_datablock * 512], 512);
+                i.direct_addrs[index] = next_datablock;
+                next_datablock++;
+                index++;
+            }
+
+            f.close();
+
+            memcopy((unsigned char *)&file_buf[next_inodeblock * 512], (unsigned char *)&i, sizeof(i));
+
+            // update dir entry
             auto p = entry.path();
             dir_entry_t dt;
-            dt.name = p.filename();
+            // dt.name = (unsigned char *)p.filename().c_str();
+            memcopy((unsigned char *)&dt.name, (unsigned char *)(p.filename().c_str()), 20);
             dt.type = FILE_TYPE;
-            dt.addr =
+            dt.addr = next_inodeblock;
+            next_inodeblock++;
+
+            memcopy((unsigned char *)&file_buf[next_dirblock * 512], (unsigned char *)&dt, sizeof(dt));
+            next_dirblock++;
         }
     }
+}
+
+void update_bitmap() {
+    // TODO:
 }
 
 int main() {
@@ -88,6 +125,8 @@ int main() {
 
     // write directorys & files
     package_root_directory();
+
+    update_bitmap();
 
     ofstream target_file;
     target_file.open(target_path, ios::out | ios::binary);

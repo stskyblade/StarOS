@@ -3,3 +3,4 @@ isodir
 *.o
 disk.img
 *.img
+makefs
