@@ -140,20 +140,20 @@ bool read_sector(uint32_t addr, size_t sector_count, uchar *buffer) {
     int loop = sector_count * 256;
     ushort d;
     int p = 0;
-    printf("\nPrint content of data:\n");
+    //    printf("\nPrint content of data:\n");
     while (loop--) {
         d = inw(ATA_BASE);
 
-        printf("%x", d);
-        printf("%x", d >> 8);
+        // printf("%x", d);
+        // printf("%x", d >> 8);
 
         buffer[p] = d & 0xff;
         buffer[p + 1] = (d >> 8) & 0xff;
 
-        printf(" ");
+        // printf(" ");
 
         if (p % 8 == 6) {
-            printf("\n");
+            // printf("\n");
         }
         p += 2;
     }

@@ -20,7 +20,9 @@ void kernel_main(void) {
     //     printf("0x%x %x \n", c, c + 1);
     // }
 
-    uchar buffer[512 * 10];
-    read_sector(1, 1, buffer);
+    // uchar buffer[512 * 10];
+    // read_sector(1, 1, buffer);
+
+    list_dir("/");
 }
 }

@@ -2,13 +2,13 @@ SRC=src
 BUILD=build
 
 CPPFLAG = -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -nostdlib -lgcc -g
-QEMUOPT = -drive file=disk.img,index=0,media=disk,format=raw,if=ide
+QEMUOPT = -drive file=rootfs.img,index=0,media=disk,format=raw,if=ide
 
 RED=\033[0;32m
 NC=\033[0m # No Color
 
 obj= boot.o kernel.o uart.o vga.o
-source = boot.s kernel.cpp uart.cpp vga.cpp printf.cpp disk.cpp
+source = boot.s kernel.cpp uart.cpp vga.cpp printf.cpp disk.cpp fs.cpp snippet.cpp
 
 
 kernel:

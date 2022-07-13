@@ -1,12 +1,3 @@
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-
-#define uchar uint8_t
-#define ushort uint16_t
-#define uint uint32_t
-#define size_t uint32_t
-
 typedef unsigned int block_addr_t;
 
 struct superblock_t {
@@ -15,12 +6,6 @@ struct superblock_t {
     block_addr_t inodeblock_start;
     block_addr_t datablock_start;
     block_addr_t end;
-};
-
-struct dir_t {
-    // represent a directory in memory
-    unsigned char data[512];
-    size_t index; // used by readdir
 };
 
 struct dir_entry_t {

@@ -7,3 +7,8 @@
 - [ ] read data from disk
 - [ ] virtual memory, page table
 - [ ] vga support newline, scoll down, colorful text
+
+
+## shortcut
+
+press ctrl+a ctrl+a x, to exit qemu

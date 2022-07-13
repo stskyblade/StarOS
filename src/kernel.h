@@ -11,6 +11,12 @@ void printf(const char *fmt, ...);
 
 bool read_sector(uint addr, size_t sector_count, uchar *buffer);
 
+void list_dir(const char *dir);
+dir_entry_t *read_dir(dir_t &d);
+
+void memcopy(uchar *dest, uchar *source, size_t count);
+bool strcmp(const char *a, const char *b);
+
 static inline void outb(ushort port, uchar data) {
     asm volatile("out %0,%1"
                  :
