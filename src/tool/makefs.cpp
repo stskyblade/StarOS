@@ -43,6 +43,9 @@ struct inode_t {
 string target_path = "/home/stskyblade/Project/StarOS/rootfs.img";
 string root_dir = "/home/stskyblade/Project/StarOS/root_dir";
 
+short direntry_index = 0;
+short max_direntry = 512 / sizeof(dir_entry_t);
+
 void init_low_level_format() {
 
     long long l = disk_size;
@@ -107,8 +110,15 @@ void package_root_directory() {
             dt.addr = next_inodeblock;
             next_inodeblock++;
 
-            memcopy((unsigned char *)&file_buf[next_dirblock * 512], (unsigned char *)&dt, sizeof(dt));
-            next_dirblock++;
+            // FIXME: have bugs when read fs. file more than one will disappear.
+            // file in different directory should have different dirblock
+            memcopy((unsigned char *)&file_buf[next_dirblock * 512 + direntry_index * sizeof(dir_entry_t)], (unsigned char *)&dt, sizeof(dt));
+            if ((direntry_index + 1) * sizeof(dir_entry_t) > 512) {
+                next_dirblock++;
+                direntry_index = 0;
+            } else {
+                direntry_index++;
+            }
         }
     }
 }

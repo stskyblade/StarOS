@@ -71,6 +71,7 @@ dir_t open_dir(const char *dir_path) {
 }
 
 dir_entry_t *read_dir(dir_t &d) {
+    // statically allocate memory for direntry
     dir_entry_t *dir = &(direntry_area[sizeof(dir_entry_t) * direntry_index]);
     memcopy((uchar *)dir, (uchar *)&(d.data[sizeof(dir_entry_t) * d.index]), sizeof(dir_entry_t));
 
