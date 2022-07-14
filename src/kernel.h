@@ -13,6 +13,8 @@ bool read_sector(uint addr, size_t sector_count, uchar *buffer);
 
 void list_dir(const char *dir);
 dir_entry_t *read_dir(dir_t &d);
+FILE *fopen(const char *pathname);
+size_t fread(void *ptr, size_t size, size_t nmemb, FILE *f);
 
 void memcopy(uchar *dest, uchar *source, size_t count);
 bool strcmp(const char *a, const char *b);

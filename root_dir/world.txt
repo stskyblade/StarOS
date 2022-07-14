@@ -1,1 +1,2 @@
 hello,world
+Fortune never favor fools.

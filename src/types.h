@@ -33,3 +33,9 @@ struct inode_t {
     size_t size;
     block_addr_t direct_addrs[10];
 };
+
+struct FILE {
+    // represent a file in memory
+    inode_t inode;
+    size_t offset; // read file will increse offset
+};

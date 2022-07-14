@@ -21,6 +21,8 @@ block_addr_t next_datablock = 0;
 block_addr_t next_inodeblock = 0;
 block_addr_t next_dirblock = 0;
 
+#define size_t unsigned int
+
 struct superblock_t {
     block_addr_t bitmap_start;
     block_addr_t dirblock_start;
@@ -93,6 +95,7 @@ void package_root_directory() {
             while (!f.eof()) {
                 f.read((char *)&file_buf[next_datablock * 512], 512);
                 i.direct_addrs[index] = next_datablock;
+                cout << "write to index " << index << endl;
                 next_datablock++;
                 index++;
             }
@@ -108,6 +111,7 @@ void package_root_directory() {
             memcopy((unsigned char *)&dt.name, (unsigned char *)(p.filename().c_str()), 20);
             dt.type = FILE_TYPE;
             dt.addr = next_inodeblock;
+            cout << "addr: " << dt.addr << endl;
             next_inodeblock++;
 
             // FIXME: have bugs when read fs. file more than one will disappear.

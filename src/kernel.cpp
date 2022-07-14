@@ -24,5 +24,11 @@ void kernel_main(void) {
     // read_sector(1, 1, buffer);
 
     list_dir("/");
+    FILE *f = fopen("/world.txt");
+    char str[2048];
+    fread(str, 1024, 1, f);
+    str[1024] = '\0';
+    printf("\nContent of file /world.txt:\n");
+    printf(str);
 }
 }
