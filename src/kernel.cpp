@@ -30,5 +30,11 @@ void kernel_main(void) {
     str[1024] = '\0';
     printf("\nContent of file /world.txt:\n");
     printf(str);
+
+    printf("\nTest read from terminal:\n");
+    while (true) {
+        test_read_serial();
+        printf("\n");
+    }
 }
 }

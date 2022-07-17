@@ -51,3 +51,16 @@ void write_serial(char a) {
 
     outb(PORT + DATA_REG, a);
 }
+
+int is_receiver_empty() {
+    return inb(PORT + LINE_STATUE_REG) & 0x01;
+}
+
+void test_read_serial() {
+    while (is_receiver_empty() == 0) {
+        ;
+    }
+    uint8_t c = inb(PORT + DATA_REG);
+    write_serial(c);
+    write_serial('\0');
+}

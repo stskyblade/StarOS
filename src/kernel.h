@@ -2,6 +2,7 @@
 
 int init_serial();
 void write_serial(char a);
+void test_read_serial();
 
 void terminal_initialize(void);
 void terminal_putchar(char c);
