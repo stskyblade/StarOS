@@ -1,7 +1,7 @@
 SRC=src
 BUILD=build
 
-CPPFLAG = -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -nostdlib -lgcc -g
+CPPFLAG = -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -nostdlib -lgcc -g -save-temps
 QEMUOPT = -drive file=rootfs.img,index=0,media=disk,format=raw,if=ide
 
 RED=\033[0;32m

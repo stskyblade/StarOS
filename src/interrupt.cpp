@@ -7,7 +7,17 @@ struct interrupt_gate {
     short offset2;
 };
 
-interrupt_gate IDT[256];
+struct gate_descriptor {
+    uint off_15_0 : 16;
+    uint cs : 16;
+    uint reserved : 8;
+    uint type : 5;
+    uint dpl : 2;
+    uint p : 1;
+    uint off_31_16 : 16;
+};
+
+gate_descriptor IDT[256];
 
 struct segment_descriptor {
     short limit;
@@ -16,35 +26,70 @@ struct segment_descriptor {
     short base3;
 };
 
-segment_descriptor GDT[256];
+struct seg_descriptor {
+    uint limit_15_0 : 16;
+    uint base_15_0 : 16;
+    uint base_23_16 : 8;
+    uint type : 4;       // Segment type (see STS_ constants)
+    uint s : 1;          // 0 = system, 1 = application
+    uint dpl : 2;        // Descriptor Privilege Level
+    uint p : 1;          // Present
+    uint lim_19_16 : 4;  // High bits of segment limit
+    uint avl : 1;        // Unused (available for software use)
+    uint rsv1 : 1;       // Reserved
+    uint db : 1;         // 0 = 16-bit segment, 1 = 32-bit segment
+    uint g : 1;          // Granularity: limit scaled by 4K when set
+    uint base_31_24 : 8; // High bits of segment base address
+};
+
+seg_descriptor GDT[256];
 
 void interrupt_handler() {
-    printf("this is interrupt handler");
+    printf("this is interrupt handler\n");
     asm volatile("iret");
 }
 
 void init_interrupt_handler() {
     printf("init interrupt...\n");
-    short offset = ((int)&interrupt_handler) % 16;
-    short base = ((int)&interrupt_handler) / 16;
+    //    short offset = ((int)&interrupt_handler) % 16;
+    // short base = ((int)&interrupt_handler) / 16;
+    int handler_func = (int)&interrupt_handler;
     short selector = 1;
 
-    segment_descriptor d;
-    d.limit = 0xff;
-    d.base = base;
-    d.base2 = 0x0000;
-    d.base3 = 0x0000;
+    seg_descriptor d;
+    d.limit_15_0 = 0xffff;
+    d.base_15_0 = 0;
+    d.base_23_16 = 0;
+    d.type = 0x8 | 0x2;
+    d.s = 1;
+    d.dpl = 0;
+    d.p = 1;
+    d.lim_19_16 = 0xf;
+    d.avl = 0;
+    d.rsv1 = 0;
+    d.db = 1;
+    d.g = 1;
+    d.base_31_24 = 0;
     GDT[selector] = d; // 0 is reserved
 
     // load GDTR
-    asm volatile("LGDT (%0)" ::"d"(GDT));
+    short gdtr[3];
+    gdtr[0] = 0xff;
+    gdtr[1] = (uint)GDT;
+    gdtr[2] = (uint)GDT >> 16;
+
+    asm volatile("LGDT (%0)" ::"r"(gdtr));
 
     // interrupt gate
-    interrupt_gate g;
-    g.offset = offset;
-    g.selector = selector;
-    g.data = 0x0f00;
-    g.offset2 = 0;
+    gate_descriptor g;
+    g.off_15_0 = handler_func & 0xffff;
+    g.cs = selector << 3;
+    g.reserved = 0;
+    g.type = 0xe; // interrupt gate
+    g.dpl = 0;
+    g.p = 1;
+    g.off_31_16 = handler_func >> 16;
+
     IDT[0] = g;
     for (int i = 0; i < 256; i++) {
         IDT[i] = g;
