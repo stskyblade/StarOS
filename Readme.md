@@ -6,6 +6,7 @@ i386
 - [x] hello,world
 - [x] write to serial port
 - [x] read data from disk
+- [ ] interrupt generate & handle & restore
 - [ ] virtual memory, page table
 - [ ] vga support newline, scoll down, colorful text
 
@@ -33,7 +34,10 @@ when PC starts
 Protected mode:
 support virtual memory, should be used when run user space program
 
+PE bit, CR0
+
 ## Page and segment memory management
+PG bit, CR0
 
 ## IO
 - [ ] interrupt register, meaning & manipulate
@@ -47,7 +51,20 @@ support virtual memory, should be used when run user space program
 2, interrupt handler
 
 ## interrupt
+- [ ] disable/enable, IF in EFLAGS
+- [ ] read interrupt message
+- [ ] restore
+- [ ] generate a software interrupt. INT instruction
+- [ ] handle interrupt, IDTR
 
+write handler functions (256)
+save the addresses of handler functions to LDT or GDT
+save the trap gate in IDT
+write the address of IDT to IDTR
+enable interrupt
+emit interrupt signal
+
+### difference of IDT, GDT, LDT, which to use
 
 ## shortcut
 

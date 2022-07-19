@@ -11,6 +11,28 @@
 #error "This tutorial needs to be compiled with a ix86-elf compiler"
 #endif
 
+void f(){};
+int a[10];
+
+void test_data_type_size() {
+    printf("Size of short: %d\n", sizeof(short));
+    printf("Size of int: %d\n", sizeof(int));
+    printf("Size of long: %d\n", sizeof(long));
+    printf("Size of pointer of int: %d\n", sizeof(int *));
+    printf("Size of pointer of long: %d\n", sizeof(long *));
+    printf("Size of pointer of function: %d\n", sizeof(&f));
+    printf("Size of array of int: %d\n", sizeof(&a));
+    /*
+      Size of short: 2
+      Size of int: 4
+      Size of long: 4
+      Size of pointer of int: 4
+      Size of pointer of long: 4
+      Size of pointer of function: 4
+      Size of array of int: 4
+     */
+}
+
 extern "C" { // use c linkage to avoiding name mangling
 void kernel_main(void) {
     print("\nHello, World!\n");
@@ -31,10 +53,14 @@ void kernel_main(void) {
     printf("\nContent of file /world.txt:\n");
     printf(str);
 
-    printf("\nTest read from terminal:\n");
-    while (true) {
-        test_read_serial();
-        printf("\n");
-    }
+    test_data_type_size();
+
+    // printf("\nTest read from terminal:\n");
+    // while (true) {
+    //     test_read_serial();
+    //     printf("\n");
+    // }
+
+    init_interrupt_handler();
 }
 }

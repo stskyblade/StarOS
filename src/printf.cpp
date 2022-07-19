@@ -23,6 +23,24 @@ void print(const char *s) {
     }
 }
 
+void print_int(int n) {
+    char s[20];
+    int i = 0;
+
+    while (n) {
+        int tmp = n % 10;
+        n = n / 10;
+        s[i] = '0' + tmp;
+        i++;
+    }
+    i--;
+
+    while (i >= 0) {
+        putc(s[i]);
+        i--;
+    }
+}
+
 void printf(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
@@ -34,7 +52,7 @@ void printf(const char *fmt, ...) {
             c = *fmt;
 
             switch (c) {
-            case 'x':
+            case 'x': {
                 // unsigned hex
                 c = va_arg(args, int) & 0xff;
                 int left = c / 16;
@@ -43,6 +61,13 @@ void printf(const char *fmt, ...) {
                 putc(hexStr[left]);
                 putc(hexStr[right]);
                 break;
+            }
+
+            case 'd': {
+                int num = va_arg(args, int);
+                print_int(num);
+                break;
+            }
             }
 
         } else {

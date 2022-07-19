@@ -20,6 +20,8 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *f);
 void memcopy(uchar *dest, uchar *source, size_t count);
 bool strcmp(const char *a, const char *b);
 
+void init_interrupt_handler();
+
 static inline void outb(ushort port, uchar data) {
     asm volatile("out %0,%1"
                  :
