@@ -8,10 +8,10 @@ RED=\033[0;32m
 NC=\033[0m # No Color
 
 obj= boot.o kernel.o uart.o vga.o
-source = boot.s kernel.cpp uart.cpp vga.cpp printf.cpp disk.cpp fs.cpp snippet.cpp interrupt.cpp
+source = boot.s kernel.cpp uart.cpp vga.cpp printf.cpp disk.cpp fs.cpp snippet.cpp interrupt.cpp vectors.S trapasm.S
 
 
-kernel:
+kernel: vectors.S
 	@cd $(SRC) && i686-elf-g++ -T linker.ld -o ../$(BUILD)/myos.bin $(CPPFLAG) $(source)
 	@printf "${RED}Build kernel success!\n${NC}"
 
@@ -22,6 +22,9 @@ kernel2:
 	@cd $(SRC) && i686-elf-g++ -c vga.cpp -o vga.o -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -g
 	@cd $(SRC) && i686-elf-gcc -T linker.ld -o ../$(BUILD)/myos.bin -ffreestanding -nostdlib -lgcc -g $(obj)
 	@printf "${RED}Build kernel success!\n${NC}"
+
+vectors.S: src/vectors.pl
+	./src/vectors.pl > src/vectors.S
 
 iso: kernel
 	grub-file --is-x86-multiboot $(BUILD)/myos.bin && printf "${RED}Build kernel success.\n${NC}"

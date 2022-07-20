@@ -51,11 +51,12 @@ PG bit, CR0
 2, interrupt handler
 
 ## interrupt
-- [ ] disable/enable, IF in EFLAGS
-- [ ] read interrupt message
+- [x] disable/enable, IF in EFLAGS
+- [ ] find out what causes interrupt handler, is it time clock?
+- [x] read interrupt message
 - [ ] restore
 - [ ] generate a software interrupt. INT instruction
-- [ ] handle interrupt, IDTR
+- [x] handle interrupt, IDTR
 
 write handler functions (256)
 save the addresses of handler functions to LDT or GDT

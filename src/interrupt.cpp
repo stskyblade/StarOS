@@ -43,10 +43,48 @@ struct seg_descriptor {
 };
 
 seg_descriptor GDT[256];
+extern uint32_t vectors[256];
 
-void interrupt_handler() {
-    printf("this is interrupt handler\n");
+// by trapasm.S
+struct trap_frame {
+    // passed by pushal
+    uint edi;
+    uint esi;
+    uint ebp;
+    uint oesp; // useless & ignored
+    uint ebx;
+    uint edx;
+    uint ecx;
+    uint eax;
+
+    ushort gs;
+    ushort padding1;
+    ushort fs;
+    ushort padding2;
+    ushort es;
+    ushort padding3;
+    ushort ds;
+    ushort padding4;
+    uint trapno;
+
+    // below here defined by x86 hardware
+    uint err;
+    uint eip;
+    ushort cs;
+    ushort padding5;
+    uint eflags;
+
+    // below here only when crossing rings, such as from user to kernel
+    uint esp;
+    ushort ss;
+    ushort padding6;
+};
+
+extern "C" {
+void interrupt_handler(trap_frame *tf) {
+    printf("this is interrupt handler: %d\n", tf->trapno);
     asm volatile("iret");
+}
 }
 
 void init_interrupt_handler() {
@@ -82,7 +120,7 @@ void init_interrupt_handler() {
 
     // interrupt gate
     gate_descriptor g;
-    g.off_15_0 = handler_func & 0xffff;
+    g.off_15_0 = handler_func & 0xffff; // directely to handler_func
     g.cs = selector << 3;
     g.reserved = 0;
     g.type = 0xe; // interrupt gate
@@ -93,6 +131,11 @@ void init_interrupt_handler() {
     IDT[0] = g;
     for (int i = 0; i < 256; i++) {
         IDT[i] = g;
+        uint32_t func_addr;
+        func_addr = vectors[i];
+        g.off_15_0 = func_addr & 0xffff; // auto pass interrupt id to handler_func
+        g.off_31_16 = func_addr >> 16;
+
         GDT[i] = d;
     }
 
