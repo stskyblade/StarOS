@@ -9,6 +9,7 @@ void terminal_putchar(char c);
 
 void print(const char *c);
 void printf(const char *fmt, ...);
+void panic(const char *c);
 
 bool read_sector(uint addr, size_t sector_count, uchar *buffer);
 
