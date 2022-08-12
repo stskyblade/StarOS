@@ -36,6 +36,7 @@ struct seg_descriptor {
 };
 
 seg_descriptor GDT[256];
+seg_descriptor LDT[256];
 extern uint32_t vectors[256];
 
 // by trapasm.S
@@ -75,13 +76,24 @@ struct trap_frame {
 
 extern "C" {
 void interrupt_handler(trap_frame *tf) {
+    switch (tf->trapno) {
+    case 13:
+        printf(".\n");
+        break;
+    case 8: {
+        break;
+    }
+    default:
+        break;
+    }
+
     // asm volatile("cli");
     printf("=================interrupt_handler===================\n");
     printf("this is interrupt handler: %d\n", tf->trapno);
     printf("err code: %d\n", tf->err);
     printf("cs: eip  %d: %d\n", tf->cs, tf->eip);
     uint selector_index = (tf->err & 0xfff8) >> 3;
-    uint bits = tf->err & 0x7; // page 162
+    uint bits = tf->err & 0b111; // page 162
     printf("selector_index: %d\n", selector_index);
     printf("bits: %d \n", bits);
 
@@ -121,43 +133,45 @@ void interrupt_handler(trap_frame *tf) {
     printf("esp: %p %d\n", tf->esp, tf->esp);
     printf("ss: %p %d\n", tf->ss, tf->ss);
     printf("-------------------\n");
-    panic("trap in interrupt_handler\n");
+    //    panic("trap in interrupt_handler\n");
+
+    switch (tf->trapno) {
+    case 13:
+        panic("trap\n");
+        break;
+
+    default:
+        break;
+    }
 }
 }
 
 void init_interrupt_handler() {
-    printf("init interrupt...\n");
+    printf("\ninit interrupt...\n");
     //    short offset = ((int)&interrupt_handler) % 16;
     // short base = ((int)&interrupt_handler) / 16;
     short selector = 1;
 
-    // seg_descriptor d;
-    // d.limit_15_0 = 0xffff;
-    // d.base_15_0 = 0;
-    // d.base_23_16 = 0;
-    // d.type = 0x8 | 0x2;
-    // d.s = 1;
-    // d.dpl = 0;
-    // d.p = 1;
-    // d.lim_19_16 = 0xf;
-    // d.avl = 0;
-    // d.rsv1 = 0;
-    // d.db = 1;
-    // d.g = 0;
-    // d.base_31_24 = 0;
-    // GDT[selector] = d; // 0 is reserved
-    GDT[selector] = SEG(0x8 | 0x2, 0, 0xffffffff, 0); // kcode
-    GDT[2] = SEG(0x8 | 0x2, 0, 0xffffffff, 0);        // kdata
+    seg_descriptor d;
+    d.limit_15_0 = 0xffff;
+    d.base_15_0 = 0;
+    d.base_23_16 = 0;
+    d.type = 0x8 | 0x2;
+    d.s = 1;
+    d.dpl = 0;
+    d.p = 1;
+    d.lim_19_16 = 0xf;
+    d.avl = 0;
+    d.rsv1 = 0;
+    d.db = 1;
+    d.g = 0;
+    d.base_31_24 = 0;
+    GDT[selector] = d; // 0 is reserved
+    GDT[2] = d;        // 0 is reserved
+    // GDT[selector] = SEG(0x8 | 0x2, 0, 0xffffffff, 0); // kcode
+    // GDT[2] = SEG(0x8 | 0x2, 0, 0xffffffff, 0);        // kdata
     //  GDT[3] = SEG(0x8 | 0x2, 0, 0xffffffff, 3);        // ucode
     //  GDT[4] = SEG(0x2, 0, 0xffffffff, 3);              // udata
-
-    // load GDTR
-    short gdtr[3];
-    gdtr[0] = sizeof(GDT) - 1;
-    gdtr[1] = (uint)GDT;
-    gdtr[2] = (uint)GDT >> 16;
-
-    asm volatile("LGDT (%0)" ::"r"(gdtr));
 
     // interrupt gate
     gate_descriptor g;
@@ -174,7 +188,25 @@ void init_interrupt_handler() {
         g.off_31_16 = func_addr >> 16;
 
         IDT[i] = g;
+        GDT[i] = d;
+        LDT[i] = d;
     }
+
+    // load GDTR
+    short gdtr[3];
+    gdtr[0] = sizeof(GDT) - 1;
+    gdtr[1] = (uint)GDT;
+    gdtr[2] = (uint)GDT >> 16;
+
+    asm volatile("LGDT (%0)" ::"r"(gdtr));
+
+    // load LDTR
+    short ldtr[3];
+    ldtr[0] = sizeof(LDT) - 1;
+    ldtr[1] = (uint)LDT;
+    ldtr[2] = (uint)LDT >> 16;
+
+    //    asm volatile("LLDT (%0)" ::"r"(ldtr));
 
     // load IDT
     short idtr[3];
@@ -194,12 +226,12 @@ void init_interrupt_handler() {
     printf("a, b %d, %d\n", a, b);
 
     printf("before int 0\n");
-    asm volatile("int $2");
+    asm volatile("int $0");
     printf("after int 0\n");
 
-    // for (uint i = 0; i < 1024; i++) {
-    //     printf("%d\n", i);
-    // }
+    for (uint i = 0; i < 1024 * 1024 * 1024; i++) {
+        printf("%d\n", i);
+    }
 
     while (true) {
         ;
