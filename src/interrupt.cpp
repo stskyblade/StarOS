@@ -76,16 +76,26 @@ struct trap_frame {
 
 extern "C" {
 void interrupt_handler(trap_frame *tf) {
+    printf("=========== interrupt handler: %d========\n", tf->trapno);
     switch (tf->trapno) {
     case 13:
         printf(".\n");
         break;
     case 8: {
+        // panic("trap 8");
         break;
     }
     default:
         break;
     }
+
+    // printf("==================interrupt handler\n");
+    // return;
+    // while (true) {
+    //     // printf(".\n");
+    //     // return;
+    //     ;
+    // }
 
     // asm volatile("cli");
     printf("=================interrupt_handler===================\n");
@@ -146,51 +156,47 @@ void interrupt_handler(trap_frame *tf) {
 }
 }
 
-void init_interrupt_handler() {
-    printf("\ninit interrupt...\n");
-    //    short offset = ((int)&interrupt_handler) % 16;
-    // short base = ((int)&interrupt_handler) / 16;
-    short selector = 1;
-
+seg_descriptor pack_segment_desc(uint base, uint limit, uint access_byte, uint flags) {
     seg_descriptor d;
-    d.limit_15_0 = 0xffff;
-    d.base_15_0 = 0;
-    d.base_23_16 = 0;
-    d.type = 0x8 | 0x2;
-    d.s = 1;
-    d.dpl = 0;
-    d.p = 1;
-    d.lim_19_16 = 0xf;
-    d.avl = 0;
-    d.rsv1 = 0;
-    d.db = 1;
-    d.g = 0;
-    d.base_31_24 = 0;
-    GDT[selector] = d; // 0 is reserved
-    GDT[2] = d;        // 0 is reserved
-    // GDT[selector] = SEG(0x8 | 0x2, 0, 0xffffffff, 0); // kcode
-    // GDT[2] = SEG(0x8 | 0x2, 0, 0xffffffff, 0);        // kdata
-    //  GDT[3] = SEG(0x8 | 0x2, 0, 0xffffffff, 3);        // ucode
-    //  GDT[4] = SEG(0x2, 0, 0xffffffff, 3);              // udata
+    d.limit_15_0 = limit & 0xffff;
+    d.base_15_0 = base & 0xffff;
+    d.base_23_16 = (base >> 16) & 0xff;
+    d.type = access_byte & 0xf;
+    d.s = (access_byte >> 4) & 0x1;
+    d.dpl = (access_byte >> 5) & 0x3;
+    d.p = (access_byte >> 7) & 0x1;
+    d.lim_19_16 = (limit >> 16) & 0xf;
+    d.avl = flags & 0x1;
+    d.rsv1 = (flags >> 1) & 0x1;
+    d.db = (flags >> 2) & 0x1;
+    d.g = (flags >> 3) & 0x1;
+    d.base_31_24 = (base >> 24) & 0xff;
+    return d;
+}
 
-    // interrupt gate
+gate_descriptor pack_gate_desc(int index) {
     gate_descriptor g;
-    g.cs = selector << 3;
+    g.cs = 1 << 3; // kcode
     g.reserved = 0;
     g.type = 0xe; // interrupt gate
     g.dpl = 0;
     g.p = 1;
 
-    for (int i = 0; i < 256; i++) {
-        uint32_t func_addr;
-        func_addr = vectors[i];
-        g.off_15_0 = func_addr & 0xffff; // auto pass interrupt id to handler_func
-        g.off_31_16 = func_addr >> 16;
+    uint32_t func_addr;
+    func_addr = vectors[index];
+    g.off_15_0 = func_addr & 0xffff; // auto pass interrupt id to handler_func
+    g.off_31_16 = func_addr >> 16;
 
-        IDT[i] = g;
-        GDT[i] = d;
-        LDT[i] = d;
-    }
+    return g;
+}
+
+void init_GDT() {
+    GDT[0] = pack_segment_desc(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff); // null descriptor
+    GDT[1] = pack_segment_desc(0, 0xfffff, 0x9a, 0xc);                          // kernel code
+    GDT[2] = pack_segment_desc(0, 0xfffff, 0x92, 0xc);                          // kernel data
+    GDT[3] = pack_segment_desc(0, 0xfffff, 0xfa, 0xc);                          // user code
+    GDT[4] = pack_segment_desc(0, 0xfffff, 0xf2, 0xc);                          // user data
+    GDT[5] = pack_segment_desc(0, 0xfffff, 0x89, 0x0);                          // tss
 
     // load GDTR
     short gdtr[3];
@@ -199,14 +205,16 @@ void init_interrupt_handler() {
     gdtr[2] = (uint)GDT >> 16;
 
     asm volatile("LGDT (%0)" ::"r"(gdtr));
+}
 
-    // load LDTR
-    short ldtr[3];
-    ldtr[0] = sizeof(LDT) - 1;
-    ldtr[1] = (uint)LDT;
-    ldtr[2] = (uint)LDT >> 16;
+void init_interrupt_handler() {
+    printf("\ninit interrupt...\n");
+    init_GDT();
 
-    //    asm volatile("LLDT (%0)" ::"r"(ldtr));
+    for (int i = 0; i < 256; i++) {
+        IDT[i] = pack_gate_desc(i);
+    }
+    IDT[1] = pack_gate_desc(1);
 
     // load IDT
     short idtr[3];
@@ -219,21 +227,13 @@ void init_interrupt_handler() {
     printf("before sti\n");
     asm volatile("sti");
 
-    uint a, b;
-    a = b = 0;
-    a = b + 1;
-    b -= 1;
-    printf("a, b %d, %d\n", a, b);
-
-    printf("before int 0\n");
-    asm volatile("int $0");
-    printf("after int 0\n");
-
-    for (uint i = 0; i < 1024 * 1024 * 1024; i++) {
-        printf("%d\n", i);
+    for (int i = 0; i < 3; i++) {
+        asm volatile("int $64");
+        printf("after int\n");
     }
 
     while (true) {
+        printf(".");
         ;
     }
 }

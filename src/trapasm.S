@@ -8,11 +8,10 @@ alltraps:
   pushl %gs
   pushal
 
-  # TODO:
-  # Set up data segments.
-  # movw $(SEG_KDATA<<3), %ax
-  # movw %ax, %ds
-  # movw %ax, %es
+    # Set up data segments.
+  movw $(2 << 3), %ax // kernel data segment
+  movw %ax, %ds
+  movw %ax, %es
 
   # Call trap(tf), where tf=%esp
   pushl %esp
