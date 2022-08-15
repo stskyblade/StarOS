@@ -45,6 +45,7 @@ doesn't make sense to return from this function as the bootloader is gone.
 */
 .section .text
 .global _start
+.global cpuid_str
 .type _start, @function
 _start:
   /*

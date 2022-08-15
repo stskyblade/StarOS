@@ -46,7 +46,7 @@ void print_int(int n) {
     }
 }
 
-void print_hex(int n) {
+void print_hex(uint n) {
     print("0x");
     if (n == 0) {
         putc('0');

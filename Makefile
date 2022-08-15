@@ -8,7 +8,7 @@ RED=\033[0;32m
 NC=\033[0m # No Color
 
 obj= boot.o kernel.o uart.o vga.o
-source = boot.s kernel.cpp uart.cpp vga.cpp printf.cpp disk.cpp fs.cpp snippet.cpp interrupt.cpp vectors.S trapasm.S
+source = boot.s kernel.cpp uart.cpp vga.cpp printf.cpp disk.cpp fs.cpp snippet.cpp interrupt.cpp vectors.S trapasm.S apic.cpp
 
 
 kernel: vectors.S

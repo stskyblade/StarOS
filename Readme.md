@@ -6,8 +6,11 @@ i386
 - [x] hello,world
 - [x] write to serial port
 - [x] read data from disk
-- [ ] interrupt generate & handle & restore
+- [x] interrupt generate & handle & restore
 - [ ] virtual memory, page table
+- [ ] user mode, or protected mode
+- [ ] clock interrupt
+- [ ] schedular
 - [ ] vga support newline, scoll down, colorful text
 
 ## Filesystem
@@ -52,11 +55,12 @@ PG bit, CR0
 
 ## interrupt
 - [x] disable/enable, IF in EFLAGS
-- [ ] find out what causes interrupt handler, is it time clock?
+- [x] find out what causes interrupt handler, is it time clock?
 - [x] read interrupt message
-- [ ] restore
-- [ ] generate a software interrupt. INT instruction
+- [x] restore
+- [x] generate a software interrupt. INT instruction
 - [x] handle interrupt, IDTR
+- [x] time clock
 
 write handler functions (256)
 save the addresses of handler functions to LDT or GDT

@@ -62,5 +62,10 @@ void kernel_main(void) {
     // }
 
     init_interrupt_handler();
+    init_apic();
+
+    while (true) {
+        ;
+    }
 }
 }

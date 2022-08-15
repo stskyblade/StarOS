@@ -22,8 +22,16 @@ void memcopy(uchar *dest, uchar *source, size_t count);
 bool strcmp(const char *a, const char *b);
 
 void init_interrupt_handler();
+void init_apic();
+void lapiceoi();
 
 static inline void outb(ushort port, uchar data) {
+    asm volatile("out %0,%1"
+                 :
+                 : "a"(data), "d"(port));
+}
+
+static inline void out32(ushort port, uint data) {
     asm volatile("out %0,%1"
                  :
                  : "a"(data), "d"(port));
@@ -40,6 +48,15 @@ static inline uchar inb(ushort port) {
 
 static inline ushort inw(ushort port) {
     ushort data;
+
+    asm volatile("in %1,%0"
+                 : "=a"(data)
+                 : "d"(port));
+    return data;
+}
+
+static inline uint in32(ushort port) {
+    uint data;
 
     asm volatile("in %1,%0"
                  : "=a"(data)

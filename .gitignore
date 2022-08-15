@@ -4,3 +4,4 @@ isodir
 disk.img
 *.img
 makefs
+src/vectors.S

@@ -146,8 +146,9 @@ void interrupt_handler(trap_frame *tf) {
     //    panic("trap in interrupt_handler\n");
 
     switch (tf->trapno) {
-    case 13:
-        panic("trap\n");
+    case 32:
+        lapiceoi();
+        // panic("trap\n");
         break;
 
     default:
@@ -214,7 +215,6 @@ void init_interrupt_handler() {
     for (int i = 0; i < 256; i++) {
         IDT[i] = pack_gate_desc(i);
     }
-    IDT[1] = pack_gate_desc(1);
 
     // load IDT
     short idtr[3];
@@ -227,13 +227,13 @@ void init_interrupt_handler() {
     printf("before sti\n");
     asm volatile("sti");
 
-    for (int i = 0; i < 3; i++) {
-        asm volatile("int $64");
-        printf("after int\n");
-    }
+    // for (int i = 0; i < 3; i++) {
+    //     asm volatile("int $64");
+    //     printf("after int\n");
+    // }
 
-    while (true) {
-        printf(".");
-        ;
-    }
+    // while (true) {
+    //     printf(".");
+    //     ;
+    // }
 }
