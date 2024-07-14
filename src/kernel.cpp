@@ -62,7 +62,7 @@ void kernel_main(void) {
     // }
 
     init_interrupt_handler();
-    init_apic();
+    init_apic(); // timer related
 
     while (true) {
         ;
