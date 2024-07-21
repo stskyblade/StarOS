@@ -61,9 +61,21 @@ void kernel_main(void) {
     //     printf("\n");
     // }
 
-    init_interrupt_handler();
-    init_apic(); // timer related
+    // enter protected mode
+    // mov eax, CR0
+    // or eax, 1
+    // mov CR0, eax
+    asm volatile("mov %CR0,%eax");
+    asm volatile("or $1,%eax");
+    asm volatile("mov %eax,%CR0");
+    // TODO: need a far jmp or far call here
 
+    printf("\nIn protected mode\n");
+
+    // init_interrupt_handler();
+    // init_apic(); // timer related
+
+    printf("\nkernel main looping...\n");
     while (true) {
         ;
     }

@@ -6,7 +6,7 @@ i386
 - [x] hello,world
 - [x] write to serial port
 - [x] read data from disk
-- [x] interrupt generate & handle & restore
+- [ ] interrupt generate & handle & restore
 - [ ] virtual memory, page table
 - [ ] user mode, or protected mode
 - [ ] clock interrupt
@@ -74,3 +74,14 @@ emit interrupt signal
 ## shortcut
 
 press ctrl+a ctrl+a x, to exit qemu
+ctrl+a, ctrl+a c, to see all registers
+
+## how program start?
+
+boot.s: _start
+
+call kernel_main
+
+kernel.cpp: kernel_main
+
+set interrupt vector table in init_interrupt_handler in interrupt.cpp

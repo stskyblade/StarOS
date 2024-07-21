@@ -1,26 +1,17 @@
 SRC=src
 BUILD=build
 
-CPPFLAG = -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -nostdlib -lgcc -g -save-temps
+CPPFLAG = -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -nostdlib -g -save-temps
 QEMUOPT = -drive file=rootfs.img,index=0,media=disk,format=raw,if=ide
 
 RED=\033[0;32m
 NC=\033[0m # No Color
 
-obj= boot.o kernel.o uart.o vga.o
 source = boot.s kernel.cpp uart.cpp vga.cpp printf.cpp disk.cpp fs.cpp snippet.cpp interrupt.cpp vectors.S trapasm.S apic.cpp
 
 
 kernel: vectors.S
 	@cd $(SRC) && i686-elf-g++ -T linker.ld -o ../$(BUILD)/myos.bin $(CPPFLAG) $(source)
-	@printf "${RED}Build kernel success!\n${NC}"
-
-kernel2:
-	@cd $(SRC) && i686-elf-as boot.s -o boot.o -g
-	@cd $(SRC) && i686-elf-g++ -c kernel.cpp -o kernel.o -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -g
-	@cd $(SRC) && i686-elf-g++ -c uart.cpp -o uart.o -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -g
-	@cd $(SRC) && i686-elf-g++ -c vga.cpp -o vga.o -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -g
-	@cd $(SRC) && i686-elf-gcc -T linker.ld -o ../$(BUILD)/myos.bin -ffreestanding -nostdlib -lgcc -g $(obj)
 	@printf "${RED}Build kernel success!\n${NC}"
 
 vectors.S: src/vectors.pl
@@ -46,5 +37,4 @@ fs:
 	g++ src/tool/makefs.cpp -o makefs && ./makefs
 
 clean:
-	rm src/*.o
 	rm build/*
