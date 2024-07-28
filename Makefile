@@ -24,6 +24,15 @@ iso: kernel
 	cp grub.cfg isodir/boot/grub/grub.cfg
 	grub-mkrescue -o $(BUILD)/myos.iso isodir
 
+mbr.bin:
+	@cd $(SRC) && i686-elf-g++ -T mbr.ld -o ../$(BUILD)/mbr.elf $(CPPFLAG) mbr.S
+	@cd $(BUILD) && i686-elf-objcopy -O binary mbr.elf mbr.bin
+# generate a file of 200MB
+	@cd $(BUILD) && dd if=/dev/zero of=./mbr.img bs=512 count=409600
+# copy bin to disk img
+	@cd $(BUILD) && dd if=./mbr.bin of=./mbr.img conv=notrunc
+
+
 qemu: kernel
 	qemu-system-i386 -kernel $(BUILD)/myos.bin -nographic $(QEMUOPT)
 
