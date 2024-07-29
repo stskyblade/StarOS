@@ -26,18 +26,25 @@ iso: kernel
 
 mbr.bin:
 	@cd $(SRC) && i686-elf-g++ -T mbr.ld -o ../$(BUILD)/mbr.elf $(CPPFLAG) mbr.S
-	@cd $(BUILD) && i686-elf-objcopy -O binary mbr.elf mbr.bin
+	@cd $(BUILD) && i686-elf-objcopy -O binary --only-section=.text mbr.elf mbr.bin
 # generate a file of 200MB
-	@cd $(BUILD) && dd if=/dev/zero of=./mbr.img bs=512 count=409600
+	@cd $(BUILD) && dd status=none if=/dev/zero of=./mbr.img bs=512 count=409600
 # copy bin to disk img
-	@cd $(BUILD) && dd if=./mbr.bin of=./mbr.img conv=notrunc
+	@cd $(BUILD) && dd status=none if=./mbr.bin of=./mbr.img conv=notrunc
 
+burn: mbr.bin
+	@if [ ! -b /dev/sdb ]; then echo "File not found: /dev/sdb"; exit 1; fi
+	@sudo dd status=none if=build/mbr.img of=/dev/sdb bs=512 count=4
 
-qemu: kernel
-	qemu-system-i386 -kernel $(BUILD)/myos.bin -nographic $(QEMUOPT)
+dump:
+	@sudo dd status=none if=/dev/sdb of=/tmp/sdb.img bs=512 count=4
+	@hexdump -C /tmp/sdb.img
 
-debug: kernel
-	qemu-system-i386 -kernel $(BUILD)/myos.bin -s -S -nographic $(QEMUOPT)
+qemu: mbr.bin
+	qemu-system-i386 build/mbr.img
+
+debug: mbr.bin
+	qemu-system-i386 build/mbr.img -s -S
 
 gdb:
 	gdb
