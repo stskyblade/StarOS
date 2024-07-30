@@ -6,7 +6,20 @@
 .global mbr_start
 .code16
 mbr_start:
-  // echo hello,world
+  movw $0, %ax
+  movw %ax, %ds
+
+init_print_char:
+  mov $0x8000, %ax
+  mov %ax, %gs
+  movw $0, %gs:(0)
+
+  // set SS:SP
+  mov $0x9000, %ax
+  mov %ax, %ss
+  mov $0xffff, %ax
+  mov %ax, %sp
+
   movw $0xb800, %ax
   movw %ax, %es
 
@@ -28,6 +41,14 @@ _loop:
   cmp $12, %cx
   jl _loop
 
+test_print_char:  
+  mov $'X', %al
+  call print_char
+  mov $'Y', %al
+  call print_char
+  mov $'Z', %al
+  call print_char
+
 
   mov $1, %ax
 _halt:
@@ -35,6 +56,48 @@ _halt:
   jmp _halt
 
 hello_world:    .asciz "hello,world\n"
+
+print_char:
+  // print character to screen, auto move cursor
+  // AL: char to print
+  push %gs
+  push %es
+  push %ax
+  push %bx
+  push %di
+
+// 0x80000 to store variable
+  push %ax
+  mov $0x8000, %ax
+  mov %ax, %gs
+  mov %gs:(0), %bx  // position, word, 0-1999
+  add $1, %bx
+  mov %bx, %gs:(0)
+  sub $1, %bx  // add 1 and write back
+
+  mov $2, %ax
+  mul %bx // multiple 2 got offset
+  mov %ax, %di  // offset of 0xb8000
+
+  mov $0xb800, %ax
+  mov %ax, %es
+  pop %ax // char
+  mov $0b00000100, %ah
+  mov %ax, %es:(%di) // write to offset
+
+  // write a blink _ to cursor position
+  add $2, %di
+  mov $0b10000111, %ah // blink white
+  mov $'_', %al
+  mov %ax, %es:(%di) // write to cursor
+
+  pop %di
+  pop %bx
+  pop %ax
+  pop %es
+  pop %gs
+
+  ret
 
 // add MBR boot sign
 // https://stackoverflow.com/questions/47859273/calculating-padding-length-with-gas-att-directives-for-a-boot-sector
