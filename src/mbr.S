@@ -14,6 +14,7 @@ init_print_char:
   mov %ax, %gs
   movw $0, %gs:(0)
 
+
   // set SS:SP
   mov $0x9000, %ax
   mov %ax, %ss
@@ -48,6 +49,15 @@ test_print_char:
   call print_char
   mov $'Z', %al
   call print_char
+
+
+test_print_hex:
+  mov $0x1234, %ax
+  call print_hex
+  mov $0xfedc, %ax
+  call print_hex
+  mov $0x6979, %ax
+  call print_hex
 
 
   mov $1, %ax
@@ -96,6 +106,51 @@ print_char:
   pop %ax
   pop %es
   pop %gs
+
+  ret
+
+hex_str:  .asciz "0123456789ABCDEF"
+
+print_hex:
+  // print value in hex
+  // AX: value to print
+  pusha
+
+  mov $0, %dx  // reminder
+  mov $16, %bx // divisor
+
+  div %bx
+  push %dx
+  mov $0, %dx
+
+  div %bx
+  push %dx
+  mov $0, %dx
+
+  div %bx
+  push %dx
+  mov $0, %dx
+
+  div %bx
+  push %dx
+  mov $0, %dx
+
+  lea hex_str, %bx
+
+  pop %di
+  mov (%bx, %di), %ax
+  call print_char
+  pop %di
+  mov (%bx, %di), %ax
+  call print_char
+  pop %di
+  mov (%bx, %di), %ax
+  call print_char
+  pop %di
+  mov (%bx, %di), %ax
+  call print_char
+
+  popa
 
   ret
 
