@@ -5,3 +5,4 @@ disk.img
 *.img
 makefs
 src/vectors.S
+src/demo_print_char.c

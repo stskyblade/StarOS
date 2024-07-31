@@ -90,22 +90,52 @@ _halt:
   add $1, %ax
   jmp _halt
 
-hello_world:    .asciz "hello,world\n"
+hello_world:    .asciz "hello,\nworld\nnewline\nwho\nare\nyou?\n"
 
 print_char:
   // print character to screen, auto move cursor
   // AL: char to print
   push %gs
   push %es
-  push %ax
-  push %bx
-  push %di
-
+  pusha
 // 0x80000 to store variable
   push %ax
+  mov %al, %cl
+  mov $0, %ch // store char in cx
   mov $0x8000, %ax
   mov %ax, %gs
   mov %gs:(0), %bx  // position, word, 0-1999
+
+// if char == \n, move cursor to next start of line
+  cmp $'\n', %cl
+  jne print_char_end_if
+// leave blank in current cursor
+  mov $2, %ax
+  mul %bx // multiple 2 got offset
+  mov %ax, %di  // offset of 0xb8000
+
+  mov $0xb800, %ax
+  mov %ax, %es
+  mov $0b00000000, %ah
+  mov $'', %al
+  mov %ax, %es:(%di) // write space to offset
+
+  // bx = bx / 80 * 80 + 80
+  mov $0, %dx
+  mov %bx, %ax
+  mov $80, %bx // divisor
+  div %bx
+  mul %bx
+  add $80, %ax
+  mov %ax, %bx
+  mov %bx, %gs:(0)
+  pop %ax
+  popa
+  pop %es
+  pop %gs
+  ret
+
+print_char_end_if:  
   add $1, %bx
   mov %bx, %gs:(0)
   sub $1, %bx  // add 1 and write back
@@ -126,9 +156,7 @@ print_char:
   mov $'_', %al
   mov %ax, %es:(%di) // write to cursor
 
-  pop %di
-  pop %bx
-  pop %ax
+  popa
   pop %es
   pop %gs
 
