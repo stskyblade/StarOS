@@ -60,6 +60,20 @@ test_print_hex:
   call print_hex
 
 
+test_str_len:
+  lea test_str_1, %ax
+  call str_len
+  call print_hex
+
+  lea test_str_2, %ax
+  call str_len
+  call print_hex
+
+  lea test_str_3, %ax
+  call str_len
+  call print_hex
+
+
   mov $1, %ax
 _halt:
   add $1, %ax
@@ -153,6 +167,33 @@ print_hex:
   popa
 
   ret
+
+test_str_1: .asciz ""
+test_str_2: .asciz "abc"
+test_str_3: .asciz "ABCDEFG"
+
+str_len:
+  // return length of string in ax
+  // AX: addr of string
+  // Return:
+  // AX: length
+  push %bx
+  push %di
+
+  mov %ax, %bx // base addr of string
+  mov $0, %di // offset
+str_len_loop: 
+  mov $0, %al
+  cmpb (%bx, %di), %al
+  jz str_len_end
+  inc %di
+  jmp str_len_loop
+str_len_end:
+  mov %di, %ax
+  pop %di
+  pop %bx
+  ret
+
 
 // add MBR boot sign
 // https://stackoverflow.com/questions/47859273/calculating-padding-length-with-gas-att-directives-for-a-boot-sector
