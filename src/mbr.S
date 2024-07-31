@@ -73,6 +73,17 @@ test_str_len:
   call str_len
   call print_hex
 
+test_print_str:
+  lea test_str_1, %ax
+  call print_str
+  lea test_str_2, %ax
+  call print_str
+  lea test_str_3, %ax
+  call print_str
+  lea hello_world, %ax
+  call print_str
+  lea hex_str, %ax
+  call print_str
 
   mov $1, %ax
 _halt:
@@ -192,6 +203,32 @@ str_len_end:
   mov %di, %ax
   pop %di
   pop %bx
+  ret
+
+
+print_str:
+  // print string
+  // AX: addr of string
+  pusha
+  mov %ax, %bx
+  mov $0, %di
+  call str_len
+
+print_str_loop: 
+  cmp %ax, %di
+  jnb print_str_end  // if di >= ax, end
+
+  // print char
+  push %ax
+  mov (%bx, %di), %ax
+  mov $0, %ah
+  call print_char
+  pop %ax
+
+  inc %di
+  jmp print_str_loop
+print_str_end:  
+  popa
   ret
 
 
