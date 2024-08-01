@@ -6,91 +6,26 @@
 .global mbr_start
 .code16
 mbr_start:
-  movw $0, %ax
-  movw %ax, %ds
-
-init_print_char:
-  mov $0x8000, %ax
-  mov %ax, %gs
-  movw $0, %gs:(0)
-
-
   // set SS:SP
   mov $0x9000, %ax
   mov %ax, %ss
   mov $0xffff, %ax
   mov %ax, %sp
 
-  movw $0xb800, %ax
-  movw %ax, %es
+  mov $0, %ax
+  mov %ax, %ds
 
-  // color green
-  mov $0b00000010, %ah
-  mov $0, %al
+init_print_char:
+  mov $0x8000, %ax
+  mov %ax, %gs
+  movw $0, %gs:(0)
 
-
-  mov $0, %cx //offset of source char
-  mov $0, %di // offset of target char 
-_loop:  
-  lea hello_world, %bx
-  add %cx, %bx
-  movb (%bx), %al
-  movw %ax, %es:(%di)
-
-  add $1, %cx // next char position
-  add $2, %di
-  cmp $12, %cx
-  jl _loop
-
-test_print_char:  
-  mov $'X', %al
-  call print_char
-  mov $'Y', %al
-  call print_char
-  mov $'Z', %al
-  call print_char
-
-
-test_print_hex:
-  mov $0x1234, %ax
-  call print_hex
-  mov $0xfedc, %ax
-  call print_hex
-  mov $0x6979, %ax
-  call print_hex
-
-
-test_str_len:
-  lea test_str_1, %ax
-  call str_len
-  call print_hex
-
-  lea test_str_2, %ax
-  call str_len
-  call print_hex
-
-  lea test_str_3, %ax
-  call str_len
-  call print_hex
-
-test_print_str:
-  lea test_str_1, %ax
-  call print_str
-  lea test_str_2, %ax
-  call print_str
-  lea test_str_3, %ax
-  call print_str
-  lea hello_world, %ax
-  call print_str
-  lea hex_str, %ax
-  call print_str
+  call print_regs
 
   mov $1, %ax
 _halt:
   add $1, %ax
   jmp _halt
-
-hello_world:    .asciz "hello,\nworld\nnewline\nwho\nare\nyou?\n"
 
 print_char:
   // print character to screen, auto move cursor
@@ -207,10 +142,6 @@ print_hex:
 
   ret
 
-test_str_1: .asciz ""
-test_str_2: .asciz "abc"
-test_str_3: .asciz "ABCDEFG"
-
 str_len:
   // return length of string in ax
   // AX: addr of string
@@ -229,6 +160,7 @@ str_len_loop:
   jmp str_len_loop
 str_len_end:
   mov %di, %ax
+
   pop %di
   pop %bx
   ret
@@ -238,6 +170,7 @@ print_str:
   // print string
   // AX: addr of string
   pusha
+
   mov %ax, %bx
   mov $0, %di
   call str_len
@@ -259,6 +192,76 @@ print_str_end:
   popa
   ret
 
+
+ax_str: .asciz "\nax: 0x"
+bx_str: .asciz "    bx: 0x"
+cx_str: .asciz "    cx: 0x"
+dx_str: .asciz "    dx: 0x"
+sp_str: .asciz "\nsp: 0x"
+bp_str: .asciz "    bp: 0x"
+si_str: .asciz "    si: 0x"
+di_str: .asciz "    di: 0x"
+// cs_str: .asciz "\ncs: 0x"
+//ds_str: .asciz "\n    ds: 0x"
+//es_str: .asciz "    es: 0x"
+// fs_str: .asciz "    fs: 0x"
+// gs_str: .asciz "    gs: 0x"
+// ss_str: .asciz "    ss: 0x"
+
+print_regs:
+  // print all registers
+  pusha
+  push %di
+  push %si
+  push %bp
+  push %sp
+  push %dx
+  push %cx
+  push %bx
+  push %ax
+
+  lea ax_str, %ax
+  call print_str
+  pop %ax
+  call print_hex
+
+  lea bx_str, %ax
+  call print_str
+  pop %ax
+  call print_hex
+
+  lea cx_str, %ax
+  call print_str
+  pop %ax
+  call print_hex
+
+  lea dx_str, %ax
+  call print_str
+  pop %ax
+  call print_hex
+
+  lea sp_str, %ax
+  call print_str
+  pop %ax
+  call print_hex
+
+  lea bp_str, %ax
+  call print_str
+  pop %ax
+  call print_hex
+
+  lea si_str, %ax
+  call print_str
+  pop %ax
+  call print_hex
+  
+  lea di_str, %ax
+  call print_str
+  pop %ax
+  call print_hex
+
+  popa
+  ret
 
 // add MBR boot sign
 // https://stackoverflow.com/questions/47859273/calculating-padding-length-with-gas-att-directives-for-a-boot-sector
