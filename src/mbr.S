@@ -20,7 +20,12 @@ init_print_char:
   mov %ax, %gs
   movw $0, %gs:(0)
 
-  call print_regs
+test_print_memory:  
+  mov $0x7c0, %ax
+  mov %ax, %es
+  mov $0, %ax
+  mov $320, %bx
+  call print_memory
 
   mov $1, %ax
 _halt:
@@ -192,54 +197,44 @@ print_str_end:
   popa
   ret
 
-
-cs_str: .asciz "\ncs: 0x"
-ds_str: .asciz "    ds: 0x"
-es_str: .asciz "    es: 0x"
-fs_str: .asciz "    fs: 0x"
-gs_str: .asciz "    gs: 0x"
-ss_str: .asciz "    ss: 0x"
-
-print_regs:
-  // print all registers
+print_memory:
+  // print memory content at address es:ax, length: bx
+  // es: base address
+  // ax: offset
+  // bx: length
   pusha
-  push %ss
-  push %gs
-  push %fs
-  push %es
-  push %ds
-  push %cs
+  mov $0, %di
+  mov %ax, %bp
+print_memory_loop:  
+  cmp %bx, %di
+  // di < bx, do & loop
+  // di >= bx, end loop
+  jnb print_memory_loop_end
+  movw %es:(%bp, %di), %ax
+  // swap ah, al
+  mov %ah, %cl
+  mov %al, %ch
+  mov %cx, %ax
+  call print_hex  // print value
+  mov $' ', %al
+  mov $0, %ah
+  call print_char  // print ' '
+  // if di % 16 == 14, print \n
+  mov $0, %dx
+  mov %di, %ax
+  mov $16, %cx
+  div %cx
+  // remainder in dx
+  cmp $14, %dx
+  jne not_print_newline
+  mov $0, %ah
+  mov $'\n', %al
+  call print_char
 
-  lea cs_str, %ax
-  call print_str
-  pop %ax
-  call print_hex
-
-  lea ds_str, %ax
-  call print_str
-  pop %ax
-  call print_hex
-
-  lea es_str, %ax
-  call print_str
-  pop %ax
-  call print_hex
-
-  lea fs_str, %ax
-  call print_str
-  pop %ax
-  call print_hex
-
-  lea gs_str, %ax
-  call print_str
-  pop %ax
-  call print_hex
-
-  lea ss_str, %ax
-  call print_str
-  pop %ax
-  call print_hex
-
+not_print_newline:
+  add $2, %di
+  jmp print_memory_loop
+print_memory_loop_end:
   popa
   ret
 
