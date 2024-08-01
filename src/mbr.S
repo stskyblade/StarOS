@@ -193,69 +193,49 @@ print_str_end:
   ret
 
 
-ax_str: .asciz "\nax: 0x"
-bx_str: .asciz "    bx: 0x"
-cx_str: .asciz "    cx: 0x"
-dx_str: .asciz "    dx: 0x"
-sp_str: .asciz "\nsp: 0x"
-bp_str: .asciz "    bp: 0x"
-si_str: .asciz "    si: 0x"
-di_str: .asciz "    di: 0x"
-// cs_str: .asciz "\ncs: 0x"
-//ds_str: .asciz "\n    ds: 0x"
-//es_str: .asciz "    es: 0x"
-// fs_str: .asciz "    fs: 0x"
-// gs_str: .asciz "    gs: 0x"
-// ss_str: .asciz "    ss: 0x"
+cs_str: .asciz "\ncs: 0x"
+ds_str: .asciz "    ds: 0x"
+es_str: .asciz "    es: 0x"
+fs_str: .asciz "    fs: 0x"
+gs_str: .asciz "    gs: 0x"
+ss_str: .asciz "    ss: 0x"
 
 print_regs:
   // print all registers
   pusha
-  push %di
-  push %si
-  push %bp
-  push %sp
-  push %dx
-  push %cx
-  push %bx
-  push %ax
+  push %ss
+  push %gs
+  push %fs
+  push %es
+  push %ds
+  push %cs
 
-  lea ax_str, %ax
+  lea cs_str, %ax
   call print_str
   pop %ax
   call print_hex
 
-  lea bx_str, %ax
+  lea ds_str, %ax
   call print_str
   pop %ax
   call print_hex
 
-  lea cx_str, %ax
+  lea es_str, %ax
   call print_str
   pop %ax
   call print_hex
 
-  lea dx_str, %ax
+  lea fs_str, %ax
   call print_str
   pop %ax
   call print_hex
 
-  lea sp_str, %ax
+  lea gs_str, %ax
   call print_str
   pop %ax
   call print_hex
 
-  lea bp_str, %ax
-  call print_str
-  pop %ax
-  call print_hex
-
-  lea si_str, %ax
-  call print_str
-  pop %ax
-  call print_hex
-  
-  lea di_str, %ax
+  lea ss_str, %ax
   call print_str
   pop %ax
   call print_hex
