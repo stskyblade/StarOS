@@ -24,13 +24,19 @@ iso: kernel
 	cp grub.cfg isodir/boot/grub/grub.cfg
 	grub-mkrescue -o $(BUILD)/myos.iso isodir
 
-mbr.bin:
+mbr.bin: bootloader.bin
 	@cd $(SRC) && i686-elf-g++ -T mbr.ld -o ../$(BUILD)/mbr.elf $(CPPFLAG) mbr.S
 	@cd $(BUILD) && i686-elf-objcopy -O binary --only-section=.text mbr.elf mbr.bin
 # generate a file of 200MB
 	@cd $(BUILD) && dd status=none if=/dev/zero of=./mbr.img bs=512 count=409600
 # copy bin to disk img
 	@cd $(BUILD) && dd status=none if=./mbr.bin of=./mbr.img conv=notrunc
+	@cd $(BUILD) && dd status=none if=./bootloader.bin of=./mbr.img conv=notrunc seek=1
+
+bootloader.bin:
+	@cd $(BUILD) && dd status=none if=/dev/zero of=./bootloader.bin bs=512 count=2
+	@cd $(BUILD) && dd status=none if=../root_dir/hello.txt of=./bootloader.bin conv=notrunc seek=0
+	@cd $(BUILD) && dd status=none if=../root_dir/world.txt of=./bootloader.bin conv=notrunc seek=1
 
 burn: mbr.bin
 	@if [ ! -b /dev/sdb ]; then echo "File not found: /dev/sdb"; exit 1; fi

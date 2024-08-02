@@ -20,7 +20,22 @@ init_print_char:
   mov %ax, %gs
   movw $0, %gs:(0)
 
-  call init_ide
+  call test_read_disk
+  mov $0x7e0, %ax
+  mov %ax, %es
+  mov $0, %ax
+  mov $120, %bx
+  call print_memory
+
+  mov $'\n', %ax
+  call print_char
+  call print_char
+
+  mov $0x7e0, %ax
+  mov %ax, %es
+  mov $512, %ax
+  mov $120, %bx
+  call print_memory
 
   mov $1, %ax
 _halt:
@@ -154,7 +169,7 @@ str_len:
   mov $0, %di // offset
 str_len_loop: 
   mov $0, %al
-  cmpb (%bx, %di), %al
+  cmpb (%bx, %di), %al  // 依赖 ds
   jz str_len_end
   inc %di
   jmp str_len_loop
@@ -233,82 +248,33 @@ print_memory_loop_end:
   popa
   ret
 
-init_ide:
-  // select disk and perform some test
+test_read_disk:
+  // https://wiki.osdev.org/Disk_access_using_the_BIOS_(INT_13h)
+  // read sector 0 to 0x7c00 + 512
+// Set AH = 2
+// AL = total sector count (0 is illegal) -- cannot cross ES page boundary, or a cylinder boundary, and must be < 128
+// CH = cylinder & 0xff
+// CL = Sector | ((cylinder >> 2) & 0xC0);   count from 1
+// DH = Head -- may include two more cylinder bits
+// ES:BX -> buffer
+// Set DL = "drive number" -- typically 0x80, for the "C" drive
+// Issue an INT 0x13.
   pusha
+  push %es
+  mov $2, %ah
+  mov $2, %al
+  mov $0, %ch
+  mov $2, %cl  // second sector
+  mov $0, %dh
+  mov $0x7e0, %bx
+  mov %bx, %es
+  mov $0, %bx
+  mov $0x80, %dl
+  int $0x13
 
-  // select primary bus, master device
-  mov $0xA0, %al
-  mov $0x176, %dx
-  out %al, %dx
-
-  // Floating bus test
-  // 400ns delay
-  mov $0x177, %dx
-  mov $20, %cx
-delay_400ns:  
-  in %dx, %al
-  loop delay_400ns
-  mov $0, %ah
-  call print_hex
-  cmp $0x00ff, %ax  // if al == 0xff, failed
-  jne floating_ok
-  lea floating_failed_str, %ax
-  call print_str
-  jmp _halt
-
-floating_ok:  
-  // random value r/w test
-  mov $0xa1, %al
-  mov $0x1f2, %dx
-  out %al, %dx
-  mov %al, %bl
-  in %dx, %al
-
-  cmp %al, %bl // if !=, failed
-  je random_next
-  // print value of ax & bx
-  mov $0, %ah
-  call print_hex
-  mov $' ', %ax
-  call print_char
-  mov $0, %bh
-  xchg %ax, %bx
-  call print_hex
-  lea random_failed_str1, %ax
-  call print_str
-  jmp _halt
-
-random_next:
-  // another random value r/w test
-  mov $0xa3, %al
-  mov $0x174, %dx
-  out %al, %dx
-  mov %al, %bl
-  in %dx, %al
-  cmp %al, %bl // if !=, failed
-  je random_ok
-  lea random_failed_str2, %ax
-  call print_str
-  jmp _halt
- 
-random_ok:  
-  // IDENTIFY command test
-  lea init_ok, %ax
-  call print_str
+  pop %es
   popa
   ret
-
-floating_failed_str:
-  .asciz "float"
-
-random_failed_str1:
-  .asciz "\nRandom 1"
-
-random_failed_str2:
-  .asciz "\nRandom 2"
-init_ok:
-  .asciz "init OK"
 
 // add MBR boot sign
 // https://stackoverflow.com/questions/47859273/calculating-padding-length-with-gas-att-directives-for-a-boot-sector
