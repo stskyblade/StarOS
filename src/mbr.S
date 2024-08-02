@@ -20,12 +20,7 @@ init_print_char:
   mov %ax, %gs
   movw $0, %gs:(0)
 
-test_print_memory:  
-  mov $0x7c0, %ax
-  mov %ax, %es
-  mov $0, %ax
-  mov $320, %bx
-  call print_memory
+  call init_ide
 
   mov $1, %ax
 _halt:
@@ -237,6 +232,83 @@ not_print_newline:
 print_memory_loop_end:
   popa
   ret
+
+init_ide:
+  // select disk and perform some test
+  pusha
+
+  // select primary bus, master device
+  mov $0xA0, %al
+  mov $0x176, %dx
+  out %al, %dx
+
+  // Floating bus test
+  // 400ns delay
+  mov $0x177, %dx
+  mov $20, %cx
+delay_400ns:  
+  in %dx, %al
+  loop delay_400ns
+  mov $0, %ah
+  call print_hex
+  cmp $0x00ff, %ax  // if al == 0xff, failed
+  jne floating_ok
+  lea floating_failed_str, %ax
+  call print_str
+  jmp _halt
+
+floating_ok:  
+  // random value r/w test
+  mov $0xa1, %al
+  mov $0x1f2, %dx
+  out %al, %dx
+  mov %al, %bl
+  in %dx, %al
+
+  cmp %al, %bl // if !=, failed
+  je random_next
+  // print value of ax & bx
+  mov $0, %ah
+  call print_hex
+  mov $' ', %ax
+  call print_char
+  mov $0, %bh
+  xchg %ax, %bx
+  call print_hex
+  lea random_failed_str1, %ax
+  call print_str
+  jmp _halt
+
+random_next:
+  // another random value r/w test
+  mov $0xa3, %al
+  mov $0x174, %dx
+  out %al, %dx
+  mov %al, %bl
+  in %dx, %al
+  cmp %al, %bl // if !=, failed
+  je random_ok
+  lea random_failed_str2, %ax
+  call print_str
+  jmp _halt
+ 
+random_ok:  
+  // IDENTIFY command test
+  lea init_ok, %ax
+  call print_str
+  popa
+  ret
+
+floating_failed_str:
+  .asciz "float"
+
+random_failed_str1:
+  .asciz "\nRandom 1"
+
+random_failed_str2:
+  .asciz "\nRandom 2"
+init_ok:
+  .asciz "init OK"
 
 // add MBR boot sign
 // https://stackoverflow.com/questions/47859273/calculating-padding-length-with-gas-att-directives-for-a-boot-sector

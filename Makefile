@@ -2,7 +2,7 @@ SRC=src
 BUILD=build
 
 CPPFLAG = -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -nostdlib -g -save-temps
-QEMUOPT = -drive file=rootfs.img,index=0,media=disk,format=raw,if=ide
+QEMUOPT = -drive file=build/mbr.img,index=0,media=disk,format=raw,if=ide
 
 RED=\033[0;32m
 NC=\033[0m # No Color
@@ -35,10 +35,12 @@ mbr.bin:
 burn: mbr.bin
 	@if [ ! -b /dev/sdb ]; then echo "File not found: /dev/sdb"; exit 1; fi
 	@sudo dd status=none if=build/mbr.img of=/dev/sdb bs=512 count=4
+	@sync
 
 dump:
-	@sudo dd status=none if=/dev/sdb of=/tmp/sdb.img bs=512 count=4
+	@sudo dd status=none if=/dev/sdb of=/tmp/sdb.img bs=512 count=1
 	@hexdump -C /tmp/sdb.img
+	diff /tmp/sdb.img build/mbr.bin -s
 
 qemu: mbr.bin
 	qemu-system-i386 build/mbr.img
