@@ -20,24 +20,13 @@ init_print_char:
   mov %ax, %gs
   movw $0, %gs:(0)
 
-  call test_read_disk
-  mov $0x7e0, %ax
-  mov %ax, %es
-  mov $0, %ax
-  mov $120, %bx
-  call print_memory
 
-  mov $'\n', %ax
-  call print_char
-  call print_char
-
-  mov $0x7e0, %ax
-  mov %ax, %es
-  mov $512, %ax
-  mov $120, %bx
-  call print_memory
+  // load disk sector 2 to memory
+  call load_bootloader
+  jmp $0x7c0,$0x200  // bootloader_start
 
   mov $1, %ax
+.global _halt
 _halt:
   add $1, %ax
   jmp _halt
@@ -118,6 +107,7 @@ print_hex:
   // print value in hex
   // AX: value to print
   pusha
+  push %ds
 
   mov $0, %dx  // reminder
   mov $16, %bx // divisor
@@ -141,6 +131,8 @@ print_hex:
   lea hex_str, %bx
 
   pop %di
+  mov $0, %ax
+  mov %ax, %ds
   mov (%bx, %di), %ax
   call print_char
   pop %di
@@ -153,13 +145,14 @@ print_hex:
   mov (%bx, %di), %ax
   call print_char
 
+  pop %ds
   popa
 
   ret
 
 str_len:
   // return length of string in ax
-  // AX: addr of string
+  // DS:AX: addr of string
   // Return:
   // AX: length
   push %bx
@@ -181,9 +174,10 @@ str_len_end:
   ret
 
 
+.global print_str
 print_str:
   // print string
-  // AX: addr of string
+  // DS:AX: addr of string
   pusha
 
   mov %ax, %bx
@@ -248,7 +242,8 @@ print_memory_loop_end:
   popa
   ret
 
-test_read_disk:
+load_bootloader:
+  // load bootloader from sector 2 to 0x7e00
   // https://wiki.osdev.org/Disk_access_using_the_BIOS_(INT_13h)
   // read sector 0 to 0x7c00 + 512
 // Set AH = 2
@@ -262,7 +257,7 @@ test_read_disk:
   pusha
   push %es
   mov $2, %ah
-  mov $2, %al
+  mov $63, %al // sector count, 0-64 first cylinder
   mov $0, %ch
   mov $2, %cl  // second sector
   mov $0, %dh
