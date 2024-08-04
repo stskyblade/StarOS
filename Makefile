@@ -27,7 +27,6 @@ iso: kernel
 mbr.bin: bootloader.bin
 	@cd $(SRC) && i686-elf-g++ -T mbr.ld -o ../$(BUILD)/mbr.elf $(CPPFLAG) mbr.S bootloader.S
 # generate a symbol file for GDB, use another linker script, set offset at 0x00
-	@cd $(SRC) && i686-elf-g++ -T mbr_debug.ld -o ../$(BUILD)/mbr_debug.elf $(CPPFLAG) mbr.S bootloader.S
 	@cd $(BUILD) && i686-elf-objcopy -O binary --only-section=.text mbr.elf mbr.bin
 # generate a file of 200MB
 	@cd $(BUILD) && dd status=none if=/dev/zero of=./mbr.img bs=512 count=409600

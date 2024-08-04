@@ -7,7 +7,7 @@
 .code16
 mbr_start:
   // set SS:SP
-  mov $0x9000, %ax
+  mov $0x7000, %ax
   mov %ax, %ss
   mov $0xfffc, %ax
   mov %ax, %sp
@@ -16,7 +16,7 @@ mbr_start:
   mov %ax, %ds
 
 init_print_char:
-  mov $0x8000, %ax
+  mov $0x6000, %ax
   mov %ax, %gs
   movw $0, %gs:(0)
 
@@ -39,11 +39,11 @@ print_char:
   push %gs
   push %es
   pusha
-// 0x80000 to store variable
+// 0x60000 to store variable
   push %ax
   mov %al, %cl
   mov $0, %ch // store char in cx
-  mov $0x8000, %ax
+  mov $0x6000, %ax
   mov %ax, %gs
   mov %gs:(0), %bx  // position, word, 0-1999
 
@@ -105,6 +105,7 @@ print_char_end_if:
 
 hex_str:  .asciz "0123456789ABCDEF"
 
+.global print_hex
 print_hex:
   // print value in hex
   // AX: value to print
@@ -203,6 +204,7 @@ print_str_end:
   popa
   ret
 
+.global print_memory
 print_memory:
   // print memory content at address es:ax, length: bx
   // es: base address
