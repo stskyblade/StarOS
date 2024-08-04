@@ -1,5 +1,5 @@
 // This program should be written to MBR
-// BIOS will load it at read address mode
+// BIOS will load it at 16-bit real address mode
 
 
 .section .text
@@ -9,7 +9,7 @@ mbr_start:
   // set SS:SP
   mov $0x9000, %ax
   mov %ax, %ss
-  mov $0xffff, %ax
+  mov $0xfffc, %ax
   mov %ax, %sp
 
   mov $0, %ax
@@ -23,7 +23,8 @@ init_print_char:
 
   // load disk sector 2 to memory
   call load_bootloader
-  jmp $0x7c0,$0x200  // bootloader_start
+jmp_bootloader:
+  jmp bootloader_start  // bootloader_start
 
   mov $1, %ax
 .global _halt
@@ -31,6 +32,7 @@ _halt:
   add $1, %ax
   jmp _halt
 
+.global print_char
 print_char:
   // print character to screen, auto move cursor
   // AL: char to print
@@ -74,7 +76,7 @@ print_char:
   pop %gs
   ret
 
-print_char_end_if:  
+print_char_end_if:
   add $1, %bx
   mov %bx, %gs:(0)
   sub $1, %bx  // add 1 and write back
@@ -160,7 +162,7 @@ str_len:
 
   mov %ax, %bx // base addr of string
   mov $0, %di // offset
-str_len_loop: 
+str_len_loop:
   mov $0, %al
   cmpb (%bx, %di), %al  // 依赖 ds
   jz str_len_end
@@ -184,7 +186,7 @@ print_str:
   mov $0, %di
   call str_len
 
-print_str_loop: 
+print_str_loop:
   cmp %ax, %di
   jnb print_str_end  // if di >= ax, end
 
@@ -197,7 +199,7 @@ print_str_loop:
 
   inc %di
   jmp print_str_loop
-print_str_end:  
+print_str_end:
   popa
   ret
 
@@ -209,7 +211,7 @@ print_memory:
   pusha
   mov $0, %di
   mov %ax, %bp
-print_memory_loop:  
+print_memory_loop:
   cmp %bx, %di
   // di < bx, do & loop
   // di >= bx, end loop
