@@ -203,9 +203,10 @@ _err_clear:
   rep insw
   mov $'\n', %ax
   call print_char
-  mov $0, %ax
-  mov $160, %bx
-  call print_memory
+  push %bx
+  // mov $0, %ax
+  // mov $160, %bx
+  // call print_memory
 
   mov $'\n', %ax
   call print_char
@@ -218,6 +219,61 @@ _err_clear:
   mov $200, %ax
   mov $8, %bx
   call print_memory
+
+  // read disk sector 1 to buffer
+_read_disk_sector:
+  pop %bx
+  // select master device
+  // mov %bx, %dx  // 0x1f0
+  // mov $0xe0, %al
+  // out %al, %dx
+  mov $1, %al
+  mov %bx, %dx
+  add $2, %dx
+  out %al, %dx  // send sector count to 0x1f2
+  mov $65, %al
+  add $1, %dx
+  out %al, %dx  // send low 8bit LBA to 0x1f3, LBA 1
+  mov $0, %al
+  add $1, %dx
+  out %al, %dx  // send mid 8bit LBA to 0x1f4
+  add $1, %dx
+  out %al, %dx  // send mid 8bit LBA to 0x1f5
+  mov $0x20, %al
+  add $2, %dx
+  out %al, %dx  // send READ command 0x20 to 0x1f7
+
+  // poll
+_drive_busy:
+  in %dx, %al
+  test $0x80, %al  // BSY set
+  jnz _drive_busy
+  test $8, %al  // DRQ set
+  jnz _data_ready
+  test $0x21, %al // ERR or DF set
+  jz _invalid_result
+  lea drive_err_str, %ax
+  call print_str
+
+_invalid_result:
+  lea invalid_result_str, %ax
+  call print_str
+  jmp read_disk_end
+
+_data_ready:
+  lea disk_sector_buffer, %ax
+  mov %ax, %es
+  mov $0, %di
+  mov %bx, %dx
+  mov $256, %cx
+  rep insw
+  mov $'\n', %ax
+  call print_char
+  push %bx
+  mov $0, %ax
+  mov $160, %bx
+  call print_memory
+  pop %bx
 
 read_disk_end:
   pop %es
@@ -242,6 +298,11 @@ drive_failed_str:
   .asciz "drive not exist\n"
 err_not_clear_str:
   .asciz "err not clear\n"
+drive_err_str:
+  .asciz "drive error\n"
+invalid_result_str:
+  .asciz "invalid result\n"
+
 
   // 512 Bytes
 disk_sector_buffer:

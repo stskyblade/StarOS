@@ -32,6 +32,9 @@ mbr.bin: bootloader.bin
 	@cd $(BUILD) && dd status=none if=/dev/zero of=./mbr.img bs=512 count=409600
 # copy bin to disk img
 	@cd $(BUILD) && dd status=none if=./mbr.bin of=./mbr.img conv=notrunc
+# copy simple text file to disk img
+	@cd $(BUILD) && dd status=none if=../root_dir/hello.txt of=./mbr.img conv=notrunc seek=64
+	@cd $(BUILD) && dd status=none if=../root_dir/world.txt of=./mbr.img conv=notrunc seek=65
 
 bootloader.bin:
 	@cd $(BUILD) && dd status=none if=/dev/zero of=./bootloader.bin bs=512 count=2
