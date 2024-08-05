@@ -93,7 +93,6 @@ read_disk:
   mov %bx, %dx
   add $6, %dx // drive select register
   out %al, %dx
-
   // wait 400ns, read Status register 15 times
   mov %bx, %dx
   add $7, %dx // Status register
@@ -148,6 +147,7 @@ read_status_15_loop:
 //   call print_str
 
   // IDENTIFY test
+_identify_test:
   mov $0, %al
   mov %bx, %dx
   add $2, %dx
@@ -171,30 +171,49 @@ read_status_15_loop:
   jmp read_disk_end
 
 _drive_exist:
-  // poll until bit 7 clears
-  in %dx, %al
-  and $0b10000000, %al
-  cmp $0, %al  // if != 0, repeat
-  jne _drive_exist
+  // poll until bit 7 BSY clears
 
-  // TODO: Because of some ATAPI drives that do not follow spec, at this point you need to check the LBAmid and LBAhi ports (0x1F4 and 0x1F5) to see if they are non-zero. If so, the drive is not ATA, and you should stop polling
+  // if 0x1f4, 0x1f5 are non-zero, is not ATA device
+  mov %bx, %dx
+  add $4, %dx
+  in %dx, %al
+  cmp $0, %al
+  // if 0x1f4 != 0, not ATA device
+  jz _check_next_ata
+  lea not_ata_str, %ax
+  call print_str
+  jmp read_disk_end
+_check_next_ata:  // test is 0x1f5 is zero
+  inc %dx
+  in %dx, %al
+  cmp $0, %al
+  // if al != 0, not ATA device
+  jz _is_ata
+  lea not_ata_str, %ax
+  call print_str
+  jmp read_disk_end
+
+_is_ata:
+  mov %bx, %dx
+  add $7, %dx
+  in %dx, %al
+  test $0x80, %al
+  jnz _drive_exist  // poll until BSY clears
 
 _poll_until_DRQ_ERR:
   in %dx, %al
-  and $0b00001001, %al
-  cmp $0, %al  // if DRQ or ERR sets, stop polling
-  je _poll_until_DRQ_ERR
+  test $9, %al
+  // if DRQ or ERR sets, stop polling
+  jz _poll_until_DRQ_ERR
 
   // ERR is clear, read data
-  in %dx, %al
-  and $0b00000001, %al
-  cmp $0, %al
-  je _err_clear
+  test $1, %al
+  jz _err_clear
   lea err_not_clear_str, %ax
   call print_str
   jmp read_disk_end
 
-_err_clear:
+_err_clear:  // DRQ is set, read IDENTIFY result
   lea disk_sector_buffer, %ax
   mov %ax, %es
   mov $0, %di
@@ -223,17 +242,19 @@ _err_clear:
   // read disk sector 1 to buffer
 _read_disk_sector:
   pop %bx
-  // select master device
+  // select master device. already selected before
   // mov %bx, %dx  // 0x1f0
   // mov $0xe0, %al
   // out %al, %dx
+
+  // read 1 sector at LBA 65
   mov $1, %al
   mov %bx, %dx
   add $2, %dx
   out %al, %dx  // send sector count to 0x1f2
   mov $65, %al
   add $1, %dx
-  out %al, %dx  // send low 8bit LBA to 0x1f3, LBA 1
+  out %al, %dx  // send low 8bit LBA to 0x1f3, LBA 65
   mov $0, %al
   add $1, %dx
   out %al, %dx  // send mid 8bit LBA to 0x1f4
@@ -244,6 +265,20 @@ _read_disk_sector:
   out %al, %dx  // send READ command 0x20 to 0x1f7
 
   // poll
+  // ignore first four read of Status reagister
+  // https://wiki.osdev.org/ATA_PIO_Mode#x86_Code_Examples
+  mov $4, %cx
+_ignore_four_BSY:
+  in %dx, %al
+  test $0x80, %al  // BSY set
+  jne _dec_count
+  test $8, %al // DRQ set
+  jnz _data_ready
+_dec_count:
+  dec %cx
+  cmp $0, %cx
+  jne _ignore_four_BSY
+
 _drive_busy:
   in %dx, %al
   test $0x80, %al  // BSY set
@@ -251,9 +286,10 @@ _drive_busy:
   test $8, %al  // DRQ set
   jnz _data_ready
   test $0x21, %al // ERR or DF set
-  jz _invalid_result
-  lea drive_err_str, %ax
+  jz _invalid_result  // both DRQ, ERR, DF is clear
+  lea drive_err_str, %ax  // ERR or DF set
   call print_str
+  jmp read_disk_end
 
 _invalid_result:
   lea invalid_result_str, %ax
@@ -267,6 +303,10 @@ _data_ready:
   mov %bx, %dx
   mov $256, %cx
   rep insw
+
+  // TODO: delay 400ns to allow drive to set new values of BSY and DRQ
+  // TODO: read multi sector
+
   mov $'\n', %ax
   call print_char
   push %bx
@@ -302,7 +342,8 @@ drive_err_str:
   .asciz "drive error\n"
 invalid_result_str:
   .asciz "invalid result\n"
-
+not_ata_str:
+  .asciz "not ATA device\n"
 
   // 512 Bytes
 disk_sector_buffer:
