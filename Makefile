@@ -1,7 +1,7 @@
 SRC=src
 BUILD=build
 
-CPPFLAG = -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -nostdlib -g -save-temps
+CPPFLAG = -ffreestanding -Wall -Wno-write-strings -Wno-unused-variable -Wextra -fno-exceptions -fno-rtti -nostdlib -g -save-temps
 QEMUOPT = -drive file=build/mbr.img,index=0,media=disk,format=raw,if=ide
 
 RED=\033[0;32m
@@ -25,7 +25,7 @@ iso: kernel
 	grub-mkrescue -o $(BUILD)/myos.iso isodir
 
 mbr.bin: bootloader.bin
-	@cd $(SRC) && i686-elf-g++ -T mbr.ld -o ../$(BUILD)/mbr.elf $(CPPFLAG) mbr.S bootloader.S bootloader_32.cpp
+	@cd $(SRC) && i686-elf-g++ -T mbr.ld -o ../$(BUILD)/mbr.elf $(CPPFLAG) mbr.S bootloader.S bootloader_32.cpp b32_print.cpp
 # generate a symbol file for GDB, use another linker script, set offset at 0x00
 	@cd $(BUILD) && i686-elf-objcopy -O binary --only-section=.text mbr.elf mbr.bin
 # generate a file of 200MB
