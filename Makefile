@@ -25,7 +25,7 @@ iso: kernel
 	grub-mkrescue -o $(BUILD)/myos.iso isodir
 
 mbr.bin: bootloader.bin
-	@cd $(SRC) && i686-elf-g++ -T mbr.ld -o ../$(BUILD)/mbr.elf $(CPPFLAG) mbr.S bootloader.S
+	@cd $(SRC) && i686-elf-g++ -T mbr.ld -o ../$(BUILD)/mbr.elf $(CPPFLAG) mbr.S bootloader.S bootloader_32.cpp
 # generate a symbol file for GDB, use another linker script, set offset at 0x00
 	@cd $(BUILD) && i686-elf-objcopy -O binary --only-section=.text mbr.elf mbr.bin
 # generate a file of 200MB

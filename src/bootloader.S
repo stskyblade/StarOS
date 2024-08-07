@@ -40,10 +40,70 @@ bootloader_start:
   mov %ax, %fs
   mov %ax, %gs
 
-  lea bootloader_str, %ax
-  call print_str
-  call demo_read_disk
-  jmp _halt
+jmp_32:
+  cli
+  // jmp to bootloader_32, never return
+  // set up GDT
+  lea GDT, %di
+  add $8, %di // GDT[1] kernel code segment, https://wiki.osdev.org/GDT_Tutorial
+  // write segment descriptor to GDT[1], 8 bytes
+// 0000 0000 1100 1111 1001 1010 0000 0000
+// 0000 0000 0000 0000 1111 1111 1111 1111
+  movw $0xffff, (%di)
+  add $2, %di
+  movw $0x0000, (%di)
+  add $2, %di
+  movw $0x9A00, (%di)
+  add $2, %di
+  movw $0x00cf, (%di)
+  // GDT[2]  kernel data segment
+  add $2, %di
+  movw $0xffff, (%di)
+  add $2, %di
+  movw $0x0000, (%di)
+  add $2, %di
+  movw $0x9200, (%di)
+  add $2, %di
+  movw $0x00cf, (%di)
+
+  mov $0, %di
+  // set up GDTR
+  lea GDT_end, %ax
+  lea GDT, %bx
+  sub %bx, %ax
+  lea GDTR, %di
+  movw %ax, (%di)  // write 2 bytes limit
+  add $2, %di
+  lea GDT, %ax
+  movw %ax, (%di) // write 2 bytes base
+  sub $2, %di
+  lgdt (%di)
+
+  // enter protected mode
+  mov $0, %eax
+  mov %cr0, %eax
+  or $1, %eax
+  mov %eax, %cr0
+
+  jmp $0x0008, $flush
+.code32
+flush:
+  mov $3, %eax
+  mov $4, %ebx
+  add %ebx, %eax
+  // set SS, DS, ES, FS, GS
+  mov $0x0010, %eax
+  mov %eax, %ss
+  mov $0x7fffc, %esp
+  mov %eax, %ds
+  mov %eax, %es
+  mov %eax, %fs
+  mov %eax, %gs
+
+  // lea bootloader_str, %ax
+  // call print_str
+  // call demo_read_disk
+  jmp $0x0008, $bootloader32_start
 
 
 demo_read_disk:
@@ -365,3 +425,15 @@ disk_sector_buffer:
   .word 0, 0, 0, 0,0, 0, 0, 0,0, 0, 0, 0,0, 0, 0, 0
 disk_sector_buffer_end:
   .word 0xaa55
+GDT:
+// 64 bytes
+  .word 0, 0, 0, 0, 0, 0, 0, 0
+  .word 0, 0, 0, 0, 0, 0, 0, 0
+  .word 0, 0, 0, 0, 0, 0, 0, 0
+  .word 0, 0, 0, 0, 0, 0, 0, 0
+GDT_end:
+GDTR:
+  // 2 bytes limit
+  .word 0
+  // 4 bytes base
+  .word 0, 0
