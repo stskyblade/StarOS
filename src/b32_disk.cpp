@@ -10,6 +10,9 @@ const uint16_t DriveRegister = 6;
 const uint16_t StatusRegister = 7;
 const uint16_t CommandRegister = 7;
 
+const uint8_t DRQ = 0x8;
+const uint8_t ERR = 0x1;
+
 int detect_ide_disk(uint16_t port_base, bool is_master) {
     // https://wiki.osdev.org/ATA_PIO_Mode#Floating_Bus
     // read Status byte, 0xff is invalid value
@@ -80,8 +83,7 @@ int detect_ide_disk(uint16_t port_base, bool is_master) {
     }
 
     // poll until DRQ or ERR
-    const uint8_t DRQ = 0x8;
-    const uint8_t ERR = 0x1;
+
     while ((data & (DRQ | ERR)) == 0) {
         data = inb(port_base + StatusRegister);
     }
@@ -92,8 +94,9 @@ int detect_ide_disk(uint16_t port_base, bool is_master) {
 
     // DRQ
     uint16_t buffer[256];
+    uint16_t word = 0;
     for (int i = 0; i < 256; i++) {
-        uint16_t word = inw(port_base + DataRegister);
+        word = inw(port_base + DataRegister);
         buffer[i] = word;
     }
 
@@ -108,6 +111,57 @@ int detect_ide_disk(uint16_t port_base, bool is_master) {
     return true;
 }
 
+// https://wiki.osdev.org/ATA_PIO_Mode#28_bit_PIO
+// return 0 on success, -1 on failure
+int read_ide_disk_sector(uint16_t port_base, bool is_master, uint64_t lba, uint64_t count, uint8_t *dest) {
+    // select drive and set high 4 bit LBA
+    outb(port_base + DriveRegister, 0xe0 | ((!is_master) << 4) | ((lba >> 24) & 0x0f));
+    uint8_t data = 0;
+
+    for (int i = 0; i < 15; i++) {
+        inb(port_base + StatusRegister);
+    }
+
+    // FIXME: count > 256
+    // send address
+    outb(port_base + SectorCountRegister, count);
+    outb(port_base + LBAloRegister, lba & 0xff);
+    outb(port_base + LBAmidRegister, lba >> 8);
+    outb(port_base + CylinderHighRegister, lba >> 16);
+    outb(port_base + CommandRegister, 0x20); // send READ command
+
+    // poll
+    data = inb(port_base + StatusRegister);
+    while (data & 0x80) {
+        // if BSY set, poll
+        data = inb(port_base + StatusRegister);
+    }
+
+    while ((data & (DRQ | ERR)) == 0) {
+        data = inb(port_base + StatusRegister);
+    }
+
+    if (data & DRQ) {
+        // read data
+        uint16_t *buffer = (uint16_t *)dest;
+        uint16_t word = 0;
+        for (int i = 0; i < 256; i++) {
+            word = inw(port_base + DataRegister);
+            buffer[i] = word;
+        }
+        return 0;
+    }
+
+    return -1;
+}
+
+// return 0 on success
 int read_disk_sector(uint64_t sector_number, uint64_t count, uint8_t *dest) {
     bool status = detect_ide_disk(0x1f0, true);
+    if (status) {
+        int error = read_ide_disk_sector(0x1f0, true, sector_number, count, dest);
+        if (!status) {
+            return 0;
+        }
+    }
 }
