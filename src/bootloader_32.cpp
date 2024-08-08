@@ -15,6 +15,10 @@ void bootloader32_start() {
     printf(s);
     char *s2 = "hello,C. bootloader32.\n";
     printf(s2);
+
+    uint8_t buffer[1024];
+    read_disk_sector(0, 1, buffer);
+
     while (1) {
         ;
     }

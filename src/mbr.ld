@@ -9,6 +9,7 @@ SECTIONS
     *bootloader.o(.text)
     *bootloader_32.o(.text)
     *(.text)
+    *(.text*)
     *(.data)
     *(.rodata)
 }
