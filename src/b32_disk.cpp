@@ -13,11 +13,15 @@ const uint16_t CommandRegister = 7;
 const uint8_t DRQ = 0x8;
 const uint8_t ERR = 0x1;
 
-int detect_ide_disk(uint16_t port_base, bool is_master) {
+const char *error_msg = "";
+
+// return true on success
+bool detect_ide_disk(uint16_t port_base, bool is_master) {
     // https://wiki.osdev.org/ATA_PIO_Mode#Floating_Bus
     // read Status byte, 0xff is invalid value
     uint8_t data = inb(port_base + StatusRegister);
     if (data == 0xff) {
+        error_msg = "Floating bus test failed.";
         return false;
     }
 
@@ -26,6 +30,7 @@ int detect_ide_disk(uint16_t port_base, bool is_master) {
     outb(port_base + SectorCountRegister, data);
     uint8_t data_read = inb(port_base + SectorCountRegister);
     if (data != data_read) {
+        error_msg = "Random value test 1 failed.";
         return false;
     }
 
@@ -33,6 +38,7 @@ int detect_ide_disk(uint16_t port_base, bool is_master) {
     outb(port_base + CylinderHighRegister, data);
     data_read = inb(port_base + CylinderHighRegister);
     if (data != data_read) {
+        error_msg = "Random value test 2 failed.";
         return false;
     }
 
@@ -51,6 +57,7 @@ int detect_ide_disk(uint16_t port_base, bool is_master) {
     data = inb(port_base + StatusRegister);
     if (data == 0) {
         // driver doesn't exist
+        error_msg = "Drive doesn't exist.";
         return false;
     }
 
@@ -61,10 +68,15 @@ int detect_ide_disk(uint16_t port_base, bool is_master) {
 
         if (mid_data == 0x14 && hi_data == 0xeb) {
             // ATAPI device
+            error_msg = "ATAPI device.";
         } else if (mid_data == 0x3c && hi_data == 0xc3) {
             // SATA device
+            error_msg = "SATA device.";
         } else if (mid_data == 0x69 && hi_data == 0x96) {
             // SATAPI device
+            error_msg = "SATAPI device.";
+        } else {
+            error_msg = "unknown device.";
         }
 
         return false;
@@ -76,6 +88,7 @@ int detect_ide_disk(uint16_t port_base, bool is_master) {
         hi_data = inb(port_base + CylinderHighRegister);
         if (mid_data && hi_data) {
             // not ATA device
+            error_msg = "not ATA device.";
             return false;
         }
 
@@ -89,6 +102,7 @@ int detect_ide_disk(uint16_t port_base, bool is_master) {
     }
 
     if (data & ERR) {
+        error_msg = "ERR flags set";
         return false;
     }
 
@@ -157,11 +171,53 @@ int read_ide_disk_sector(uint16_t port_base, bool is_master, uint64_t lba, uint6
 
 // return 0 on success
 int read_disk_sector(uint64_t sector_number, uint64_t count, uint8_t *dest) {
-    bool status = detect_ide_disk(0x1f0, true);
-    if (status) {
-        int error = read_ide_disk_sector(0x1f0, true, sector_number, count, dest);
-        if (!status) {
-            return 0;
-        }
+    uint16_t port_base = 0x1f0;
+    bool is_master = true;
+    bool success = detect_ide_disk(port_base, is_master);
+    printf("Check disk 0x%x ", port_base);
+    success ? printf("true ") : printf("false ");
+
+    if (success) {
+        int error = read_ide_disk_sector(port_base, is_master, sector_number, count, dest);
+    } else {
+        printf(error_msg);
     }
+    printf("\n");
+
+    // test other disk drive
+    port_base = 0x1f0;
+    is_master = false;
+    success = detect_ide_disk(port_base, is_master);
+    printf("Check disk 0x%x ", port_base);
+    success ? printf("true ") : printf("false ");
+
+    if (success) {
+    } else {
+        printf(error_msg);
+    }
+    printf("\n");
+
+    port_base = 0x170;
+    is_master = true;
+    success = detect_ide_disk(port_base, is_master);
+    printf("Check disk 0x%x ", port_base);
+    success ? printf("true ") : printf("false ");
+
+    if (success) {
+    } else {
+        printf(error_msg);
+    }
+    printf("\n");
+
+    port_base = 0x170;
+    is_master = false;
+    success = detect_ide_disk(port_base, is_master);
+    printf("Check disk 0x%x ", port_base);
+    success ? printf("true ") : printf("false ");
+
+    if (success) {
+    } else {
+        printf(error_msg);
+    }
+    printf("\n");
 }
