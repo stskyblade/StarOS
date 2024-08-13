@@ -169,16 +169,95 @@ int read_ide_disk_sector(uint16_t port_base, bool is_master, uint64_t lba, uint6
     return -1;
 }
 
-// return 0 on success
-int read_disk_sector(uint64_t sector_number, uint64_t count, uint8_t *dest) {
+// `bus` for bus number, 8-bit
+// `device` for device number, 5-bit
+// `func` for function number, 3-bit
+// `offset` for byte offset inside 64 32-bit registers, 256 bytes total
+uint32_t read_long_PCI_config_space(uint8_t bus, uint8_t device, uint8_t func, uint8_t offset) {
+    uint32_t address = 0;
+    address |= 1 << 31; // enable bit
+    address |= bus << 16;
+    address |= (device & 0b11111) << 11;
+    address |= (func & 0b111) << 8;
+    address |= offset;
+
+    outl(0xcf8, address);
+    uint32_t data = inl(0xcfc);
+    return data;
+}
+
+void write_long_PCI_config_space(uint8_t bus, uint8_t device, uint8_t func, uint8_t offset, uint32_t data) {
+    uint32_t address = 0;
+    address |= 1 << 31; // enable bit
+    address |= bus << 16;
+    address |= (device & 0b11111) << 11;
+    address |= (func & 0b111) << 8;
+    address |= offset;
+
+    outl(0xcf8, address);
+    outl(0xcfc, data);
+    return;
+}
+
+void read_target_config_space(uint8_t bus, uint8_t device, uint8_t func, uint32_t *buf) {
+    for (int i = 0; i < 64; i++) {
+        buf[i] = read_long_PCI_config_space(bus, device, func, i << 2);
+    }
+}
+
+int check_target(uint8_t bus, uint8_t device, uint8_t func) {
+    uint32_t buf[64];
+    read_target_config_space(bus, device, func, buf);
+
+    // check DEVICE id & Vendor id
+    if (buf[0] == 0xFFFFFFFF) {
+        // printf("non-exist.\n");
+        return -1;
+    }
+
+    uint32_t data = buf[2];
+    uint32_t data2 = buf[3];
+    // printf("%x:%x.%x ", bus, device, func);
+    uint8_t class_code = data >> 24;
+    uint8_t subclass = data >> 16;
+    uint8_t prog_if = data >> 8;
+    // printf("%x, %x, %x, %x.\n", data >> 24, data >> 16 & 0xFF, data >> 8 & 0xFF, data2 >> 16 & 0xFF);
+
+    // set 0:1F.2 device to compatibility mode
+    if (class_code == 1 && subclass == 1 && prog_if == 0x8F) {
+        // printf("change IDE controller to compatible mode.\n");
+        int new_data = 0;
+        new_data |= class_code << 24;
+        new_data |= subclass << 16;
+        new_data |= (prog_if & 0x8A); // clear bit 0 & bit 2
+        new_data |= (data & 0xFF);
+        // write back data to buf[2]
+        write_long_PCI_config_space(bus, device, func, 2 << 2, new_data);
+    }
+    return 0;
+}
+
+// enumerate all PCI devices and print message
+void enumerate_PCI_devices() {
+    for (int bus = 0; bus < 256; bus++) {
+        for (int device = 0; device < 32; device++) {
+            for (int func = 0; func < 8; func++) {
+                check_target(bus, device, func);
+            }
+        }
+    }
+}
+
+int detect_ide_disks() {
     uint16_t port_base = 0x1f0;
     bool is_master = true;
     bool success = detect_ide_disk(port_base, is_master);
     printf("Check disk 0x%x ", port_base);
+    is_master ? printf("master ") : printf("slave  ");
     success ? printf("true ") : printf("false ");
 
     if (success) {
-        int error = read_ide_disk_sector(port_base, is_master, sector_number, count, dest);
+        // int error = read_ide_disk_sector(port_base, is_master, sector_number, count, dest);
     } else {
         printf(error_msg);
     }
@@ -189,6 +268,7 @@ int read_disk_sector(uint64_t sector_number, uint64_t count, uint8_t *dest) {
     is_master = false;
     success = detect_ide_disk(port_base, is_master);
     printf("Check disk 0x%x ", port_base);
+    is_master ? printf("master ") : printf("slave  ");
     success ? printf("true ") : printf("false ");
 
     if (success) {
@@ -201,6 +281,7 @@ int read_disk_sector(uint64_t sector_number, uint64_t count, uint8_t *dest) {
     is_master = true;
     success = detect_ide_disk(port_base, is_master);
     printf("Check disk 0x%x ", port_base);
+    is_master ? printf("master ") : printf("slave  ");
     success ? printf("true ") : printf("false ");
 
     if (success) {
@@ -213,6 +294,7 @@ int read_disk_sector(uint64_t sector_number, uint64_t count, uint8_t *dest) {
     is_master = false;
     success = detect_ide_disk(port_base, is_master);
     printf("Check disk 0x%x ", port_base);
+    is_master ? printf("master ") : printf("slave  ");
     success ? printf("true ") : printf("false ");
 
     if (success) {
@@ -220,4 +302,26 @@ int read_disk_sector(uint64_t sector_number, uint64_t count, uint8_t *dest) {
         printf(error_msg);
     }
     printf("\n");
+}
+
+// return 0 on success
+int read_disk_sector(uint64_t sector_number, uint64_t count, uint8_t *dest) {
+    // enumerate PCI bus
+    enumerate_PCI_devices();
+
+    uint16_t port_base = 0x1f0;
+    bool is_master = true;
+    int error = read_ide_disk_sector(port_base, is_master, sector_number, count, dest);
+    printf("is master:\n");
+    if (!error) {
+        print_memory(dest, 16 * 7);
+    }
+
+    is_master = false;
+    error = read_ide_disk_sector(port_base, is_master, sector_number, count, dest);
+    printf("is slave:\n");
+    if (!error) {
+        print_memory(dest, 16 * 7);
+    }
+    return 0;
 }

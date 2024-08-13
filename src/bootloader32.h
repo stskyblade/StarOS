@@ -40,7 +40,36 @@ inline void outl(uint16_t port, uint32_t data) {
 }
 
 // b32_print
+void print_c(char c);
 void printf(const char *restrict, ...);
+void print_memory(uint8_t *buf, int length);
+
+// print a 16-bit unsigned `data` in hex representation
+template <typename T>
+void print_hex(T data) {
+    // if (data == 0) {
+    //     print_c('0');
+    //     return;
+    // }
+    int length = sizeof(T) * 2; // hex representation length
+
+    char *hex_str = "0123456789abcdef";
+    char buffer[length];
+    for (int i = 0; i < length; i++) {
+        int reminder = data % 16;
+        data = data / 16;
+        buffer[length - 1 - i] = hex_str[reminder];
+    }
+
+    // remove zeros
+    // int index = 0;
+    // while (buffer[index] == '0') {
+    //     index++;
+    // 0
+    for (int i = 0; i < length; i++) {
+        print_c(buffer[i]);
+    }
+}
 
 // b32_disk.cpp
 // for 12TB disk drive, need 2 * 10^10 sectors, larger than 32 bit unsigned int

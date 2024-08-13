@@ -4,6 +4,14 @@
 
 #include "bootloader32.h"
 
+void print_data_type_size() {
+    printf("Size of char 0x%x\n", sizeof(char));
+    printf("Size of short 0x%x\n", sizeof(short));
+    printf("Size of int 0x%x\n", sizeof(int));
+    printf("Size of long 0x%x\n", sizeof(long));
+    printf("Size of long long 0x%x\n", sizeof(long long));
+}
+
 extern "C" {
 
 // never return
@@ -11,6 +19,7 @@ extern "C" {
 // jump from bootloader.S:jmp_32
 void bootloader32_start() {
     // TODO: print hello,C. bootloader32
+    // print_data_type_size();
     char *s = "hello,C. bootloader32.\n";
     printf(s);
     char *s2 = "hello,C. bootloader32.\n";

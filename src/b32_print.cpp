@@ -78,16 +78,40 @@ void print_c(char c) {
 }
 
 // print a 16-bit unsigned `data` in hex representation
-void print_hex(uint32_t data) {
-    char *hex_str = "0123456789ABCEDF";
-    char buffer[8];
-    for (int i = 0; i < 8; i++) {
-        int reminder = data % 16;
-        data = data / 16;
-        buffer[7 - i] = hex_str[reminder];
-    }
-    for (int i = 0; i < 8; i++) {
-        print_c(buffer[i]);
+// void print_hex(uint32_t data) {
+//     if (data == 0) {
+//         print_c('0');
+//         return;
+//     }
+
+//     char *hex_str = "0123456789ABCEDF";
+//     char buffer[8];
+//     for (int i = 0; i < 8; i++) {
+//         int reminder = data % 16;
+//         data = data / 16;
+//         buffer[7 - i] = hex_str[reminder];
+//     }
+
+//     // remove zeros
+//     int index = 0;
+//     while (buffer[index] == '0') {
+//         index++;
+//     }
+
+//     for (int i = index; i < 8; i++) {
+//         print_c(buffer[i]);
+//     }
+// }
+
+void print_memory(uint8_t *buf, int length) {
+    uint16_t *word_buf = (uint16_t *)buf;
+    for (int i = 0; i < length / 2; i++) {
+        print_hex(word_buf[i]);
+        if (i % 8 == 7) {
+            printf("\n");
+        } else {
+            printf(" ");
+        }
     }
 }
 
