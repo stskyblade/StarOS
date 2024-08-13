@@ -54,7 +54,7 @@ dump:
 	diff /tmp/sdb.img /tmp/mbr_shorted.img -s
 
 qemu: mbr.bin
-	qemu-system-i386 build/mbr.img
+	qemu-system-i386 -serial stdio build/mbr.img
 
 debug: mbr.bin
 	qemu-system-i386 build/mbr.img -s -S
