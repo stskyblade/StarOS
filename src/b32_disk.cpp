@@ -311,15 +311,15 @@ int read_disk_sector(uint64_t sector_number, uint64_t count, uint8_t *dest) {
 
     uint16_t port_base = 0x1f0;
     bool is_master = true;
-    int error = read_ide_disk_sector(port_base, is_master, sector_number, count, dest);
-    printf("is master:\n");
+    int error = read_ide_disk_sector(port_base, is_master, 64, count, dest);
+    printf("sectors[64]:\n");
     if (!error) {
         print_memory(dest, 16 * 7);
     }
 
     is_master = false;
-    error = read_ide_disk_sector(port_base, is_master, sector_number, count, dest);
-    printf("is slave:\n");
+    error = read_ide_disk_sector(port_base, true, 65, count, dest);
+    printf("sectors[65]:\n");
     if (!error) {
         print_memory(dest, 16 * 7);
     }
