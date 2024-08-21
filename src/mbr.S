@@ -278,9 +278,9 @@ load_bootloader:
 // disk signature & partition entry.
 // Just for boosting writing disk in development
 .org 0x1b8
-.word 0x75be, 0x0689
+.word 0x345a, 0xf817
 .org 0x1be
-.word 0x2000, 0x0021, 0x9f0c, 0x1906, 0x0800, 0x0000, 0x4000, 0x0006
+.word 0x0000, 0x0101, 0x3f0c, 0xc820, 0x0800, 0x0000, 0x4000, 0x0006
 
 // add MBR boot sign
 // https://stackoverflow.com/questions/47859273/calculating-padding-length-with-gas-att-directives-for-a-boot-sector

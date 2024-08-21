@@ -42,12 +42,13 @@ set(DISK_IMG_FILENAME disk.img)
 add_custom_target(
   disk.img
   ALL
-  DEPENDS mbr.elf
+  DEPENDS mbr.elf fs
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
   BYPRODUCTS mbr.bin ${DISK_IMG_FILENAME}
   COMMAND ${OBJCOPY} -O binary --only-section=.text mbr.elf mbr.bin
-  # make a empty 200MB disk image
-  COMMAND dd status=none if=/dev/zero of=${DISK_IMG_FILENAME} bs=512 count=409600
+  # # make a empty 200MB disk image
+  # COMMAND dd status=none if=/dev/zero of=${DISK_IMG_FILENAME} bs=512 count=409600
+  COMMAND cp fs.img ${DISK_IMG_FILENAME}
   # copy mbr code to the first sector of disk image
   COMMAND dd status=none if=./mbr.bin of=${DISK_IMG_FILENAME} conv=notrunc
   # copy text to the 65th sector of disk image
@@ -77,6 +78,7 @@ set(USB_DEVICE /dev/sdb)
 set(MOUNT_POINT /mnt/fat32_device)
 add_custom_target(
   fs
+  BYPRODUCTS fs.img
   COMMAND if [ ! -b ${USB_DEVICE} ]; then echo "File not found: ${USB_DEVICE}" \; exit 1 \; fi
   COMMAND echo "Found /dev/sdb"
   # erase all data, first 250MB
@@ -93,6 +95,7 @@ add_custom_target(
   COMMAND sudo cp ${PROJECT_SOURCE_DIR}/root_dir/large_hello.txt ${MOUNT_POINT}
   COMMAND sudo umount ${USB_DEVICE}1
   COMMAND sudo rm -rf ${MOUNT_POINT}
+  COMMAND sudo dd status=none if=${USB_DEVICE} of=fs.img count=512000
   COMMAND echo "Done."
 )
 
