@@ -69,3 +69,35 @@ add_custom_target(
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
   COMMAND qemu-system-i386 -serial stdio ${DISK_IMG_FILENAME} -s -S
 )
+
+# make a disk image
+# partition 200MB
+# have two text file
+set(USB_DEVICE /dev/sdb)
+set(MOUNT_POINT /mnt/fat32_device)
+add_custom_target(
+  fs
+  COMMAND if [ ! -b ${USB_DEVICE} ]; then echo "File not found: ${USB_DEVICE}" \; exit 1 \; fi
+  COMMAND echo "Found /dev/sdb"
+  # erase all data, first 250MB
+  COMMAND echo "Erase all data in first 250MB"
+  COMMAND sudo dd if=/dev/zero of=${USB_DEVICE} count=512000
+  COMMAND echo "Partition..."
+  COMMAND sudo sfdisk ${USB_DEVICE} < ${PROJECT_SOURCE_DIR}/partition_layout.dump
+  COMMAND sudo mkfs.fat -F 32 ${USB_DEVICE}1
+  COMMAND sudo mkdir -p ${MOUNT_POINT}
+  COMMAND sudo mount ${USB_DEVICE}1 ${MOUNT_POINT}
+  COMMAND echo "Copy files..."
+  COMMAND sudo cp ${PROJECT_SOURCE_DIR}/root_dir/hello.txt ${MOUNT_POINT}
+  COMMAND sudo cp ${PROJECT_SOURCE_DIR}/root_dir/world.txt ${MOUNT_POINT}
+  COMMAND sudo cp ${PROJECT_SOURCE_DIR}/root_dir/large_hello.txt ${MOUNT_POINT}
+  COMMAND sudo umount ${USB_DEVICE}1
+  COMMAND sudo rm -rf ${MOUNT_POINT}
+  COMMAND echo "Done."
+)
+
+add_custom_target(
+  dump
+  COMMAND sudo dd status=none if=${USB_DEVICE} of=/tmp/sdb_250M.img count=512000
+  COMMAND hexdump -C /tmp/sdb_250M.img
+)
