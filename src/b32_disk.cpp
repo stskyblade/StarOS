@@ -302,9 +302,9 @@ int detect_ide_disks() {
         printf(error_msg);
     }
     printf("\n");
+    return true;
 }
 
-// return 0 on success
 int read_disk_sector(uint64_t sector_number, uint64_t count, uint8_t *dest) {
     // enumerate PCI bus
     enumerate_PCI_devices();

@@ -9,6 +9,11 @@ NC=\033[0m # No Color
 
 source = boot.s kernel.cpp uart.cpp vga.cpp printf.cpp disk.cpp fs.cpp snippet.cpp interrupt.cpp vectors.S trapasm.S apic.cpp
 
+test:
+	echo cc
+	echo $(cc)
+	echo $(CC)
+	cc --help
 
 kernel: vectors.S
 	@cd $(SRC) && i686-elf-g++ -T linker.ld -o ../$(BUILD)/myos.bin $(CPPFLAG) $(source)
@@ -24,22 +29,22 @@ iso: kernel
 	cp grub.cfg isodir/boot/grub/grub.cfg
 	grub-mkrescue -o $(BUILD)/myos.iso isodir
 
-mbr.bin: bootloader.bin
-	@cd $(SRC) && i686-elf-g++ -T mbr.ld -o ../$(BUILD)/mbr.elf $(CPPFLAG) mbr.S bootloader.S bootloader_32.cpp b32_print.cpp b32_disk.cpp
+mbr.bin:
+	#@cd $(SRC) && i686-elf-g++ -T mbr.ld -o ../$(BUILD)/mbr.elf $(CPPFLAG) mbr.S bootloader.S bootloader_32.cpp b32_print.cpp b32_disk.cpp
 # generate a symbol file for GDB, use another linker script, set offset at 0x00
-	@cd $(BUILD) && i686-elf-objcopy -O binary --only-section=.text mbr.elf mbr.bin
+	#@cd $(BUILD) && i686-elf-objcopy -O binary --only-section=.text mbr.elf mbr.bin
 # generate a file of 200MB
-	@cd $(BUILD) && dd status=none if=/dev/zero of=./mbr.img bs=512 count=409600
+	#@cd $(BUILD) && dd status=none if=/dev/zero of=./mbr.img bs=512 count=409600
 # copy bin to disk img
-	@cd $(BUILD) && dd status=none if=./mbr.bin of=./mbr.img conv=notrunc
+	#@cd $(BUILD) && dd status=none if=./mbr.bin of=./mbr.img conv=notrunc
 # copy simple text file to disk img
-	@cd $(BUILD) && dd status=none if=../root_dir/hello.txt of=./mbr.img conv=notrunc seek=64
-	@cd $(BUILD) && dd status=none if=../root_dir/world.txt of=./mbr.img conv=notrunc seek=65
+	#@cd $(BUILD) && dd status=none if=../root_dir/hello.txt of=./mbr.img conv=notrunc seek=64
+	#@cd $(BUILD) && dd status=none if=../root_dir/world.txt of=./mbr.img conv=notrunc seek=65
 
-bootloader.bin:
-	@cd $(BUILD) && dd status=none if=/dev/zero of=./bootloader.bin bs=512 count=2
-	@cd $(BUILD) && dd status=none if=../root_dir/hello.txt of=./bootloader.bin conv=notrunc seek=0
-	@cd $(BUILD) && dd status=none if=../root_dir/world.txt of=./bootloader.bin conv=notrunc seek=1
+# bootloader.bin:
+# 	@cd $(BUILD) && dd status=none if=/dev/zero of=./bootloader.bin bs=512 count=2
+# 	@cd $(BUILD) && dd status=none if=../root_dir/hello.txt of=./bootloader.bin conv=notrunc seek=0
+# 	@cd $(BUILD) && dd status=none if=../root_dir/world.txt of=./bootloader.bin conv=notrunc seek=1
 
 burn: mbr.bin
 	@if [ ! -b /dev/sdb ]; then echo "File not found: /dev/sdb"; exit 1; fi
@@ -53,11 +58,11 @@ dump:
 	@sudo dd status=none if=build/mbr.img of=/tmp/mbr_shorted.img bs=512 count=400
 	diff /tmp/sdb.img /tmp/mbr_shorted.img -s
 
-qemu: mbr.bin
-	qemu-system-i386 -serial stdio build/mbr.img
+# qemu: mbr.bin
+# 	qemu-system-i386 -serial stdio build/mbr.img
 
-debug: mbr.bin
-	qemu-system-i386 build/mbr.img -s -S
+# debug: mbr.bin
+# 	qemu-system-i386 build/mbr.img -s -S
 
 gdb:
 	gdb
