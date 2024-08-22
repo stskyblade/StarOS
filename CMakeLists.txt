@@ -105,6 +105,28 @@ add_custom_command(
   COMMAND echo "Done."
 )
 
+# only burn first 2048 sectors to USB drive
+add_custom_target(
+  burn
+  DEPENDS disk.img
+  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+  COMMAND echo "Write to USB driver..."
+  COMMAND if [ ! -b /dev/sdb ]; then echo "File not found: /dev/sdb" \; exit 1 \; fi
+  COMMAND sudo dd status=none if=disk.img of=/dev/sdb bs=512 count=2048
+  COMMAND sync
+)
+
+
+add_custom_target(
+  burn_all
+  DEPENDS disk.img
+  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+  COMMAND echo "Write to USB driver..."
+  COMMAND if [ ! -b /dev/sdb ]; then echo "File not found: /dev/sdb" \; exit 1 \; fi
+  COMMAND sudo dd status=none if=disk.img of=/dev/sdb bs=512 count=512000
+  COMMAND sync
+)
+
 add_custom_target(
   dump
   COMMAND sudo dd status=none if=${USB_DEVICE} of=/tmp/sdb_250M.img count=512000
