@@ -1,7 +1,7 @@
 label: dos
 label-id: 0xf817345a
-device: /dev/sdb
+device: /dev/loop0
 unit: sectors
 sector-size: 512
 
-/dev/sdb1 : start=        2048, size=      409600, type=c
+/dev/loop0p1 : start=        2048, size=      409600, type=c

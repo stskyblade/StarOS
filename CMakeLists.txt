@@ -76,25 +76,32 @@ add_custom_target(
 # have two text file
 set(USB_DEVICE /dev/sdb)
 set(MOUNT_POINT /mnt/fat32_device)
+set(FS_IMG /tmp/fs.img)
+set(LOOP_DEVICE /dev/loop0)
 add_custom_command(
   OUTPUT ${PROJECT_BINARY_DIR}/fs.img
-  COMMAND if [ ! -b ${USB_DEVICE} ]; then echo "File not found: ${USB_DEVICE}" \; exit 1 \; fi
-  COMMAND echo "Found /dev/sdb"
+  # COMMAND if [ ! -b ${USB_DEVICE} ]; then echo "File not found: ${USB_DEVICE}" \; exit 1 \; fi
+  # COMMAND echo "Found /dev/sdb"
   # erase all data, first 250MB
-  COMMAND echo "Erase all data in first 250MB"
-  COMMAND sudo dd if=/dev/zero of=${USB_DEVICE} count=512000
+  # COMMAND echo "Erase all data in first 250MB"
+  COMMAND sudo dd if=/dev/zero of=${FS_IMG} count=512000
+  COMMAND sudo losetup ${LOOP_DEVICE} ${FS_IMG}
   COMMAND echo "Partition..."
-  COMMAND sudo sfdisk ${USB_DEVICE} < ${PROJECT_SOURCE_DIR}/partition_layout.dump
-  COMMAND sudo mkfs.fat -F 32 ${USB_DEVICE}1
+  COMMAND sudo sfdisk ${LOOP_DEVICE} < ${PROJECT_SOURCE_DIR}/partition_layout.dump
+  COMMAND sudo partprobe ${LOOP_DEVICE}
+  COMMAND sudo mkfs.fat -F 32 ${LOOP_DEVICE}p1
   COMMAND sudo mkdir -p ${MOUNT_POINT}
-  COMMAND sudo mount ${USB_DEVICE}1 ${MOUNT_POINT}
+  COMMAND sudo mount ${LOOP_DEVICE}p1 ${MOUNT_POINT}
   COMMAND echo "Copy files..."
   COMMAND sudo cp ${PROJECT_SOURCE_DIR}/root_dir/hello.txt ${MOUNT_POINT}
   COMMAND sudo cp ${PROJECT_SOURCE_DIR}/root_dir/world.txt ${MOUNT_POINT}
   COMMAND sudo cp ${PROJECT_SOURCE_DIR}/root_dir/large_hello.txt ${MOUNT_POINT}
-  COMMAND sudo umount ${USB_DEVICE}1
+  COMMAND sudo umount ${LOOP_DEVICE}p1
   COMMAND sudo rm -rf ${MOUNT_POINT}
-  COMMAND sudo dd status=none if=${USB_DEVICE} of=${PROJECT_BINARY_DIR}/fs.img count=512000
+  COMMAND sudo losetup -d ${LOOP_DEVICE}
+  # directly manipulate image on project directory is extreamly slow
+  COMMAND sudo cp /tmp/fs.img ${PROJECT_BINARY_DIR}/fs.img
+  # COMMAND sudo dd status=none if=${USB_DEVICE} of=${PROJECT_BINARY_DIR}/fs.img count=512000
   COMMAND echo "Done."
 )
 

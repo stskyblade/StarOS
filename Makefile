@@ -49,10 +49,11 @@ mbr.bin:
 burn: mbr.bin
 	@if [ ! -b /dev/sdb ]; then echo "File not found: /dev/sdb"; exit 1; fi
 # write 200KB to disk
-	@sudo dd status=none if=build/mbr.img of=/dev/sdb bs=512 count=400
+	@sudo dd status=none if=build/disk.img of=/dev/sdb bs=512 count=512000
 	@sync
 
 dump:
+	@sudo dd status=none if=/dev/sdb of=/tmp/sdb_250M.img bs=512 count=512000
 	@sudo dd status=none if=/dev/sdb of=/tmp/sdb.img bs=512 count=400
 	@hexdump -C /tmp/sdb.img
 	@sudo dd status=none if=build/mbr.img of=/tmp/mbr_shorted.img bs=512 count=400
