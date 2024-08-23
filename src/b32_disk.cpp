@@ -133,12 +133,17 @@ int read_ide_disk_sector(uint16_t port_base, bool is_master, uint64_t lba, uint6
     uint8_t data = 0;
 
     for (int i = 0; i < 15; i++) {
-        inb(port_base + StatusRegister);
+        data = inb(port_base + StatusRegister);
+    }
+
+    uint64_t sectors_to_read = count;
+    if (sectors_to_read > 256) {
+        count = 256;
     }
 
     // FIXME: count > 256
     // send address
-    outb(port_base + SectorCountRegister, count);
+    outb(port_base + SectorCountRegister, count & 0xff);
     outb(port_base + LBAloRegister, lba & 0xff);
     outb(port_base + LBAmidRegister, lba >> 8);
     outb(port_base + CylinderHighRegister, lba >> 16);
@@ -157,12 +162,19 @@ int read_ide_disk_sector(uint16_t port_base, bool is_master, uint64_t lba, uint6
 
     if (data & DRQ) {
         // read data
-        uint16_t *buffer = (uint16_t *)dest;
+        uint16_t *buf = (uint16_t *)dest;
         uint16_t word = 0;
-        for (int i = 0; i < 256; i++) {
+        for (uint64_t i = 0; i < 256 * count; i++) {
             word = inw(port_base + DataRegister);
-            buffer[i] = word;
+            buf[i] = word;
         }
+
+        if (sectors_to_read > 256) {
+            sectors_to_read -= 256;
+            dest += 512;
+            return read_ide_disk_sector(port_base, is_master, lba + 256, sectors_to_read, dest);
+        }
+
         return 0;
     }
 
@@ -238,7 +250,11 @@ int check_target(uint8_t bus, uint8_t device, uint8_t func) {
 }
 
 // enumerate all PCI devices and print message
+bool PCI_done = false;
 void enumerate_PCI_devices() {
+    if (PCI_done) {
+        return;
+    }
     for (int bus = 0; bus < 256; bus++) {
         for (int device = 0; device < 32; device++) {
             for (int func = 0; func < 8; func++) {
@@ -246,6 +262,7 @@ void enumerate_PCI_devices() {
             }
         }
     }
+    PCI_done = true;
 }
 
 int detect_ide_disks() {
@@ -311,17 +328,17 @@ int read_disk_sector(uint64_t sector_number, uint64_t count, uint8_t *dest) {
 
     uint16_t port_base = 0x1f0;
     bool is_master = true;
-    int error = read_ide_disk_sector(port_base, is_master, 64, count, dest);
-    printf("sectors[64]:\n");
-    if (!error) {
-        print_memory(dest, 16 * 7);
-    }
+    int error = read_ide_disk_sector(port_base, is_master, sector_number, count, dest);
+    // printf("sectors[64]:\n");
+    // if (!error) {
+    //     print_memory(dest, 16 * 7);
+    // }
 
-    is_master = false;
-    error = read_ide_disk_sector(port_base, true, 65, count, dest);
-    printf("sectors[65]:\n");
-    if (!error) {
-        print_memory(dest, 16 * 7);
-    }
-    return 0;
+    // is_master = false;
+    // error = read_ide_disk_sector(port_base, true, 65, count, dest);
+    // printf("sectors[65]:\n");
+    // if (!error) {
+    //     print_memory(dest, 16 * 7);
+    // }
+    return error;
 }

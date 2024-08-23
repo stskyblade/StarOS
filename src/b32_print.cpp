@@ -144,6 +144,10 @@ void printf(const char *restrict, ...) {
                 int data = va_arg(args, int);
                 // in hex representation
                 print_hex(data);
+            } else if (c == 's') {
+                // print string
+                const char *s = va_arg(args, char *);
+                printf(s);
             }
         } else {
             print_c(c);

@@ -24,6 +24,8 @@ add_executable(mbr.elf
   ${SRC_DIR}/bootloader_32.cpp
   ${SRC_DIR}/b32_print.cpp
   ${SRC_DIR}/b32_disk.cpp
+  ${SRC_DIR}/b32_filesystem.cpp
+  ${SRC_DIR}/b32_string.cpp
 )
 target_link_options(mbr.elf PRIVATE -T${SRC_DIR}/mbr.ld)
 

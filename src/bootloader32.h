@@ -76,3 +76,19 @@ void print_hex(T data) {
 // read `count` sectors, start at `sector_number`(count from 0), copy to memory at address `dest`
 // return 0 on success
 int read_disk_sector(uint64_t sector_number, uint64_t count, uint8_t *dest);
+
+// b32_filesystem.cpp
+// filesystem interfaces
+
+// read file `filename` to `buffer`
+// `filename` null-terminated string
+// Return:
+// 0 on success, others for error
+int fs_read(const char *filename, uint8_t *buffer);
+
+// b32_string.cpp
+
+// Negative value if lhs appears before rhs in lexicographical order.
+// Zero if lhs and rhs compare equal.
+// Positive value if lhs appears after rhs in lexicographical order.
+int strcmp(const char *lhs, const char *rhs);
