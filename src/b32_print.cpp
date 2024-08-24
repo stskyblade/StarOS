@@ -140,7 +140,6 @@ void printf(const char *restrict, ...) {
             p++;
             c = *p;
             if (c == 'x') {
-                // length modifier
                 int data = va_arg(args, int);
                 // in hex representation
                 print_hex(data);
@@ -148,6 +147,9 @@ void printf(const char *restrict, ...) {
                 // print string
                 const char *s = va_arg(args, char *);
                 printf(s);
+            } else if (c == 'd') {
+                int data = va_arg(args, int);
+                print_int(data);
             }
         } else {
             print_c(c);

@@ -40,6 +40,10 @@ inline void outl(uint16_t port, uint32_t data) {
 }
 
 // b32_print
+#define panic(...)       \
+    printf(__VA_ARGS__); \
+    while (1)            \
+        ;
 void print_c(char c);
 void printf(const char *restrict, ...);
 void print_memory(uint8_t *buf, int length);
@@ -67,6 +71,32 @@ void print_hex(T data) {
     //     index++;
     // 0
     for (int i = 0; i < length; i++) {
+        print_c(buffer[i]);
+    }
+}
+
+template <typename T>
+void print_int(T data) {
+    // if (data == 0) {
+    //     print_c('0');
+    //     return;
+    // }
+    int length = 30; // 64 bit integer is less than 30
+
+    char *int_str = "0123456789";
+    char buffer[length];
+    for (int i = 0; i < length; i++) {
+        int reminder = data % 10;
+        data = data / 10;
+        buffer[length - 1 - i] = int_str[reminder];
+    }
+
+    // remove zeros
+    int index = 0;
+    while (buffer[index] == '0') {
+        index++;
+    }
+    for (int i = index; i < length; i++) {
         print_c(buffer[i]);
     }
 }

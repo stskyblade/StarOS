@@ -33,6 +33,8 @@ void bootloader32_start() {
     printf("%s:\n", filename);
     print_memory(buffer1, 32);
 
+    panic("panic %d\n", 828366412);
+
     filename = "/world.txt";
     uint8_t buffer2[512];
     fs_read(filename, buffer2);
