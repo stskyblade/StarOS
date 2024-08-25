@@ -159,7 +159,7 @@ void read_cluster(int directory_cluster_num, uint8_t *dest_buffer, PARTITION p, 
 // directory is larger than one sector
 // does return struct correctly copy array inside struct
 DIR_entry locate_file_dirent(int directory_cluster_num, const char *filename, PARTITION p, PBR pbr) {
-    // splite current part from filename
+    // split current part from filename
     char current_part_filename[MAX_FILENAME_SIZE + 1];
     for (int i = 0; i < MAX_FILENAME_SIZE; i++) {
         if (filename[i] == '/') {
@@ -224,27 +224,30 @@ DIR_entry locate_file_dirent(int directory_cluster_num, const char *filename, PA
             }
         }
     }
+    panic("File not found: %s\n", current_part_filename);
 }
 
 // return next cluster num on the chain
 // FIXME: cluster has more than one sector
-// FIXME: stack overflow
 uint32_t next_cluster(uint32_t cluster_num, PBR pbr) {
     // first fat sector
     uint32_t first_fat_sector = pbr.num_reserved_sectors;
     uint32_t fat_size = pbr.sectors_per_FAT_16 == 0 ? pbr.sectors_per_FAT_32 : pbr.sectors_per_FAT_16;
 
     // read one sector is enough
-    // 16 entrys per sector
-    // 0-15 read first
-    // 16-31 read second
-    uint32_t sector_offset = cluster_num / 16;
+    // 128 entrys per sector
+    // 0-127 read first
+    // 128-... read second
+    int fat_entry_size = 4; // FAT32 use 4 bytes to represent a FAT entry
+    int entrys_per_sector = 512 / fat_entry_size;
+    uint32_t sector_offset = cluster_num / entrys_per_sector;
     uint8_t buffer[512];
-    read_disk_sector(first_fat_sector + sector_offset + pbr.hidden_sectors, 1, buffer);
+    uint64_t absolute_sector_num_of_cluster = first_fat_sector + sector_offset + pbr.hidden_sectors;
+    read_disk_sector(absolute_sector_num_of_cluster, 1, buffer);
 
     // table value
     uint32_t *FAT = (uint32_t *)buffer;
-    return FAT[cluster_num % 16];
+    return FAT[cluster_num % entrys_per_sector];
 }
 
 // return 0 on success, others for error
