@@ -28,24 +28,28 @@ void bootloader32_start() {
     // print_memory(buffer, 160);
 
     char *filename = "/hello.txt";
+    struct stat filestatus;
     uint8_t buffer1[512];
+    stat(filename, &filestatus);
+    printf("%s %dbytes:\n", filename, filestatus.st_size);
     fs_read(filename, buffer1);
-    printf("%s:\n", filename);
     print_memory(buffer1, 32);
 
-    panic("panic %d\n", 828366412);
+    // panic("panic %d\n", 828366412);
 
-    filename = "/world.txt";
-    uint8_t buffer2[512];
+    filename = "/staros_kernel.elf";
+    stat(filename, &filestatus);
+    printf("%s %dbytes:\n", filename, filestatus.st_size);
+    uint8_t buffer2[filestatus.st_size];
     fs_read(filename, buffer2);
-    printf("%s:\n", filename);
     print_memory(buffer2, 32);
 
     filename = "/large_hello.txt";
+    stat(filename, &filestatus);
+    printf("%s %dbytes:\n", filename, filestatus.st_size);
     uint8_t buffer3[512 * 8];
     fs_read(filename, buffer3);
-    printf("%s:\n", filename);
-    print_memory(buffer3 + 1024, 160);
+    print_memory(buffer3 + 1000, 160);
 
     while (1) {
         ;

@@ -116,6 +116,14 @@ int read_disk_sector(uint64_t sector_number, uint64_t count, uint8_t *dest);
 // 0 on success, others for error
 int fs_read(const char *filename, uint8_t *buffer);
 
+struct stat {
+    uint32_t st_size;
+};
+// return  information  about  a file, in the buffer pointed to by statbuf
+int stat(const char *pathname, struct stat *statbuf);
+
+// -------------------- b32_filesystem.cpp end--------------------------
+
 // b32_string.cpp
 
 // Negative value if lhs appears before rhs in lexicographical order.

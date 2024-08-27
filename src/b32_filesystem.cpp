@@ -250,11 +250,24 @@ uint32_t next_cluster(uint32_t cluster_num, PBR pbr) {
     return FAT[cluster_num % entrys_per_sector];
 }
 
-// return 0 on success, others for error
-int fat32_read(const char *filename, uint8_t *dest_buffer, FS_entry fs) {
+PBR load_PBR() {
+    uint8_t buffer[512];
+    // MBR data
+    read_disk_sector(0, 1, buffer);
+    MBR_PARTITION_ENTRY mbr = *(MBR_PARTITION_ENTRY *)&buffer[0x1be];
+    // PBR
+    read_disk_sector(mbr.lba, 1, buffer);
+    PBR pbr = *(PBR *)buffer;
+    return pbr;
+}
+
+// /mnt/hello.txt
+// /mnt is mount_point
+// return `hello.txt`
+void remove_mount_point(const char *&filename, const char *mount_point) {
     // remove mount point part from filename
     const char *p1 = filename;
-    const char *p2 = fs.mount_point;
+    const char *p2 = mount_point;
     while (*p1 && *p2) {
         p1++;
         p2++;
@@ -266,25 +279,43 @@ int fat32_read(const char *filename, uint8_t *dest_buffer, FS_entry fs) {
     if (*p1 == '/') {
         p1++;
     }
+    filename = p1;
+}
 
-    uint8_t buffer[512];
-    // MBR data
-    read_disk_sector(0, 1, buffer);
-    MBR_PARTITION_ENTRY mbr = *(MBR_PARTITION_ENTRY *)&buffer[0x1be];
-    // PBR
-    read_disk_sector(mbr.lba, 1, buffer);
-    PBR pbr = *(PBR *)buffer;
+DIR_entry get_dir_entry(const char *pathname) {
+    init_fstab();
+    FS_entry fs = match_fs(pathname);
 
+    if (!(fs.filesystem_type == FAT32 && fs.partition.t == PCI_IDE)) {
+        panic("Not supported FS or device");
+    }
+
+    remove_mount_point(pathname, fs.mount_point);
+
+    PBR pbr = load_PBR();
     int cluster_num = 2; // TODO: root directory cluster
-    DIR_entry e = locate_file_dirent(cluster_num, p1, fs.partition, pbr);
+    DIR_entry e = locate_file_dirent(cluster_num, pathname, fs.partition, pbr);
+    return e;
+}
+
+int stat(const char *pathname, struct stat *statbuf) {
+    DIR_entry e = get_dir_entry(pathname);
+    statbuf->st_size = e.size;
+    return 0;
+}
+
+// return 0 on success, others for error
+int fat32_read(const char *filename, uint8_t *dest_buffer, FS_entry fs) {
+    DIR_entry e = get_dir_entry(filename);
     int file_cluster_num = e.first_cluster_number;
     uint32_t file_size = e.size;
     uint32_t bytes_to_read = file_size;
 
+    PBR pbr = load_PBR();
     while (bytes_to_read) {
         if (bytes_to_read < pbr.bytes_per_sector) {
             // less than one block
-            uint8_t tmp[512];
+            uint8_t tmp[pbr.bytes_per_sector];
             read_cluster(file_cluster_num, tmp, fs.partition, pbr);
             for (unsigned int i = 0; i < bytes_to_read; i++) {
                 dest_buffer[i] = tmp[i];

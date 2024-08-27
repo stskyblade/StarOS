@@ -46,17 +46,6 @@ add_executable(${KERNEL_FILE}
 target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)
 target_link_libraries(${KERNEL_FILE} PUBLIC bootloadershared)
 
-# add_custom_command(
-#   TARGET mbr.elf
-#   POST_BUILD
-#   COMMAND ${OBJCOPY} -O binary --only-section=.text mbr.elf mbr.bin
-#   COMMAND dd status=none if=/dev/zero of=./mbr.img bs=512 count=409600
-#   COMMAND dd status=none if=./mbr.bin of=./mbr.img conv=notrunc
-#   COMMAND dd status=none if=${PROJECT_SOURCE_DIR}/root_dir/hello.txt of=./mbr.img conv=notrunc seek=64
-#   COMMAND dd status=none if=${PROJECT_SOURCE_DIR}/root_dir/world.txt of=./mbr.img conv=notrunc seek=65
-#   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-# )
-
 set(DISK_IMG_FILENAME disk.img)
 add_custom_target(
   disk.img
@@ -127,20 +116,20 @@ add_custom_command(
   COMMAND echo "Done."
 )
 
-# only burn first 2048 sectors to USB drive
+# # only burn first 2048 sectors to USB drive
+# add_custom_target(
+#   burn
+#   DEPENDS disk.img
+#   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+#   COMMAND echo "Write to USB driver..."
+#   COMMAND if [ ! -b /dev/sdb ]; then echo "File not found: /dev/sdb" \; exit 1 \; fi
+#   COMMAND sudo dd status=none if=disk.img of=/dev/sdb bs=512 count=2048
+#   COMMAND sync
+# )
+
+
 add_custom_target(
   burn
-  DEPENDS disk.img
-  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-  COMMAND echo "Write to USB driver..."
-  COMMAND if [ ! -b /dev/sdb ]; then echo "File not found: /dev/sdb" \; exit 1 \; fi
-  COMMAND sudo dd status=none if=disk.img of=/dev/sdb bs=512 count=2048
-  COMMAND sync
-)
-
-
-add_custom_target(
-  burn_all
   DEPENDS disk.img
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
   COMMAND echo "Write to USB driver..."
