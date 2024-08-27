@@ -18,17 +18,33 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "-ffreestanding -Wall -Wno-write-strings -Wno-unused-variable -Wno-unused-parameter -Wextra -fno-exceptions -fno-rtti -nostdlib -g")
 
 set(SRC_DIR ${PROJECT_SOURCE_DIR}/src)
-add_executable(mbr.elf
-  ${SRC_DIR}/mbr.S
-  ${SRC_DIR}/bootloader.S
+set(BOOTLOADER_KERNEL_SHARED_FILES
   ${SRC_DIR}/bootloader32.h
-  ${SRC_DIR}/bootloader_32.cpp
   ${SRC_DIR}/b32_print.cpp
   ${SRC_DIR}/b32_disk.cpp
   ${SRC_DIR}/b32_filesystem.cpp
   ${SRC_DIR}/b32_string.cpp
 )
+
+add_library(bootloadershared
+  STATIC
+  ${BOOTLOADER_KERNEL_SHARED_FILES}
+)
+
+add_executable(mbr.elf
+  ${SRC_DIR}/mbr.S
+  ${SRC_DIR}/bootloader.S
+  ${SRC_DIR}/bootloader_32.cpp
+)
 target_link_options(mbr.elf PRIVATE -T${SRC_DIR}/mbr.ld)
+target_link_libraries(mbr.elf PUBLIC bootloadershared)
+
+set(KERNEL_FILE staros_kernel.elf)
+add_executable(${KERNEL_FILE}
+  ${SRC_DIR}/kernel.cpp
+)
+target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)
+target_link_libraries(${KERNEL_FILE} PUBLIC bootloadershared)
 
 # add_custom_command(
 #   TARGET mbr.elf
@@ -83,6 +99,8 @@ set(FS_IMG /tmp/fs.img)
 set(LOOP_DEVICE /dev/loop0)
 add_custom_command(
   OUTPUT ${PROJECT_BINARY_DIR}/fs.img
+  DEPENDS ${KERNEL_FILE}
+  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
   # COMMAND if [ ! -b ${USB_DEVICE} ]; then echo "File not found: ${USB_DEVICE}" \; exit 1 \; fi
   # COMMAND echo "Found /dev/sdb"
   # erase all data, first 250MB
@@ -90,12 +108,13 @@ add_custom_command(
   COMMAND sudo dd if=/dev/zero of=${FS_IMG} count=512000
   COMMAND sudo losetup ${LOOP_DEVICE} ${FS_IMG}
   COMMAND echo "Partition..."
-  COMMAND sudo sfdisk ${LOOP_DEVICE} < ${PROJECT_SOURCE_DIR}/partition_layout.dump
+  COMMAND sudo sfdisk -q ${LOOP_DEVICE} < ${PROJECT_SOURCE_DIR}/partition_layout.dump
   COMMAND sudo partprobe ${LOOP_DEVICE}
   COMMAND sudo mkfs.fat -F 32 ${LOOP_DEVICE}p1
   COMMAND sudo mkdir -p ${MOUNT_POINT}
   COMMAND sudo mount ${LOOP_DEVICE}p1 ${MOUNT_POINT}
   COMMAND echo "Copy files..."
+  COMMAND sudo cp ${PROJECT_BINARY_DIR}/${KERNEL_FILE} ${MOUNT_POINT}
   COMMAND sudo cp ${PROJECT_SOURCE_DIR}/root_dir/hello.txt ${MOUNT_POINT}
   COMMAND sudo cp ${PROJECT_SOURCE_DIR}/root_dir/world.txt ${MOUNT_POINT}
   COMMAND sudo cp ${PROJECT_SOURCE_DIR}/root_dir/large_hello.txt ${MOUNT_POINT}
