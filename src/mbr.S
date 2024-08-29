@@ -61,7 +61,7 @@ print_char:
   mov $'', %al
   mov %ax, %es:(%di) // write space to offset
 
-  // bx = bx / 80 * 80 + 80
+  // bx = bx / 80 * 80 + 80. start of next line
   mov $0, %dx
   mov %bx, %ax
   mov $80, %bx // divisor
@@ -69,6 +69,12 @@ print_char:
   mul %bx
   add $80, %ax
   mov %ax, %bx
+
+  // screen overflow, start over
+  cmp $2000, %bx
+  jb save_position
+  sub $2000, %bx
+save_position:
   mov %bx, %gs:(0)
   pop %ax
   popa
@@ -210,6 +216,7 @@ print_memory:
   // es: base address
   // ax: offset
   // bx: length
+  // in a two-byte, low address comes first
   pusha
   mov $0, %di
   mov %ax, %bp

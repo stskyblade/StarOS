@@ -24,6 +24,7 @@ set(BOOTLOADER_KERNEL_SHARED_FILES
   ${SRC_DIR}/b32_disk.cpp
   ${SRC_DIR}/b32_filesystem.cpp
   ${SRC_DIR}/b32_string.cpp
+  ${SRC_DIR}/b32_utils.cpp
 )
 
 add_library(bootloadershared
@@ -69,14 +70,14 @@ add_custom_target(
   qemu
   DEPENDS disk.img
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-  COMMAND qemu-system-i386 -serial stdio ${DISK_IMG_FILENAME}
+  COMMAND qemu-system-i386 -m 5G -serial stdio ${DISK_IMG_FILENAME}
 )
 
 add_custom_target(
   debug
   DEPENDS disk.img
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-  COMMAND qemu-system-i386 -serial stdio ${DISK_IMG_FILENAME} -s -S
+  COMMAND qemu-system-i386 -m 5G -serial stdio ${DISK_IMG_FILENAME} -s -S
 )
 
 # make a disk image

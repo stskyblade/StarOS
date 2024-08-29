@@ -61,6 +61,10 @@ void print_c(char c) {
         row++;
         row = row % 25;
         column = 0;
+
+        if (row == 0) {
+            sleep(2);
+        }
         return;
     }
 
@@ -74,6 +78,7 @@ void print_c(char c) {
     // TODO: row exceed max row 24
     if (row == 25) {
         row = 0;
+        sleep(2);
     }
 }
 
@@ -140,7 +145,7 @@ void printf(const char *restrict, ...) {
             p++;
             c = *p;
             if (c == 'x') {
-                int data = va_arg(args, int);
+                uint32_t data = va_arg(args, int);
                 // in hex representation
                 print_hex(data);
             } else if (c == 's') {

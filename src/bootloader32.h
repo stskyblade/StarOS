@@ -130,3 +130,14 @@ int stat(const char *pathname, struct stat *statbuf);
 // Zero if lhs and rhs compare equal.
 // Positive value if lhs appears after rhs in lexicographical order.
 int strcmp(const char *lhs, const char *rhs);
+
+struct Memory_layout_entry {
+    uint64_t base;
+    uint64_t length;
+    uint32_t type;
+    uint32_t reserved;
+} __attribute__((packed));
+
+// ====================== b32_utils.cpp start ===========================
+void sleep(int seconds);
+// ====================== b32_utils.cpp end ===========================
