@@ -49,6 +49,9 @@ jmp_32:
   // write segment descriptor to GDT[1], 8 bytes
 // 0000 0000 1100 1111 1001 1010 0000 0000
 // 0000 0000 0000 0000 1111 1111 1111 1111
+// base: 0
+// limit: 0xfffff
+// G: 1
   movw $0xffff, (%di)
   add $2, %di
   movw $0x0000, (%di)

@@ -23,33 +23,52 @@ void bootloader32_start() {
     char *s = "hello,C. bootloader32.\n";
     printf(s);
 
-    // uint8_t buffer[512];
-    // read_disk_sector(8386, 1, buffer);
-    // print_memory(buffer, 160);
-
-    char *filename = "/hello.txt";
     struct stat filestatus;
-    uint8_t buffer1[512];
-    stat(filename, &filestatus);
-    printf("%s %dbytes:\n", filename, filestatus.st_size);
-    fs_read(filename, buffer1);
-    print_memory(buffer1, 32);
+    const char *kernel_filename = "/staros_kernel.elf";
+    stat(kernel_filename, &filestatus);
+    uint32_t kernel_size = filestatus.st_size;
 
-    // panic("panic %d\n", 828366412);
+    // 3GB = 1024 * 1024 * 1024 * 3 = 0xC0000000
+    // load kernel content to 3GB
+    uint8_t *buffer = (uint8_t *)(1024U * 1024 * 1024 * 3);
+    for (uint32_t i = 0; i < 32; i++) {
+        buffer[i] = i;
+    }
 
-    filename = "/staros_kernel.elf";
-    stat(filename, &filestatus);
-    printf("%s %dbytes:\n", filename, filestatus.st_size);
-    uint8_t buffer2[filestatus.st_size];
-    fs_read(filename, buffer2);
-    print_memory(buffer2, 32);
+    printf("memory at 0xc0000000:\n");
+    print_memory(buffer, 32); // all is zeros
 
-    filename = "/large_hello.txt";
-    stat(filename, &filestatus);
-    printf("%s %dbytes:\n", filename, filestatus.st_size);
-    uint8_t buffer3[512 * 8];
-    fs_read(filename, buffer3);
-    print_memory(buffer3 + 1000, 160);
+    memset(buffer, 0, kernel_size);
+    fs_read(kernel_filename, buffer);
+
+    ELF_HEADER header = *(ELF_HEADER *)buffer;
+
+    if (header.magic_num == 0x464c457f && header.bitness == 1 && header.endianness == 1 && header.version == 1 && header.ABI == 0 && header.ABI_version == 0 && header.type == 0x02 && header.machine == 0x03 && header.e_version == 1 && header.e_phnum == 3) {
+        // valid kernel
+        Program_header *program_header_table = (Program_header *)&buffer[header.e_phoff];
+        for (uint32_t i = 0; i < header.e_phnum; i++) {
+            Program_header phentry = program_header_table[i];
+            if (phentry.p_filesz != phentry.p_memsz) {
+                panic("Unsupported Program header entry %d.", i);
+            } else {
+                memcpy((uint8_t *)phentry.p_vaddr, (uint8_t *)&buffer[phentry.p_offset], phentry.p_memsz);
+                printf("Memory at %d after copy:\n", phentry.p_vaddr);
+                print_memory((uint8_t *)phentry.p_vaddr, 80);
+            }
+        }
+    } else {
+        panic("Unsupported kernel file");
+    }
+
+    memset(buffer, 0, kernel_size);
+    printf("Waiting...\n");
+    for (uint64_t i = 0; i < 0xffffffff; i++) { // 12 seconds on laptop; 20 seconds on Qemu
+        /* code */
+    }
+
+    printf("Call kernel entry\n");
+    void (*kernel_entry)() = (void (*)())header.e_entry;
+    kernel_entry();
 
     while (1) {
         ;

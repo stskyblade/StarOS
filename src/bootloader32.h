@@ -41,6 +41,7 @@ inline void outl(uint16_t port, uint32_t data) {
 
 // b32_print
 #define panic(...)       \
+    printf("Panic: ");   \
     printf(__VA_ARGS__); \
     while (1)            \
         ;
@@ -130,3 +131,42 @@ int stat(const char *pathname, struct stat *statbuf);
 // Zero if lhs and rhs compare equal.
 // Positive value if lhs appears after rhs in lexicographical order.
 int strcmp(const char *lhs, const char *rhs);
+void *memset(void *dest, uint8_t ch, uint64_t count);
+void *memcpy(void *dest, const void *src, uint64_t count);
+
+struct ELF_HEADER {
+    uint32_t magic_num;
+    uint8_t bitness;    // 1 for 32bit, 2 for 64
+    uint8_t endianness; // 1 for little endian, 2 for big endian
+    uint8_t version;
+    uint8_t ABI;
+    uint8_t ABI_version;
+    uint8_t reserved[7];
+    uint16_t type; // object file type
+    uint16_t machine;
+    uint32_t e_version;
+    uint32_t e_entry;
+    uint32_t e_phoff;
+    uint32_t e_shoff;
+    uint32_t e_flags;
+    uint16_t e_ehsize;
+    uint16_t e_phentsize;
+    uint16_t e_phnum;
+    uint16_t e_shentsize;
+    uint16_t e_shnum;
+    uint16_t e_shstrndx;
+
+} __attribute__((packed));
+
+struct Program_header {
+    uint32_t p_type;
+    uint32_t p_offset;
+    uint32_t p_vaddr;
+    uint32_t p_paddr;
+    uint32_t p_filesz;
+    uint32_t p_memsz;
+    uint32_t p_flags;
+    uint32_t p_align;
+} __attribute__((packed));
+
+const int struct_size = sizeof(Program_header);

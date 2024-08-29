@@ -1,3 +1,5 @@
+#include "bootloader32.h"
+
 int strcmp(const char *lhs, const char *rhs) {
     while (*lhs && *rhs) {
         if (*lhs == *rhs) {
@@ -18,4 +20,24 @@ int strcmp(const char *lhs, const char *rhs) {
     } else {
         return 1;
     }
+}
+
+void *memset(void *dest, uint8_t ch, uint64_t count) {
+    uint8_t *buffer = (uint8_t *)dest;
+    for (uint64_t i = 0; i < count; i++) {
+        buffer[i] = ch;
+    }
+    return dest;
+}
+
+void *memcpy(void *dest, const void *src, uint64_t count) {
+    uint8_t *p1 = (uint8_t *)dest;
+    uint8_t *p2 = (uint8_t *)src;
+    while (count) {
+        *p1 = *p2;
+        p1++;
+        p2++;
+        count--;
+    }
+    return dest;
 }
