@@ -170,3 +170,14 @@ struct Program_header {
 } __attribute__((packed));
 
 const int struct_size = sizeof(Program_header);
+
+struct Memory_layout_entry {
+    uint64_t base;
+    uint64_t length;
+    uint32_t type;
+    uint32_t reserved;
+} __attribute__((packed));
+
+// ====================== b32_utils.cpp start ===========================
+void sleep(int seconds);
+// ====================== b32_utils.cpp end ===========================

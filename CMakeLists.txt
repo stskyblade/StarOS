@@ -24,6 +24,7 @@ set(BOOTLOADER_KERNEL_SHARED_FILES
   ${SRC_DIR}/b32_disk.cpp
   ${SRC_DIR}/b32_filesystem.cpp
   ${SRC_DIR}/b32_string.cpp
+  ${SRC_DIR}/b32_utils.cpp
 )
 
 add_library(bootloadershared

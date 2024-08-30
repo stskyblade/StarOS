@@ -12,6 +12,54 @@ void print_data_type_size() {
     printf("Size of long long 0x%x\n", sizeof(long long));
 }
 
+const int memory_layout_table_num = 80;
+extern Memory_layout_entry memory_map_table[memory_layout_table_num];
+
+void print_memory_layout() {
+    for (int i = 0; i < memory_layout_table_num; i++) {
+        Memory_layout_entry entry = memory_map_table[i];
+
+        if (!entry.type) {
+            break;
+        } else {
+            const char *msg = "Unknown type";
+            // Type 1: Usable (normal) RAM
+            // Type 2: Reserved - unusable
+            // Type 3: ACPI reclaimable memory
+            // Type 4: ACPI NVS memory
+            // Type 5: Area containing bad memory
+            switch (entry.type) {
+            case 1:
+                msg = "Usable";
+                break;
+            case 2:
+                msg = "Reserved";
+                break;
+            case 3:
+                msg = "ACPI recl";
+                break;
+            case 4:
+                msg = "ACPI NVS";
+                break;
+            case 5:
+                msg = "bad memory";
+                break;
+            default:
+                break;
+            }
+            uint64_t end = entry.base + entry.length;
+            uint32_t start_high = entry.base >> 32;
+            uint32_t start_low = entry.base & 0xFFFFFFFF;
+            uint32_t end_high = end >> 32;
+            uint32_t end_low = end & 0xFFFFFFFF;
+            uint32_t length_high = entry.length >> 32;
+            uint32_t length_low = entry.length & 0xFFFFFFFF;
+
+            printf("#%d | 0x%x%x | 0x%x%x | 0x%x%x | %s\n", i, start_high, start_low, end_high, end_low, length_high, length_low, msg);
+        }
+    }
+}
+
 extern "C" {
 
 // never return
@@ -22,6 +70,7 @@ void bootloader32_start() {
     // print_data_type_size();
     char *s = "hello,C. bootloader32.\n";
     printf(s);
+    print_memory_layout();
 
     struct stat filestatus;
     const char *kernel_filename = "/staros_kernel.elf";

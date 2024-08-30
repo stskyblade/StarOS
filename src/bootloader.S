@@ -1,6 +1,7 @@
-// This program is written to 2nd sector in disk
+// This program is written to 2-2048 sector in disk
 // loaded by mbr.S
 // 16bit real mode
+// enter 32bit protected mode
 
 
 // TODO:  find where to load this program into. only 30KB left after 0x0000:0x7c00
@@ -16,8 +17,9 @@
 .section .text
 .global bootloader_start
 .code16
+
+// clear all registers, prepare to enter protected mode
 bootloader_start:
-  // never return
   mov $0, %ax
   mov $0, %bx
   mov $0, %cx
@@ -39,6 +41,7 @@ bootloader_start:
   mov %ax, %es
   mov %ax, %fs
   mov %ax, %gs
+  call detect_memory
 
 jmp_32:
   cli
@@ -89,6 +92,95 @@ jmp_32:
   mov %eax, %cr0
 
   jmp $0x0008, $flush
+
+
+// detect memory layout, find out which region is free to use
+detect_memory:
+  pusha
+  push %es
+// point ES:DI at the destination buffer for the list
+  lea memory_map_table, %di
+//  Clear EBX
+  mov $0, %ebx
+// Set EDX to the magic number 0x534D4150
+  mov $0x534D4150, %edx
+_detect_memory_loop:
+// Set EAX to 0xE820 (note that the upper 16-bits of EAX should be set to 0)
+  mov $0x0000E820, %eax
+//  Set ECX to 24
+  mov $24, %ecx
+// Do an INT 0x15
+  int $0x15
+
+  // result
+// EAX will be set to 0x534D4150
+  cmp $0x534D4150, %eax
+  jnz detect_memory_failed
+
+
+// // Carry flag will be clear
+// // EBX will be set to some non-zero value
+//   lea bx_str, %ax
+//   call print_str
+//   mov %bx, %ax
+//   call print_hex
+//   mov $0, %ah
+//   mov $' ', %al
+//   call print_char
+// // CL will contain the number of bytes actually stored at ES:DI (probably 20).
+//   mov $0, %ah
+//   mov %cl, %al
+//   call print_hex
+//   mov $':', %al
+//   call print_char
+
+  // // print entry value
+  // push %bx
+  // mov $0, %ax
+  // mov %ax, %es
+  // // first 8 bytes
+  // mov %di, %ax
+  // mov $8, %bx
+  // call print_memory
+  // mov $'|', %al
+  // call print_char
+  // // next 8 bytes
+  // mov %di, %ax
+  // add $8, %ax
+  // call print_memory
+  // mov $'|', %al
+  // call print_char
+  // // next 4 bytes
+  // mov %di, %ax
+  // add $16, %ax
+  // mov $4, %bx
+  // call print_memory
+  // mov $'\n', %al
+  // call print_char
+  // pop %bx
+
+  // print each di
+  // mov %di, %ax
+  // call print_hex
+  // mov $' ', %ax
+  // call print_char
+
+  cmp $0, %ebx
+  jz detect_memory_ok
+  // if ebx != 0, loop
+  add $24, %di
+  jmp _detect_memory_loop
+
+  jmp detect_memory_ok
+detect_memory_failed:
+  lea failed_str, %ax
+  call print_str
+detect_memory_ok:
+  pop %es
+  popa
+  ret
+
+
 .code32
 flush:
   mov $3, %eax
@@ -384,6 +476,8 @@ read_disk_end:
   ret
 
 
+
+
 .section .data
 bootloader_str:
   .asciz "hello,bootloader\n"
@@ -407,6 +501,10 @@ invalid_result_str:
   .asciz "invalid result\n"
 not_ata_str:
   .asciz "not ATA device\n"
+bx_str:
+  .asciz "bx: "
+failed_str:
+  .asciz "failed.\n"
 
   // 512 Bytes
 disk_sector_buffer:
@@ -440,3 +538,88 @@ GDTR:
   .word 0
   // 4 bytes base
   .word 0, 0
+
+.global memory_map_table
+memory_map_table:
+  // 24 bytes for each entry
+  // 80 entries
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
+  .long 0, 0, 0, 0, 0, 0
