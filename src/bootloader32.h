@@ -179,5 +179,7 @@ struct Memory_layout_entry {
 } __attribute__((packed));
 
 // ====================== b32_utils.cpp start ===========================
+
 void sleep(int seconds);
+
 // ====================== b32_utils.cpp end ===========================

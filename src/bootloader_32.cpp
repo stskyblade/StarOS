@@ -70,21 +70,19 @@ void bootloader32_start() {
     // print_data_type_size();
     char *s = "hello,C. bootloader32.\n";
     printf(s);
-    print_memory_layout();
 
     struct stat filestatus;
     const char *kernel_filename = "/staros_kernel.elf";
     stat(kernel_filename, &filestatus);
     uint32_t kernel_size = filestatus.st_size;
 
-    // 3GB = 1024 * 1024 * 1024 * 3 = 0xC0000000
-    // load kernel content to 3GB
-    uint8_t *buffer = (uint8_t *)(1024U * 1024 * 1024 * 3);
+    // load kernel content to 0x20200000, about 500MB free space
+    uint8_t *buffer = (uint8_t *)(0x20200000);
     for (uint32_t i = 0; i < 32; i++) {
         buffer[i] = i;
     }
 
-    printf("memory at 0xc0000000:\n");
+    printf("memory at 0x20200000:\n");
     print_memory(buffer, 32); // all is zeros
 
     memset(buffer, 0, kernel_size);
@@ -111,9 +109,7 @@ void bootloader32_start() {
 
     memset(buffer, 0, kernel_size);
     printf("Waiting...\n");
-    for (uint64_t i = 0; i < 0xffffffff; i++) { // 12 seconds on laptop; 20 seconds on Qemu
-        /* code */
-    }
+    sleep(2);
 
     printf("Call kernel entry\n");
     void (*kernel_entry)() = (void (*)())header.e_entry;
