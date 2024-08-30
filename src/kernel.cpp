@@ -3,6 +3,10 @@
 extern "C" {
 void kernel_main() {
     printf("hello,kernel\n");
-    return;
+
+    // never return
+    while (1) {
+        ;
+    }
 }
 }

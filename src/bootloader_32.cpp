@@ -78,13 +78,6 @@ void bootloader32_start() {
 
     // load kernel content to 0x20200000, about 500MB free space
     uint8_t *buffer = (uint8_t *)(0x20200000);
-    for (uint32_t i = 0; i < 32; i++) {
-        buffer[i] = i;
-    }
-
-    printf("memory at 0x20200000:\n");
-    print_memory(buffer, 32); // all is zeros
-
     memset(buffer, 0, kernel_size);
     fs_read(kernel_filename, buffer);
 
