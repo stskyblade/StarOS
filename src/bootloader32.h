@@ -169,8 +169,6 @@ struct Program_header {
     uint32_t p_align;
 } __attribute__((packed));
 
-const int struct_size = sizeof(Program_header);
-
 struct Memory_layout_entry {
     uint64_t base;
     uint64_t length;

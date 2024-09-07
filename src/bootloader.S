@@ -91,6 +91,7 @@ jmp_32:
   or $1, %eax
   mov %eax, %cr0
 
+  // cs selector is 0x0008
   jmp $0x0008, $flush
 
 
