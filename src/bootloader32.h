@@ -97,6 +97,11 @@ void print_int(T data) {
     while (buffer[index] == '0') {
         index++;
     }
+    if (index == length) {
+        // keep the only one zero. index == length == 30
+        index--;
+    }
+
     for (int i = index; i < length; i++) {
         print_c(buffer[i]);
     }

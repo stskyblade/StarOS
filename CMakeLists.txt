@@ -42,6 +42,7 @@ target_link_libraries(mbr.elf PUBLIC bootloadershared)
 
 set(KERNEL_FILE staros_kernel.elf)
 add_executable(${KERNEL_FILE}
+  ${SRC_DIR}/interrupt_handlers.S
   ${SRC_DIR}/kernel.cpp
 )
 target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)
@@ -143,4 +144,11 @@ add_custom_target(
   dump
   COMMAND sudo dd status=none if=${USB_DEVICE} of=/tmp/sdb_250M.img count=512000
   COMMAND hexdump -C /tmp/sdb_250M.img
+)
+
+add_custom_command(
+  OUTPUT ${SRC_DIR}/interrupt_handlers.S
+  COMMAND ./codegen_interrupt_handlers.sh > ./interrupt_handlers.S
+  DEPENDS ${SRC_DIR}/codegen_interrupt_handlers.sh
+  WORKING_DIRECTORY ${SRC_DIR}
 )

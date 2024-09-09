@@ -92,7 +92,7 @@ void bootloader32_start() {
                 panic("Unsupported Program header entry %d.", i);
             } else {
                 memcpy((uint8_t *)phentry.p_vaddr, (uint8_t *)&buffer[phentry.p_offset], phentry.p_memsz);
-                printf("Memory at %d after copy:\n", phentry.p_vaddr);
+                printf("Memory at 0x%x after copy:\n", phentry.p_vaddr);
                 print_memory((uint8_t *)phentry.p_vaddr, 80);
             }
         }
