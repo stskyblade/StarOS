@@ -72,6 +72,14 @@ void bootloader32_start() {
     printf(s);
 
     printf("Loading kernel...\n");
+    // for (int i = 0; i < 26; i++) {
+    //     print_c('A' + i);
+    //     print_c('\n');
+    // }
+
+    // while (1)
+    //     ;
+
     struct stat filestatus;
     const char *kernel_filename = "/staros_kernel.elf";
     stat(kernel_filename, &filestatus);

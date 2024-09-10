@@ -37,10 +37,26 @@ void output_char(uint8_t c, uint8_t property, uint8_t row, uint8_t column) {
     return;
 }
 
+
+
 uint8_t row = 0;
 uint8_t column = 0;
 bool is_screen_cleared = false;
 bool is_serial_inited = false;
+
+// scroll up half screen of text
+void scroll_up() {
+    uint16_t *dest = (uint16_t *)0xb8000;
+    int offset_row = 25 / 2;
+    int count = (25 - offset_row) * 80; // count of last 13 rows
+    uint16_t *src = dest + offset_row * 80;
+    memcpy(dest, src, count * 2); // copy last 13 rows to start
+    zeromem(src + 80, (count - 80) * 2);   // clear last 12 rows
+
+    row = 25 - offset_row;
+    column = 0;
+    return;
+}
 
 int is_transmit_empty() {
     return inb(PORT + 5) & 0x20;
@@ -63,7 +79,7 @@ void print_c(char c) {
         column = 0;
 
         if (row == 0) {
-            sleep(2);
+            scroll_up();
         }
         return;
     }
@@ -77,8 +93,7 @@ void print_c(char c) {
 
     // TODO: row exceed max row 24
     if (row == 25) {
-        row = 0;
-        sleep(2);
+        scroll_up();
     }
 }
 

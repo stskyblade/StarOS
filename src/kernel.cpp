@@ -5,13 +5,6 @@ const uint32_t STACK_SIZE = 1024 * 1024 * 64;
 uint8_t STACK[STACK_SIZE];
 uint8_t STACK_BOTTOM = 0;
 
-void init_stack() {
-    memset(STACK, 0, STACK_SIZE);
-    __asm__ __volatile__("mov $%0, %%esp\n\t"
-                         :
-                         : "m"(STACK_BOTTOM));
-}
-
 extern "C" {
 extern void interrupt_handler_0();
 extern void interrupt_handler_1();
