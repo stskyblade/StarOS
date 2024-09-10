@@ -125,15 +125,22 @@ bool detect_ide_disk(uint16_t port_base, bool is_master) {
     return true;
 }
 
+uint16_t cached_port_base = 0;
+bool cached_is_master = false;
+
 // https://wiki.osdev.org/ATA_PIO_Mode#28_bit_PIO
 // return 0 on success, -1 on failure
 int read_ide_disk_sector(uint16_t port_base, bool is_master, uint64_t lba, uint64_t count, uint8_t *dest) {
-    // select drive and set high 4 bit LBA
-    outb(port_base + DriveRegister, 0xe0 | ((!is_master) << 4) | ((lba >> 24) & 0x0f));
     uint8_t data = 0;
-
-    for (int i = 0; i < 15; i++) {
-        data = inb(port_base + StatusRegister);
+    if (cached_port_base != port_base || cached_is_master != is_master) {
+        // select drive and set high 4 bit LBA
+        outb(port_base + DriveRegister, 0xe0 | ((!is_master) << 4) | ((lba >> 24) & 0x0f));
+        // delay
+        for (int i = 0; i < 15; i++) {
+            data = inb(port_base + StatusRegister);
+        }
+        cached_is_master = is_master;
+        cached_port_base = port_base;
     }
 
     uint64_t sectors_to_read = count;
