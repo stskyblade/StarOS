@@ -136,6 +136,7 @@ int stat(const char *pathname, struct stat *statbuf);
 // Zero if lhs and rhs compare equal.
 // Positive value if lhs appears after rhs in lexicographical order.
 int strcmp(const char *lhs, const char *rhs);
+void *zeromem(void *dest, uint32_t count);
 void *memset(void *dest, uint8_t ch, uint64_t count);
 void *memcpy(void *dest, const void *src, uint64_t count);
 

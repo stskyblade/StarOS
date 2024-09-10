@@ -30,6 +30,24 @@ void *memset(void *dest, uint8_t ch, uint64_t count) {
     return dest;
 }
 
+void *zeromem(void *dest, uint32_t count) {
+    uint32_t four_byte_count = count / 4;
+    uint32_t reminder = count % 4;
+
+    uint32_t *buffer = (uint32_t *)dest;
+    for (uint32_t i = 0; i < four_byte_count; i++) {
+        buffer[i] = 0;
+    }
+
+    if (reminder) {
+        uint8_t *rest_buffer = (uint8_t *)dest + four_byte_count * 4;
+        for (uint32_t i = 0; i < reminder; i++) {
+            rest_buffer[i] = 0;
+        }
+    }
+    return dest;
+}
+
 void *memcpy(void *dest, const void *src, uint64_t count) {
     uint8_t *p1 = (uint8_t *)dest;
     uint8_t *p2 = (uint8_t *)src;

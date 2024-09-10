@@ -71,6 +71,7 @@ void bootloader32_start() {
     char *s = "hello,C. bootloader32.\n";
     printf(s);
 
+    printf("Loading kernel...\n");
     struct stat filestatus;
     const char *kernel_filename = "/staros_kernel.elf";
     stat(kernel_filename, &filestatus);
@@ -100,11 +101,9 @@ void bootloader32_start() {
         panic("Unsupported kernel file");
     }
 
-    memset(buffer, 0, kernel_size);
     printf("Waiting...\n");
-    sleep(2);
-
     printf("Call kernel entry\n");
+    sleep(1);
     void (*kernel_entry)() = (void (*)())header.e_entry;
     kernel_entry();
 
