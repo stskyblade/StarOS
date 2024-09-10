@@ -49,6 +49,7 @@ target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)
 target_link_libraries(${KERNEL_FILE} PUBLIC bootloadershared)
 
 set(DISK_IMG_FILENAME disk.img)
+# Write MBR to disk image
 add_custom_target(
   disk.img
   ALL
@@ -92,10 +93,7 @@ add_custom_command(
   OUTPUT ${PROJECT_BINARY_DIR}/fs.img
   DEPENDS ${KERNEL_FILE}
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-  # COMMAND if [ ! -b ${USB_DEVICE} ]; then echo "File not found: ${USB_DEVICE}" \; exit 1 \; fi
-  # COMMAND echo "Found /dev/sdb"
-  # erase all data, first 250MB
-  # COMMAND echo "Erase all data in first 250MB"
+
   COMMAND sudo dd if=/dev/zero of=${FS_IMG} count=512000
   COMMAND sudo losetup ${LOOP_DEVICE} ${FS_IMG}
   COMMAND echo "Partition..."
@@ -114,29 +112,17 @@ add_custom_command(
   COMMAND sudo losetup -d ${LOOP_DEVICE}
   # directly manipulate image on project directory is extreamly slow
   COMMAND sudo cp /tmp/fs.img ${PROJECT_BINARY_DIR}/fs.img
-  # COMMAND sudo dd status=none if=${USB_DEVICE} of=${PROJECT_BINARY_DIR}/fs.img count=512000
   COMMAND echo "Done."
 )
 
-# # only burn first 2048 sectors to USB drive
-# add_custom_target(
-#   burn
-#   DEPENDS disk.img
-#   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-#   COMMAND echo "Write to USB driver..."
-#   COMMAND if [ ! -b /dev/sdb ]; then echo "File not found: /dev/sdb" \; exit 1 \; fi
-#   COMMAND sudo dd status=none if=disk.img of=/dev/sdb bs=512 count=2048
-#   COMMAND sync
-# )
-
-
+# Write first 250MB to /dev/sdb
 add_custom_target(
   burn
   DEPENDS disk.img
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
   COMMAND echo "Write to USB driver..."
-  COMMAND if [ ! -b /dev/sdb ]; then echo "File not found: /dev/sdb" \; exit 1 \; fi
-  COMMAND sudo dd status=none if=disk.img of=/dev/sdb bs=512 count=512000
+  COMMAND if [ ! -b ${USB_DEVICE} ]; then echo "File not found: ${USB_DEVICE}" \; exit 1 \; fi
+  COMMAND sudo dd status=none if=disk.img of=${USB_DEVICE} bs=512 count=512000
   COMMAND sync
 )
 
