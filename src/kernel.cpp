@@ -1,10 +1,5 @@
 #include "bootloader32.h"
 
-// 64MB kernel stack
-const uint32_t STACK_SIZE = 1024 * 1024 * 64;
-uint8_t STACK[STACK_SIZE];
-uint8_t STACK_BOTTOM = 0;
-
 extern "C" {
 extern void interrupt_handler_0();
 extern void interrupt_handler_1();
@@ -322,7 +317,8 @@ void init_interrupt_handler() {
 extern "C" {
 void kernel_main() {
     // init stack
-    __asm__ __volatile__("mov $%0, %%esp\n\t"
+    uint8_t *STACK_BOTTOM = (uint8_t *)0x20000000 - 1024 * 1024; // leave 1MB free space
+    __asm__ __volatile__("mov %0, %%esp\n\t"
                          :
                          : "m"(STACK_BOTTOM));
 
