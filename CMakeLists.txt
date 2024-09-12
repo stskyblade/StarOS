@@ -42,7 +42,9 @@ target_link_libraries(mbr.elf PUBLIC bootloadershared)
 
 set(KERNEL_FILE staros_kernel.elf)
 add_executable(${KERNEL_FILE}
+  ${SRC_DIR}/kernel.h
   ${SRC_DIR}/interrupt_handlers.S
+  ${SRC_DIR}/stdlib.cpp
   ${SRC_DIR}/kernel.cpp
 )
 target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)

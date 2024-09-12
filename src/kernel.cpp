@@ -1,3 +1,4 @@
+#include "kernel.h"
 #include "bootloader32.h"
 
 extern "C" {
@@ -314,6 +315,36 @@ void init_interrupt_handler() {
                          :);
 }
 
+void test_malloc() {
+    int *ip = (int *)malloc(sizeof(int));
+    if (ip != (int *)0x20200000) {
+        panic("failed");
+    }
+
+    int *ip2 = (int *)malloc(sizeof(int));
+    if (ip2 != (int *)0x20200008) {
+        panic("failed");
+    }
+
+    char *cp = (char *)malloc(25);
+    if (cp != (char *)(0x20200008 + 8)) {
+        panic("failed");
+    }
+
+    char *cp2 = (char *)malloc(1);
+    if (cp2 != (char *)(0x20200008 + 8 + 25 + 7)) {
+        panic("failed");
+    }
+
+    printf(".");
+}
+
+void run_test() {
+    printf("Running kernel test:\n");
+    test_malloc();
+    printf("All test passed.\n");
+}
+
 extern "C" {
 void kernel_main() {
     // init stack
@@ -326,13 +357,12 @@ void kernel_main() {
     printf("hello,kernel\n");
     init_interrupt_handler();
 
+    run_test();
+
     // never return
     while (1) {
         sleep(1);
         printf(".");
-        __asm__ __volatile__("int $255\n\t"
-                             :
-                             :);
         ;
     }
 }
