@@ -122,10 +122,7 @@ add_custom_target(
   burn
   DEPENDS disk.img
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-  COMMAND echo "Write to USB driver..."
-  COMMAND if [ ! -b ${USB_DEVICE} ]; then echo "File not found: ${USB_DEVICE}" \; exit 1 \; fi
-  COMMAND sudo dd status=none if=disk.img of=${USB_DEVICE} bs=512 count=512000
-  COMMAND sync
+  COMMAND ${PROJECT_SOURCE_DIR}/burn2disk.sh ${USB_DEVICE}
 )
 
 add_custom_target(
