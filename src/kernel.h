@@ -3,5 +3,6 @@
 // ====================== stdlib.cpp start ===========================
 
 void *malloc(uint64_t size);
+void *alloc_page();
 
 // ====================== stdlib.cpp end ===========================
