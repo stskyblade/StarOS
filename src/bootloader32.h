@@ -39,17 +39,46 @@ inline void outl(uint16_t port, uint32_t data) {
                          : "a"(data), "d"(port));
 }
 
-const bool IS_DEBUG = false;
+enum LoggingLevel {
+    TRACE,
+    DEBUG,
+    INFO,
+    ERROR,
+    FATAL
+};
+
+const LoggingLevel CURRENT_LOGGING_LEVEL = INFO;
 // b32_print
-#define panic(...)       \
-    printf("Panic: ");   \
-    printf(__VA_ARGS__); \
-    while (1)            \
-        ;
-#define debug(...)           \
-    if (IS_DEBUG) {          \
-        printf("[DEBUG]: "); \
-        printf(__VA_ARGS__); \
+#define panic(...) \
+    fatal(__VA_ARGS__)
+
+#define trace(...)                        \
+    if (CURRENT_LOGGING_LEVEL <= TRACE) { \
+        printf("[TRACE]: ");              \
+        printf(__VA_ARGS__);              \
+        printf("\n");                     \
+    }
+
+#define debug(...)                        \
+    if (CURRENT_LOGGING_LEVEL <= DEBUG) { \
+        printf("[DEBUG]: ");              \
+        printf(__VA_ARGS__);              \
+        printf("\n");                     \
+    }
+#define info(...)                        \
+    if (CURRENT_LOGGING_LEVEL <= INFO) { \
+        printf("[INFO]: ");              \
+        printf(__VA_ARGS__);             \
+        printf("\n");                    \
+    }
+#define fatal(...)                        \
+    if (CURRENT_LOGGING_LEVEL <= FATAL) { \
+        printf("[FATAL]: ");              \
+        printf(__VA_ARGS__);              \
+        printf("\n");                     \
+        while (1) {                       \
+            ;                             \
+        }                                 \
     }
 
 void print_c(char c);

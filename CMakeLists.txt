@@ -46,6 +46,7 @@ add_executable(${KERNEL_FILE}
   ${SRC_DIR}/interrupt_handlers.S
   ${SRC_DIR}/stdlib.cpp
   ${SRC_DIR}/kernel.cpp
+  ${SRC_DIR}/paging.cpp
 )
 target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)
 target_link_libraries(${KERNEL_FILE} PUBLIC bootloadershared)

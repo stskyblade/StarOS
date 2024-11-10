@@ -68,17 +68,7 @@ extern "C" {
 void bootloader32_start() {
     // TODO: print hello,C. bootloader32
     // print_data_type_size();
-    char *s = "hello,C. bootloader32.\n";
-    printf(s);
-
-    printf("Loading kernel...\n");
-    // for (int i = 0; i < 26; i++) {
-    //     print_c('A' + i);
-    //     print_c('\n');
-    // }
-
-    // while (1)
-    //     ;
+    info("Enter C source code of bootloader32...        OK");
 
     struct stat filestatus;
     const char *kernel_filename = "/staros_kernel.elf";
@@ -101,22 +91,16 @@ void bootloader32_start() {
                 panic("Unsupported Program header entry %d.", i);
             } else {
                 memcpy((uint8_t *)phentry.p_vaddr, (uint8_t *)&buffer[phentry.p_offset], phentry.p_memsz);
-                printf("Memory at 0x%x after copy:\n", phentry.p_vaddr);
-                print_memory((uint8_t *)phentry.p_vaddr, 80);
+                // printf("Memory at 0x%x after copy:\n", phentry.p_vaddr);
+                // print_memory((uint8_t *)phentry.p_vaddr, 80);
             }
         }
     } else {
         panic("Unsupported kernel file");
     }
 
-    printf("Waiting...\n");
-    printf("Call kernel entry\n");
-    sleep(1);
+    // enter kernel_main, never return
     void (*kernel_entry)() = (void (*)())header.e_entry;
     kernel_entry();
-
-    while (1) {
-        ;
-    }
 }
 }
