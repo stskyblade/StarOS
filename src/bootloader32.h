@@ -39,12 +39,19 @@ inline void outl(uint16_t port, uint32_t data) {
                          : "a"(data), "d"(port));
 }
 
+const bool IS_DEBUG = false;
 // b32_print
 #define panic(...)       \
     printf("Panic: ");   \
     printf(__VA_ARGS__); \
     while (1)            \
         ;
+#define debug(...)           \
+    if (IS_DEBUG) {          \
+        printf("[DEBUG]: "); \
+        printf(__VA_ARGS__); \
+    }
+
 void print_c(char c);
 void printf(const char *restrict, ...);
 void print_memory(uint8_t *buf, int length);

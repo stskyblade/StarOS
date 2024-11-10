@@ -88,7 +88,7 @@ jmp_32:
   // enter protected mode
   mov $0, %eax
   mov %cr0, %eax
-  or $1, %eax
+  or $1, %eax   // set PE bit
   mov %eax, %cr0
 
   // cs selector is 0x0008
