@@ -10,3 +10,7 @@ void *alloc_page();
 // ================== paging.cpp start ======================
 bool ksetup_kernel_paging();
 // ================== paging.cpp end ======================
+
+// ================== interrupt.cpp start ======================
+void init_interrupt_handler();
+// ================== interrupt.cpp end ======================

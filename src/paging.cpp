@@ -42,11 +42,6 @@ void add_paging_map(void *linear_address, void *physical_address) {
     if (!kernel_paging_directory) {
         // create a new page directory
         kernel_paging_directory = reinterpret_cast<PTE *>(alloc_page());
-        // fill the page directory table with invalid entrys
-        for (int i = 0; i < 1024; i++) {
-            uint32_t *dir_entry = (uint32_t *)&kernel_paging_directory[i];
-            *dir_entry = 0x00000002;
-        }
         new_allocated_paging_directory = true;
         trace("kernel_paging_directory: 0x%x\n", (int)kernel_paging_directory);
     }
@@ -114,7 +109,7 @@ void prepare_kernel_paging() {
         add_paging_map((void *)(i << 12), (void *)(i << 12));
     }
 
-    // map STACK to same address, range from 0x12D00000 to 0x20000000
+    // map STACK to same address, range from 0x12D00000 to 0x20000000, about 500mb
     for (int i = 0x12D00; i < 0x20000; i++) {
         add_paging_map((void *)(i << 12), (void *)(i << 12));
     }
@@ -173,6 +168,7 @@ void enable_kernel_paging() {
     __asm__ __volatile__("movl %0, %%cr0\n\t"
                          :
                          : "r"(data));
+
     debug("after enable PG bit");
     __asm__ __volatile__("jmp $0x0008, $flash_after_enable_paging\n\t"
                          :
@@ -192,17 +188,11 @@ void disable_kernel_paging() {
     __asm__ __volatile__("movl %0, %%cr0\n\t"
                          :
                          : "r"(data));
+
     __asm__ __volatile__("jmp $0x0008, $flash_after_disable_paging\n\t"
                          :
                          :);
-
     __asm__ __volatile__("flash_after_disable_paging:\n\t");
-
-    int a = 3;
-    int b = 4;
-    int c = a + b;
-    c = c + 1;
-    int d = c;
     return;
 }
 
