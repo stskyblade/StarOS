@@ -377,7 +377,7 @@ void add_paging_map(void *linear_address, void *physical_address) {
 
     int linear = (int)linear_address;
     int physical = (int)physical_address;
-    printf("map %x -> %x\n", linear, physical);
+    // printf("map %x -> %x\n", linear, physical);
     // check directory is valid
     // check directory[dir] is valid
     // check page_table[page] is valid
@@ -562,15 +562,21 @@ void disable_kernel_paging() {
 
 void test_kernel_paging() {
     // write to physical address 0x50005100, should read back
+    int *position1 = (int *)0x40005100;
+    int *position2 = (int *)0x50005100;
     int magic = 0x33667890;
-    int *p = (int *)0x50005100;
-    *p = 0;
-    int value = *p;
-    if (value != 0) {
+    int value1 = magic;
+    int value2 = 0;
+
+    *position2 = value2;
+    *position1 = value2;
+    int value = *position2;
+    if (value != value2) {
         panic("prepare test failed");
     }
 
-    add_paging_map((void *)0x40005000, (void *)0x50005000);
+    add_paging_map((void *)((int)position1 - (int)position1 % 0x1000),
+                   (void *)((int)position2 - (int)position2 % 0x1000)); // align to 4KB
     printf("before enable paging\n");
     enable_kernel_paging();
     printf("after enable paging\n");
@@ -590,8 +596,7 @@ void test_kernel_paging() {
     // panic("should interrupt, shouldn't see this.");
 
     // assess mapped memory can be seen, map 40005100 to 50005100, write to 40005100, 50005100 is changed
-    p = (int *)0x40005100;
-    *p = magic;
+    *position1 = value1;
 
     // close PE, read value back
     disable_kernel_paging();
@@ -599,13 +604,14 @@ void test_kernel_paging() {
                          : "=r"(data)
                          :);
     printf("cr0 PG bit should be 0: %d\n", data & (1 << 31));
-    p = (int *)0x50005100;
-    value = *p;
 
-    int *p2 = (int *)0x40005100;
-    int value2 = *p2;
+    value = *position2;
+    value2 = *position1;
     if (value != magic || value2 != 0) {
+        printf("expected value %d but given %d\n", magic, value);
+        printf("expected value2 %d but given %d\n", 0, value2);
         panic("paging test failed");
+
     } else {
         printf("test paging OK\n");
     }
