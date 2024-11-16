@@ -81,6 +81,11 @@ void kernel_main() {
         fatal("Enable paging...     Failed");
     }
 
+    // execute a user program
+    char *const arg1 = "arg1";
+    char *const argv[1] = {arg1};
+    execv("/testadd", argv);
+
     // never return
     while (1) {
         sleep(1);

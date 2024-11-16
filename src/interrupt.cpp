@@ -277,6 +277,9 @@ void interrupt_handler(TrapFrame tf) {
         return;
     }
 
+    uint8_t *addr = nullptr;
+    debug("This is interrupt_handler %d 0x%x\n", condition_code, error_code);
+
     switch (condition_code) {
     case 14:
         // page fault
@@ -284,7 +287,29 @@ void interrupt_handler(TrapFrame tf) {
         __asm__ __volatile__("movl %%cr2, %0\n\t"
                              : "=r"(data)
                              :);
-        debug("page fault due to 0x%x", data);
+        debug("page fault due to addr 0x%x", data);
+        // p bit
+        if (error_code & 1) {
+            debug("page level protection violation, ");
+        } else {
+            debug("not present page, ");
+        }
+        // r/w bit
+        if (error_code & (1 << 1)) {
+            debug("write, ");
+        } else {
+            debug("read, ");
+        }
+        // u/s bit
+        if (error_code & (1 << 2)) {
+            debug("user mode.\n");
+        } else {
+            debug("supervisor mode.\n");
+        }
+
+        addr = (uint8_t *)(data & ~0x111);
+        add_paging_map(addr, addr);
+        return;
         break;
 
     default:

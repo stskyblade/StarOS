@@ -32,6 +32,7 @@ add_library(bootloadershared
   ${BOOTLOADER_KERNEL_SHARED_FILES}
 )
 
+# mbr target
 add_executable(mbr.elf
   ${SRC_DIR}/mbr.S
   ${SRC_DIR}/bootloader.S
@@ -40,6 +41,7 @@ add_executable(mbr.elf
 target_link_options(mbr.elf PRIVATE -T${SRC_DIR}/mbr.ld)
 target_link_libraries(mbr.elf PUBLIC bootloadershared)
 
+# kernel target
 set(KERNEL_FILE staros_kernel.elf)
 add_executable(${KERNEL_FILE}
   ${SRC_DIR}/kernel.h
@@ -48,6 +50,7 @@ add_executable(${KERNEL_FILE}
   ${SRC_DIR}/kernel.cpp
   ${SRC_DIR}/paging.cpp
   ${SRC_DIR}/interrupt.cpp
+  ${SRC_DIR}/process.cpp
 )
 target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)
 target_link_libraries(${KERNEL_FILE} PUBLIC bootloadershared)
@@ -72,6 +75,7 @@ add_custom_target(
   COMMAND dd status=none if=${PROJECT_SOURCE_DIR}/root_dir/world.txt of=${DISK_IMG_FILENAME} conv=notrunc seek=65
 )
 
+# run qemu
 add_custom_target(
   qemu
   DEPENDS disk.img
@@ -79,6 +83,7 @@ add_custom_target(
   COMMAND qemu-system-i386 -m 5G -serial stdio ${DISK_IMG_FILENAME}
 )
 
+# run gdbserver
 add_custom_target(
   debug
   DEPENDS disk.img
@@ -93,9 +98,10 @@ set(USB_DEVICE /dev/sdb)
 set(MOUNT_POINT /mnt/fat32_device)
 set(FS_IMG /tmp/fs.img)
 set(LOOP_DEVICE /dev/loop0)
+set(USER_PROGRAMS testadd)
 add_custom_command(
   OUTPUT ${PROJECT_BINARY_DIR}/fs.img
-  DEPENDS ${KERNEL_FILE}
+  DEPENDS ${KERNEL_FILE} ${USER_PROGRAMS}
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
 
   COMMAND sudo dd if=/dev/zero of=${FS_IMG} count=512000
@@ -108,6 +114,7 @@ add_custom_command(
   COMMAND sudo mount ${LOOP_DEVICE}p1 ${MOUNT_POINT}
   COMMAND echo "Copy files..."
   COMMAND sudo cp ${PROJECT_BINARY_DIR}/${KERNEL_FILE} ${MOUNT_POINT}
+  COMMAND sudo cp ${PROJECT_BINARY_DIR}/${USER_PROGRAMS} ${MOUNT_POINT}
   COMMAND sudo cp ${PROJECT_SOURCE_DIR}/root_dir/hello.txt ${MOUNT_POINT}
   COMMAND sudo cp ${PROJECT_SOURCE_DIR}/root_dir/world.txt ${MOUNT_POINT}
   COMMAND sudo cp ${PROJECT_SOURCE_DIR}/root_dir/large_hello.txt ${MOUNT_POINT}
@@ -127,15 +134,23 @@ add_custom_target(
   COMMAND ${PROJECT_SOURCE_DIR}/burn2disk.sh ${USB_DEVICE}
 )
 
+# read first 200M from disk
 add_custom_target(
   dump
   COMMAND sudo dd status=none if=${USB_DEVICE} of=/tmp/sdb_250M.img count=512000
   COMMAND hexdump -C /tmp/sdb_250M.img
 )
 
+# generate interrupt_handler.S
 add_custom_command(
   OUTPUT ${SRC_DIR}/interrupt_handlers.S
   COMMAND ./codegen_interrupt_handlers.sh > ./interrupt_handlers.S
   DEPENDS ${SRC_DIR}/codegen_interrupt_handlers.sh
   WORKING_DIRECTORY ${SRC_DIR}
+)
+
+# ====================== user mode programs
+set(USER_DIR ${PROJECT_SOURCE_DIR}/src_user)
+add_executable(testadd
+  ${USER_DIR}/testadd.cpp
 )

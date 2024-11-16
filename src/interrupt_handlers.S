@@ -128,12 +128,11 @@ interrupt_handler_13:
   iret
 .global interrupt_handler_14
 interrupt_handler_14:
-  push %eax
   mov $14, %eax
   push %eax
   call interrupt_handler
   add $4, %esp
-  pop %eax
+  add $4, %esp
   iret
 .global interrupt_handler_15
 interrupt_handler_15:
@@ -2306,4 +2305,3 @@ interrupt_handler_255:
   iret
 .global interrupt_handler_end
 interrupt_handler_end:
-

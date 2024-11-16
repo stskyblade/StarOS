@@ -47,7 +47,7 @@ enum LoggingLevel {
     FATAL
 };
 
-const LoggingLevel CURRENT_LOGGING_LEVEL = INFO;
+const LoggingLevel CURRENT_LOGGING_LEVEL = DEBUG;
 // b32_print
 #define panic(...) \
     fatal(__VA_ARGS__)
