@@ -20,6 +20,12 @@ void *malloc(uint64_t size) {
     while ((uint64_t)free_memory % 8) {
         free_memory = free_memory + 1;
     }
+
+    if (is_paging_enabled) {
+        // add kernel paging map if necessary
+        uint32_t addr = (uint32_t)allocated_memory & (~0x111);
+        add_paging_map((void *)addr, (void *)addr);
+    }
     return allocated_memory;
 }
 

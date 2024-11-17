@@ -8,6 +8,7 @@ void *alloc_page();
 // ====================== stdlib.cpp end ===========================
 
 // ================== paging.cpp start ======================
+extern bool is_paging_enabled;
 bool ksetup_kernel_paging();
 void add_paging_map(void *linear_address, void *physical_address);
 // ================== paging.cpp end ======================

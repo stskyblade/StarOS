@@ -15,12 +15,14 @@ struct PTE {
 } __attribute__((packed));
 
 PTE *kernel_paging_directory = nullptr;
+bool is_paging_enabled = false;
 
 // add a Page Table Entry
 // map `linear_address` to `physical_address`, 4KB
 // FIXME:linear_address provide DIR index & PTE index. So page table is not added to directory at index 0, 1, 2...
 // but index comes from linear_address. 1024 entries match 10-bit dir, 10-bit page
 void add_paging_map(void *linear_address, void *physical_address) {
+    // debug("page mapping 0x%x -> 0x%x", (uint32_t)linear_address, (uint32_t)physical_address);
     if (sizeof(PTE) != 4) {
         panic("expected PTE size to be 4");
     }
@@ -175,6 +177,7 @@ void enable_kernel_paging() {
                          :);
 
     __asm__ __volatile__("flash_after_enable_paging:\n\t");
+    is_paging_enabled = true;
     return;
 }
 
@@ -193,6 +196,7 @@ void disable_kernel_paging() {
                          :
                          :);
     __asm__ __volatile__("flash_after_disable_paging:\n\t");
+    is_paging_enabled = false;
     return;
 }
 
