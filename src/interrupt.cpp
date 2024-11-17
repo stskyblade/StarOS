@@ -2,14 +2,12 @@
 #include "kernel.h"
 
 extern "C" {
-// definitions are in interrupt_handlers.S
-extern void interrupt_handler_end();
 
-struct TrapFrame {
+struct TrapFrame { // order should be opposite to alltraps.S
     uint32_t edi;
     uint32_t esi;
     uint32_t ebp;
-    uint32_t esp;
+    uint32_t esp; // status inside alltraps, useless
     uint32_t ebx;
     uint32_t edx;
     uint32_t ecx;
@@ -45,6 +43,9 @@ void interrupt_handler(TrapFrame *tf) {
     case 7:
         debug("pass 7");
         return;
+        break;
+    case 12: // stack exception
+        debug("pass 12");
         break;
     case 14:
         // page fault

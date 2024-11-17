@@ -1,5 +1,6 @@
 .section .text
 
+# jump from interrupt_handlers.S
 .global alltraps
 alltraps:
 # Build trap frame.
