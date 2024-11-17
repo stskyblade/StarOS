@@ -3,6 +3,8 @@ project(StarOS
   VERSION 0.1
   LANGUAGES C CXX ASM)
 
+# generate compiler_commands.json
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # the name of the target operating system
 set(CMAKE_SYSTEM_NAME Generic)

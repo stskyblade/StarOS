@@ -1,0 +1,98 @@
+[
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-g++   -ffreestanding -Wall -Wno-write-strings -Wno-unused-variable -Wno-unused-parameter -Wextra -fno-exceptions -fno-rtti -nostdlib -g -o CMakeFiles/bootloadershared.dir/src/b32_print.cpp.o -c /home/stskyblade/Project/StarOS/src/b32_print.cpp",
+  "file": "/home/stskyblade/Project/StarOS/src/b32_print.cpp",
+  "output": "CMakeFiles/bootloadershared.dir/src/b32_print.cpp.o"
+},
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-g++   -ffreestanding -Wall -Wno-write-strings -Wno-unused-variable -Wno-unused-parameter -Wextra -fno-exceptions -fno-rtti -nostdlib -g -o CMakeFiles/bootloadershared.dir/src/b32_disk.cpp.o -c /home/stskyblade/Project/StarOS/src/b32_disk.cpp",
+  "file": "/home/stskyblade/Project/StarOS/src/b32_disk.cpp",
+  "output": "CMakeFiles/bootloadershared.dir/src/b32_disk.cpp.o"
+},
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-g++   -ffreestanding -Wall -Wno-write-strings -Wno-unused-variable -Wno-unused-parameter -Wextra -fno-exceptions -fno-rtti -nostdlib -g -o CMakeFiles/bootloadershared.dir/src/b32_filesystem.cpp.o -c /home/stskyblade/Project/StarOS/src/b32_filesystem.cpp",
+  "file": "/home/stskyblade/Project/StarOS/src/b32_filesystem.cpp",
+  "output": "CMakeFiles/bootloadershared.dir/src/b32_filesystem.cpp.o"
+},
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-g++   -ffreestanding -Wall -Wno-write-strings -Wno-unused-variable -Wno-unused-parameter -Wextra -fno-exceptions -fno-rtti -nostdlib -g -o CMakeFiles/bootloadershared.dir/src/b32_string.cpp.o -c /home/stskyblade/Project/StarOS/src/b32_string.cpp",
+  "file": "/home/stskyblade/Project/StarOS/src/b32_string.cpp",
+  "output": "CMakeFiles/bootloadershared.dir/src/b32_string.cpp.o"
+},
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-g++   -ffreestanding -Wall -Wno-write-strings -Wno-unused-variable -Wno-unused-parameter -Wextra -fno-exceptions -fno-rtti -nostdlib -g -o CMakeFiles/bootloadershared.dir/src/b32_utils.cpp.o -c /home/stskyblade/Project/StarOS/src/b32_utils.cpp",
+  "file": "/home/stskyblade/Project/StarOS/src/b32_utils.cpp",
+  "output": "CMakeFiles/bootloadershared.dir/src/b32_utils.cpp.o"
+},
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-as    -o CMakeFiles/mbr.elf.dir/src/mbr.S.o -c /home/stskyblade/Project/StarOS/src/mbr.S",
+  "file": "/home/stskyblade/Project/StarOS/src/mbr.S",
+  "output": "CMakeFiles/mbr.elf.dir/src/mbr.S.o"
+},
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-as    -o CMakeFiles/mbr.elf.dir/src/bootloader.S.o -c /home/stskyblade/Project/StarOS/src/bootloader.S",
+  "file": "/home/stskyblade/Project/StarOS/src/bootloader.S",
+  "output": "CMakeFiles/mbr.elf.dir/src/bootloader.S.o"
+},
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-g++   -ffreestanding -Wall -Wno-write-strings -Wno-unused-variable -Wno-unused-parameter -Wextra -fno-exceptions -fno-rtti -nostdlib -g -o CMakeFiles/mbr.elf.dir/src/bootloader_32.cpp.o -c /home/stskyblade/Project/StarOS/src/bootloader_32.cpp",
+  "file": "/home/stskyblade/Project/StarOS/src/bootloader_32.cpp",
+  "output": "CMakeFiles/mbr.elf.dir/src/bootloader_32.cpp.o"
+},
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-as    -o CMakeFiles/staros_kernel.elf.dir/src/interrupt_handlers.S.o -c /home/stskyblade/Project/StarOS/src/interrupt_handlers.S",
+  "file": "/home/stskyblade/Project/StarOS/src/interrupt_handlers.S",
+  "output": "CMakeFiles/staros_kernel.elf.dir/src/interrupt_handlers.S.o"
+},
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-as    -o CMakeFiles/staros_kernel.elf.dir/src/alltraps.S.o -c /home/stskyblade/Project/StarOS/src/alltraps.S",
+  "file": "/home/stskyblade/Project/StarOS/src/alltraps.S",
+  "output": "CMakeFiles/staros_kernel.elf.dir/src/alltraps.S.o"
+},
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-g++   -ffreestanding -Wall -Wno-write-strings -Wno-unused-variable -Wno-unused-parameter -Wextra -fno-exceptions -fno-rtti -nostdlib -g -o CMakeFiles/staros_kernel.elf.dir/src/stdlib.cpp.o -c /home/stskyblade/Project/StarOS/src/stdlib.cpp",
+  "file": "/home/stskyblade/Project/StarOS/src/stdlib.cpp",
+  "output": "CMakeFiles/staros_kernel.elf.dir/src/stdlib.cpp.o"
+},
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-g++   -ffreestanding -Wall -Wno-write-strings -Wno-unused-variable -Wno-unused-parameter -Wextra -fno-exceptions -fno-rtti -nostdlib -g -o CMakeFiles/staros_kernel.elf.dir/src/kernel.cpp.o -c /home/stskyblade/Project/StarOS/src/kernel.cpp",
+  "file": "/home/stskyblade/Project/StarOS/src/kernel.cpp",
+  "output": "CMakeFiles/staros_kernel.elf.dir/src/kernel.cpp.o"
+},
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-g++   -ffreestanding -Wall -Wno-write-strings -Wno-unused-variable -Wno-unused-parameter -Wextra -fno-exceptions -fno-rtti -nostdlib -g -o CMakeFiles/staros_kernel.elf.dir/src/paging.cpp.o -c /home/stskyblade/Project/StarOS/src/paging.cpp",
+  "file": "/home/stskyblade/Project/StarOS/src/paging.cpp",
+  "output": "CMakeFiles/staros_kernel.elf.dir/src/paging.cpp.o"
+},
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-g++   -ffreestanding -Wall -Wno-write-strings -Wno-unused-variable -Wno-unused-parameter -Wextra -fno-exceptions -fno-rtti -nostdlib -g -o CMakeFiles/staros_kernel.elf.dir/src/interrupt.cpp.o -c /home/stskyblade/Project/StarOS/src/interrupt.cpp",
+  "file": "/home/stskyblade/Project/StarOS/src/interrupt.cpp",
+  "output": "CMakeFiles/staros_kernel.elf.dir/src/interrupt.cpp.o"
+},
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-g++   -ffreestanding -Wall -Wno-write-strings -Wno-unused-variable -Wno-unused-parameter -Wextra -fno-exceptions -fno-rtti -nostdlib -g -o CMakeFiles/staros_kernel.elf.dir/src/process.cpp.o -c /home/stskyblade/Project/StarOS/src/process.cpp",
+  "file": "/home/stskyblade/Project/StarOS/src/process.cpp",
+  "output": "CMakeFiles/staros_kernel.elf.dir/src/process.cpp.o"
+},
+{
+  "directory": "/home/stskyblade/Project/StarOS/build",
+  "command": "i686-elf-g++   -ffreestanding -Wall -Wno-write-strings -Wno-unused-variable -Wno-unused-parameter -Wextra -fno-exceptions -fno-rtti -nostdlib -g -o CMakeFiles/testadd.dir/src_user/testadd.cpp.o -c /home/stskyblade/Project/StarOS/src_user/testadd.cpp",
+  "file": "/home/stskyblade/Project/StarOS/src_user/testadd.cpp",
+  "output": "CMakeFiles/testadd.dir/src_user/testadd.cpp.o"
+}
+]
