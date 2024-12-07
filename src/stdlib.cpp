@@ -23,7 +23,7 @@ void *malloc(uint64_t size) {
 
     if (is_paging_enabled) {
         // add kernel paging map if necessary
-        uint32_t addr = (uint32_t)allocated_memory & (~0x111);
+        uint32_t addr = (uint32_t)allocated_memory & (~0xFFF);
         add_paging_map((void *)addr, (void *)addr);
     }
     return allocated_memory;
@@ -38,7 +38,13 @@ void *alloc_page() {
     void *allocated_memory = free_memory;
     free_memory += size;
 
-    memset(allocated_memory, 0, size);
+    // if (is_paging_enabled) {
+    //     // add kernel paging map if necessary
+    //     uint32_t addr = (uint32_t)allocated_memory & (~0x111);
+    //     add_paging_map((void *)addr, (void *)addr);
+    // }
+
+    // memset(allocated_memory, 0, size);
 
     return allocated_memory;
 }

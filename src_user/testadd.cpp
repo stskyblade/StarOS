@@ -6,5 +6,8 @@ int main() {
     b = b + 2;
     c = c + 3;
     int d = a + b + c;
+    while (true) {
+        ;
+    }
     return 0;
 }

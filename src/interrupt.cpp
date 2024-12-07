@@ -3,6 +3,8 @@
 
 extern "C" {
 
+// in memory bytes, first field comes first, has lower memory address
+// last field comes last, has higher memory address, should be pushed first
 struct TrapFrame { // order should be opposite to alltraps.S
     uint32_t edi;
     uint32_t esi;
@@ -85,17 +87,6 @@ void interrupt_handler(TrapFrame *tf) {
     panic("This is interrupt_handler %d 0x%x\n", condition_code, error_code);
 }
 }
-
-// Page 157. Figure 9-3
-struct Gate_Descriptor {
-    uint16_t offset_low;
-    uint16_t selector;
-    uint8_t reserved;
-    uint8_t type : 5;
-    uint8_t dpl : 2;
-    uint8_t p : 1; // 1 for present, 0 for not-present exception
-    uint16_t offset_high;
-} __attribute__((packed));
 
 const int IDT_size = 256;
 Gate_Descriptor IDT[IDT_size];

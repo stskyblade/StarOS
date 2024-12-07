@@ -1,27 +1,18 @@
 #include "bootloader32.h"
 #include "kernel.h"
 
-struct PTE {
-    uint8_t p : 1;
-    uint8_t rw : 1;
-    uint8_t user_or_supervisor : 1;
-    uint8_t reserved1 : 2; // 00
-    uint8_t access : 1;
-    uint8_t dirty : 1;
-    uint8_t reserved2 : 2; // 00
-    uint8_t avail : 3;
-    uint32_t address : 20;
-
-} __attribute__((packed));
-
 PTE *kernel_paging_directory = nullptr;
 bool is_paging_enabled = false;
+
+void add_paging_map(void *linear_address, void *physical_address) {
+    return add_memory_mapping(linear_address, physical_address, kernel_paging_directory);
+}
 
 // add a Page Table Entry
 // map `linear_address` to `physical_address`, 4KB
 // FIXME:linear_address provide DIR index & PTE index. So page table is not added to directory at index 0, 1, 2...
 // but index comes from linear_address. 1024 entries match 10-bit dir, 10-bit page
-void add_paging_map(void *linear_address, void *physical_address) {
+void add_memory_mapping(void *linear_address, void *physical_address, PTE *&paging_directory) {
     // debug("page mapping 0x%x -> 0x%x", (uint32_t)linear_address, (uint32_t)physical_address);
     if (sizeof(PTE) != 4) {
         panic("expected PTE size to be 4");
@@ -41,14 +32,14 @@ void add_paging_map(void *linear_address, void *physical_address) {
     }
 
     bool new_allocated_paging_directory = false;
-    if (!kernel_paging_directory) {
+    if (!paging_directory) {
         // create a new page directory
-        kernel_paging_directory = reinterpret_cast<PTE *>(alloc_page());
+        paging_directory = reinterpret_cast<PTE *>(alloc_page());
         new_allocated_paging_directory = true;
-        trace("kernel_paging_directory: 0x%x\n", (int)kernel_paging_directory);
+        trace("paging_directory: 0x%x\n", (int)paging_directory);
     }
 
-    PTE &dir_entry = kernel_paging_directory[reinterpret_cast<uint32_t>(linear_address) >> 22];
+    PTE &dir_entry = paging_directory[reinterpret_cast<uint32_t>(linear_address) >> 22];
     int dir_entry_offset = reinterpret_cast<uint32_t>(linear_address) >> 22;
     trace("dir_entry_offset: 0x%x\n", dir_entry_offset);
     bool new_allocated_page_table = false;
@@ -75,6 +66,9 @@ void add_paging_map(void *linear_address, void *physical_address) {
     int entry_offset = reinterpret_cast<uint32_t>(linear_address) >> 12 & 0b1111111111;
     trace("entry_offset: 0x%x\n", entry_offset);
     PTE &entry = page_table[reinterpret_cast<uint32_t>(linear_address) >> 12 & 0b1111111111]; // middle 10bit
+    if (new_allocated_page_table) {
+        add_paging_map(page_table, page_table);
+    }
     entry.p = 1;
     entry.rw = 1;
     entry.user_or_supervisor = 0;
@@ -87,12 +81,12 @@ void add_paging_map(void *linear_address, void *physical_address) {
 
     if (new_allocated_paging_directory) {
         trace("new paging directory -> ");
-        add_paging_map(kernel_paging_directory, kernel_paging_directory);
+        add_memory_mapping(paging_directory, paging_directory, paging_directory);
     }
 
     if (new_allocated_page_table) {
         trace("new page table -> ");
-        add_paging_map(page_table, page_table);
+        add_memory_mapping(page_table, page_table, paging_directory);
     }
 }
 

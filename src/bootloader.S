@@ -48,7 +48,9 @@ jmp_32:
   // jmp to bootloader_32, never return
   // set up GDT
   lea GDT, %di
-  add $8, %di // GDT[1] kernel code segment, https://wiki.osdev.org/GDT_Tutorial
+  add $8, %di
+  // GDT[0] empty
+  // GDT[1] kernel code segment, https://wiki.osdev.org/GDT_Tutorial
   // write segment descriptor to GDT[1], 8 bytes
 // 0000 0000 1100 1111 1001 1010 0000 0000
 // 0000 0000 0000 0000 1111 1111 1111 1111
