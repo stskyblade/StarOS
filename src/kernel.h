@@ -34,10 +34,47 @@ struct SegmentDescriptor {
 // Page 132, TSS, Task State Segment
 struct TSS {
     uint16_t back_line;
-    uint16_t reserved1;
+    uint16_t reserved; // zeros
     uint32_t esp0;
     uint16_t ss0;
-    uint16_t reserved2;
+    uint16_t reserved0; // zeros
+    uint32_t esp1;
+    uint16_t ss1;
+    uint16_t reserved1; // zeros
+    uint32_t esp2;
+    uint16_t ss2;
+    uint16_t reserved2; // zeros
+
+    uint32_t cr3;
+    uint32_t eip;
+    uint32_t eflags;
+    uint32_t eax;
+    uint32_t ecx;
+    uint32_t edx;
+    uint32_t ebx;
+    uint32_t esp;
+    uint32_t ebp;
+    uint32_t esi;
+    uint32_t edi;
+
+    uint16_t es;
+    uint16_t reserved3; // zeros
+    uint16_t cs;
+    uint16_t reserved4; // zeros
+    uint16_t ss;
+    uint16_t reserved5; // zeros
+    uint16_t ds;
+    uint16_t reserved6; // zeros
+    uint16_t fs;
+    uint16_t reserved7; // zeros
+    uint16_t gs;
+    uint16_t reserved8; // zeros
+    uint16_t ldt;
+    uint16_t reserved9; // zeros
+
+    uint16_t t : 1;
+    uint16_t reserved10 : 15;
+    uint16_t io_map_base;
 } __attribute__((packed));
 
 // ====================== stdlib.cpp start ===========================

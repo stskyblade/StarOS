@@ -150,7 +150,61 @@ int execv(const char *pathname, char *const argv[]) {
         fatal("invalid SegmentDescriptor size: %d", (int)sizeof(SegmentDescriptor));
     }
 
+    if (sizeof(TSS) != (26 * 4)) {
+        fatal("invalid TSS size: %d", (int)sizeof(TSS));
+    }
+
+    // construct a TSS memory block
+    TSS *tss = (TSS *)malloc(sizeof(TSS));
+    tss->back_line = 0; // FIXME: backline
+    tss->ss0 = 0x10;
+    tss->ss1 = 0x10;
+    tss->ss2 = 0x10;
+    tss->esp0 = (uint32_t)malloc(1024 * 4); // 4kb
+    tss->esp1 = 0;
+    tss->esp2 = 0;
+    tss->cr3 = (uint32_t)p->paging_directory;
+    tss->eip = header.e_entry;
+    tss->eflags = 0; // FIXME
+    tss->eax = 0;
+    tss->ebx = 0;
+    tss->ecx = 0;
+    tss->edx = 0;
+    tss->esp = 0;
+    tss->ebp = 0;
+    tss->esi = 0;
+    tss->edi = 0;
+
+    uint16_t selector = 1 << 3 + 1 << 2 + 0; // index = 1
+    tss->cs = selector;
+    selector = 2 << 3 + 1 << 2 + 0; // index = 2
+    tss->ds = selector;
+    tss->es = selector;
+    tss->fs = selector;
+    tss->gs = selector;
+    tss->ss = selector;
+    tss->ldt = 0x0010; // kernel data segment
+    tss->t = 0;
+    tss->io_map_base = 0; // FIXME
+
+    tss->reserved = 0;
+    tss->reserved0 = 0;
+    tss->reserved1 = 0;
+    tss->reserved2 = 0;
+    tss->reserved3 = 0;
+    tss->reserved4 = 0;
+    tss->reserved5 = 0;
+    tss->reserved6 = 0;
+    tss->reserved7 = 0;
+    tss->reserved8 = 0;
+    tss->reserved9 = 0;
+    tss->reserved10 = 0;
+
+    // TODO: construct a TSS descriptor
+    // TODO: create a GDT array in C++ source code
+
     int pdbr = (int)p->paging_directory;
+    __asm__ __volatile__("debug_process:\n\t" ::);
     __asm__ __volatile__("movl %0, %%cr3\n\t"
                          :
                          : "r"(pdbr));
@@ -162,6 +216,7 @@ int execv(const char *pathname, char *const argv[]) {
     // : "r"(header.e_entry));
     // FIXME: infinite reboot
     __asm__ __volatile__("jmp $0x0008, $0x8048054\n\t" ::);
+
     int a = 3;
     int b = 4;
     int c = a + b;
