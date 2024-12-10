@@ -156,7 +156,7 @@ int execv(const char *pathname, char *const argv[]) {
 
     // construct a TSS memory block
     TSS *tss = (TSS *)malloc(sizeof(TSS));
-    tss->back_line = 0; // FIXME: backline
+    tss->back_link = 0; // FIXME: back link
     tss->ss0 = 0x10;
     tss->ss1 = 0x10;
     tss->ss2 = 0x10;
@@ -175,9 +175,9 @@ int execv(const char *pathname, char *const argv[]) {
     tss->esi = 0;
     tss->edi = 0;
 
-    uint16_t selector = 1 << 3 + 1 << 2 + 0; // index = 1
+    uint16_t selector = (1 << 3) + (1 << 2) + 0; // index = 1
     tss->cs = selector;
-    selector = 2 << 3 + 1 << 2 + 0; // index = 2
+    selector = (2 << 3) + (1 << 2) + 0; // index = 2
     tss->ds = selector;
     tss->es = selector;
     tss->fs = selector;
@@ -200,11 +200,49 @@ int execv(const char *pathname, char *const argv[]) {
     tss->reserved9 = 0;
     tss->reserved10 = 0;
 
-    // TODO: create a GDT array in C++ source code
     // TODO: construct a TSS descriptor
+    extern SegmentDescriptor GDT[];
+    extern int GDT_INDEX;
+    extern int GDT_SIZE;
+    uint32_t access_byte = 9 + (0 << 5) + (1 << 7);                                           // type=9 non busy, dpl=0, p=1. equals to 0x89, same as https://wiki.osdev.org/GDT_Tutorial
+    uint32_t flags = 0b0001;                                                                  // g=0, avl=1
+    GDT[GDT_INDEX++] = SegmentDescriptor((uint32_t)tss, sizeof(TSS) - 1, access_byte, flags); // task descriptor
+    if (GDT_INDEX == GDT_SIZE) {
+        fatal("size of GDT exceeds max limit")
+    }
+
+    // Task Gate Descriptor
+    selector = ((GDT_INDEX - 1) << 3) + (0 << 2) + 0; // TI=0 for GDT, DPL=0 for kernel
+    // 0x0000, 10000101 0x00
+    // selector, 0x0000
+    GDT[GDT_INDEX++] = SegmentDescriptor(selector & 0xffff, 0, 0x85, 0); // task gate descriptor
+    // use iret to run Task Gate. read P313, TASK-RETURN
+    // fake stack status, p159, with privilege transition, without error code
+    // EFLAGS, 0xff old CS, old EIP
+    // NT=1
+    uint32_t reg = 0;
+    __asm__ __volatile__("pushf\n\tpop %0\n\t"
+                         : "=r"(reg)
+                         :);
+    reg = reg | (1 << 14); // set NT bit
+    __asm__ __volatile__("push %0\n\tpopf\n\t"
+                         :
+                         : "r"(reg));
+    // set Back Link in current TSS
+    selector = ((GDT_INDEX - 1) << 3) + (0 << 2) + 0; // TI=0 for GDT, DPL=0 for kernel. point to Task Gate
+    // set TSS descriptor to busy
+    GDT[GDT_INDEX - 2].type |= (1 << 1);
+    // don't use stack, use TSS in TR->back_link
+
+    uint16_t *ip = (uint16_t *)0x20200000;
+    *ip = 0x28;
+    *ip = 0x00;
+
+    KERNEL_TSS->back_link = selector; // FIXME: bug
+    __asm__ __volatile__("debug_process:\n\t" ::);
+    __asm__ __volatile__("iret\n\t" ::);
 
     int pdbr = (int)p->paging_directory;
-    __asm__ __volatile__("debug_process:\n\t" ::);
     __asm__ __volatile__("movl %0, %%cr3\n\t"
                          :
                          : "r"(pdbr));

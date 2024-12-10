@@ -2,23 +2,24 @@
 #include "bootloader32.h"
 
 void test_malloc() {
+    int first_addr = 0x20200068;
     int *ip = (int *)malloc(sizeof(int));
-    if (ip != (int *)0x20200000) {
+    if (ip != (int *)first_addr) {
         panic("failed");
     }
 
     int *ip2 = (int *)malloc(sizeof(int));
-    if (ip2 != (int *)0x20200008) { // first int allocate 8 bytes
+    if (ip2 != (int *)(first_addr + 8)) { // first int allocate 8 bytes
         panic("failed");
     }
 
     char *cp = (char *)malloc(25);
-    if (cp != (char *)(0x20200008 + 8)) { // last int allocate 8 bytes
+    if (cp != (char *)(first_addr + 16)) { // last int allocate 8 bytes
         panic("failed");
     }
 
     char *cp2 = (char *)malloc(1);
-    if (cp2 != (char *)(0x20200008 + 8 + 25 + 7)) { // last allocate 25 bytes, padding 7 bytes
+    if (cp2 != (char *)(first_addr + 16 + 25 + 7)) { // last allocate 25 bytes, padding 7 bytes
         panic("failed");
     }
 
@@ -53,9 +54,11 @@ void test_int_size() {
     PRINT_SIZE(void *);
 }
 
-const int GDT_SIZE = 512;
+extern const int GDT_SIZE = 512;
 SegmentDescriptor GDT[GDT_SIZE];
 GDTR gdtr;
+int GDT_INDEX = 0; // one past last descriptor
+TSS *KERNEL_TSS = 0;
 
 extern "C" {
 void kernel_main() {
@@ -77,9 +80,27 @@ void kernel_main() {
     GDT[0] = {0, 0, 0, 0};
     GDT[1] = SegmentDescriptor(0, 0xfffff, 0x9a, 0xc); // kernel code segment
     GDT[2] = SegmentDescriptor(0, 0xfffff, 0x92, 0xc); // kernel data segment
+    KERNEL_TSS = (TSS *)malloc(sizeof(TSS));
+    uint16_t *ip = (uint16_t *)0x20200000;
+    *ip = 0x28;
+    *ip = 0x00;
+
+    GDT[3] = SegmentDescriptor((uint32_t)KERNEL_TSS, sizeof(TSS) - 1, 0x89, 0x1); // kernel TSS
+    GDT_INDEX = 4;
     gdtr = {GDT_SIZE * 8, (uint32_t)GDT};
+    // check GDTR has no padding
+    if ((uint32_t)&gdtr.base - (uint32_t)&gdtr.limit != sizeof(uint16_t)) {
+        fatal("padding in GDTR");
+    }
     __asm__ __volatile__("lgdt (%0)\n\t" ::"r"(&gdtr));
     debug("change GDT success");
+
+    // set Task Register
+    uint16_t selector = (3 << 3) + (0 << 2) + 0;
+    __asm__ __volatile__("ltr %0\n\r" ::"r"(selector));
+
+    *ip = 0x28;
+    *ip = 0x00;
 
     // init interrupt handlers
     init_interrupt_handler();

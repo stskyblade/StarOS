@@ -62,7 +62,7 @@ struct GDTR {
 
 // Page 132, TSS, Task State Segment
 struct TSS {
-    uint16_t back_line;
+    uint16_t back_link;
     uint16_t reserved; // zeros
     uint32_t esp0;
     uint16_t ss0;
@@ -105,6 +105,8 @@ struct TSS {
     uint16_t reserved10 : 15;
     uint16_t io_map_base;
 } __attribute__((packed));
+
+extern TSS *KERNEL_TSS;
 
 // ====================== stdlib.cpp start ===========================
 

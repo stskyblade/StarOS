@@ -99,6 +99,7 @@ void add_memory_mapping(void *linear_address, void *physical_address, PTE *&pagi
 // map 00103000 -> 00103000
 // map 0c900000 -> 0c900000
 // map 12d00000 -> 12d00000
+// map 20200000 -> 20200000
 void prepare_kernel_paging() {
     // map first 4MB
     for (int i = 0; i < 1024; i++) {
@@ -146,6 +147,9 @@ void prepare_kernel_paging() {
     } else {
         panic("Unsupported kernel file");
     }
+
+    uint32_t *free_addr = (uint32_t *)0x20200000;
+    add_paging_map(free_addr, free_addr);
 }
 
 void enable_kernel_paging() {
