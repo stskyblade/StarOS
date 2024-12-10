@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 3.25)
 project(StarOS
   VERSION 0.1
   LANGUAGES C CXX ASM)
@@ -147,7 +147,7 @@ add_custom_target(
 # generate interrupt_handler.S
 add_custom_command(
   OUTPUT ${SRC_DIR}/interrupt_handlers.S
-  COMMAND ./codegen_interrupt_handlers.py > ./interrupt_handlers.S
+  COMMAND ${SRC_DIR}/codegen_interrupt_handlers.py > ${SRC_DIR}/interrupt_handlers.S
   DEPENDS ${SRC_DIR}/codegen_interrupt_handlers.py
   WORKING_DIRECTORY ${SRC_DIR}
 )
