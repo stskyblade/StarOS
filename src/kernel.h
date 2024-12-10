@@ -29,6 +29,35 @@ struct SegmentDescriptor {
     uint8_t g : 1;
     //
     uint8_t base_high;
+
+  public:
+    SegmentDescriptor()
+        : SegmentDescriptor(0, 0, 0, 0) {
+    }
+
+    SegmentDescriptor(uint32_t base, uint32_t limit, uint8_t access_byte, uint8_t flags) {
+        limit_low = limit & 0xffff;     // low 16 bit
+        base_low = base & 0xffff;       // low 16 bit
+        base_mid = (base >> 16) & 0xff; // mid 8 bit
+
+        type = access_byte & 0xf;        // low 4 bit
+        s = (access_byte >> 4) & 0b1;    // low 1 bit
+        dpl = (access_byte >> 5) & 0b11; // low 2 bit
+        p = (access_byte >> 7) & 0b1;    // low 1 bit
+
+        limit_high = (limit >> 16) & 0xf; // low 4 bit
+        avl = flags & 0b1;
+        o = (flags >> 1) & 0b1;
+        x = (flags >> 2) & 0b1;
+        g = (flags >> 3) & 0b1;
+
+        base_high = (base >> 24);
+    }
+} __attribute__((packed));
+
+struct GDTR {
+    uint16_t limit;
+    uint32_t base;
 } __attribute__((packed));
 
 // Page 132, TSS, Task State Segment

@@ -53,6 +53,10 @@ void test_int_size() {
     PRINT_SIZE(void *);
 }
 
+const int GDT_SIZE = 512;
+SegmentDescriptor GDT[GDT_SIZE];
+GDTR gdtr;
+
 extern "C" {
 void kernel_main() {
     // init stack
@@ -67,6 +71,15 @@ void kernel_main() {
     info("There must be another me in this world, doing what I dare not do and living the life I want to live.");
     info("=====================================================================");
     // test_int_size();
+
+    // init GDT, replace GDT in mbr
+    // https://wiki.osdev.org/GDT_Tutorial
+    GDT[0] = {0, 0, 0, 0};
+    GDT[1] = SegmentDescriptor(0, 0xfffff, 0x9a, 0xc); // kernel code segment
+    GDT[2] = SegmentDescriptor(0, 0xfffff, 0x92, 0xc); // kernel data segment
+    gdtr = {GDT_SIZE * 8, (uint32_t)GDT};
+    __asm__ __volatile__("lgdt (%0)\n\t" ::"r"(&gdtr));
+    debug("change GDT success");
 
     // init interrupt handlers
     init_interrupt_handler();

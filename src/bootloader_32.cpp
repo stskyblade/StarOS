@@ -65,6 +65,7 @@ extern "C" {
 // never return
 // entry
 // jump from bootloader.S:jmp_32
+// jump to kernel_main
 void bootloader32_start() {
     // TODO: print hello,C. bootloader32
     // print_data_type_size();

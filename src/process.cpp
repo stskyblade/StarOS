@@ -110,41 +110,41 @@ int execv(const char *pathname, char *const argv[]) {
     SegmentDescriptor *vaddr = (SegmentDescriptor *)0x20000000;
     add_memory_mapping(vaddr, ldt, p->paging_directory); // map ldt in process space, for access
     p->ldt = vaddr;
-    ldt[0] = {};
-    ldt[1] = {
-        0xffff, // limit low
-        0x0,    // base low
-        0x0,    // base mid
-        // 0xFA, for user code segment
-        0b1010, // type
-        0b1,    // s
-        0b11,   // dpl
-        0b1,    // p
-        0xf,    // limit_high
-        // 0xC, 0b1100
-        0,   // avl
-        0,   // o
-        1,   // x
-        1,   // g
-        0x0, // base_high
-    };
-    ldt[2] = {
-        0xffff, // limit low
-        0x0,    // base low
-        0x0,    // base mid
-        // 0xF2, for user data segment
-        0b0010, // type
-        0b1,    // s
-        0b11,   // dpl
-        0b1,    // p
-        0xf,    // limit_high
-        // 0xC, 0b1100
-        0,   // avl
-        0,   // o
-        1,   // x
-        1,   // g
-        0x0, // base_high
-    };
+    // ldt[0] = {};
+    // ldt[1] = {
+    //     0xffff, // limit low
+    //     0x0,    // base low
+    //     0x0,    // base mid
+    //     // 0xFA, for user code segment
+    //     0b1010, // type
+    //     0b1,    // s
+    //     0b11,   // dpl
+    //     0b1,    // p
+    //     0xf,    // limit_high
+    //     // 0xC, 0b1100
+    //     0,   // avl
+    //     0,   // o
+    //     1,   // x
+    //     1,   // g
+    //     0x0, // base_high
+    // };
+    // ldt[2] = {
+    //     0xffff, // limit low
+    //     0x0,    // base low
+    //     0x0,    // base mid
+    //     // 0xF2, for user data segment
+    //     0b0010, // type
+    //     0b1,    // s
+    //     0b11,   // dpl
+    //     0b1,    // p
+    //     0xf,    // limit_high
+    //     // 0xC, 0b1100
+    //     0,   // avl
+    //     0,   // o
+    //     1,   // x
+    //     1,   // g
+    //     0x0, // base_high
+    // };
 
     if (sizeof(SegmentDescriptor) != 8) {
         fatal("invalid SegmentDescriptor size: %d", (int)sizeof(SegmentDescriptor));
@@ -200,8 +200,8 @@ int execv(const char *pathname, char *const argv[]) {
     tss->reserved9 = 0;
     tss->reserved10 = 0;
 
-    // TODO: construct a TSS descriptor
     // TODO: create a GDT array in C++ source code
+    // TODO: construct a TSS descriptor
 
     int pdbr = (int)p->paging_directory;
     __asm__ __volatile__("debug_process:\n\t" ::);
