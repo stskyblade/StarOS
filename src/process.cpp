@@ -107,7 +107,7 @@ int execv(const char *pathname, char *const argv[]) {
     // https://wiki.osdev.org/GDT_Tutorial
     SegmentDescriptor *ldt = (SegmentDescriptor *)malloc(1024 * 4);
     add_paging_map(ldt, ldt); // map ldt in kernel address, for edit
-    SegmentDescriptor *vaddr = (SegmentDescriptor *)0x20000000;
+    SegmentDescriptor *vaddr = (SegmentDescriptor *)0x20000000; // LDT's start address at user space
     add_memory_mapping(vaddr, ldt, p->paging_directory); // map ldt in process space, for access
     p->ldt = vaddr;
     // ldt[0] = {};
@@ -160,7 +160,7 @@ int execv(const char *pathname, char *const argv[]) {
     tss->ss0 = 0x10;
     tss->ss1 = 0x10;
     tss->ss2 = 0x10;
-    tss->esp0 = (uint32_t)malloc(1024 * 4); // 4kb
+    tss->esp0 = (uint32_t)malloc(1024 * 4); // 4kb, kernel stack
     tss->esp1 = 0;
     tss->esp2 = 0;
     tss->cr3 = (uint32_t)p->paging_directory;
@@ -170,7 +170,11 @@ int execv(const char *pathname, char *const argv[]) {
     tss->ebx = 0;
     tss->ecx = 0;
     tss->edx = 0;
-    tss->esp = 0;
+    tss->esp = 0x21000000;  // FIXME:user stack, manual set, need add mapping
+    uint32_t *stack_addr = (uint32_t *)alloc_page(); // 4kb user space stack
+    add_paging_map(stack_addr, stack_addr); // map stack in kernel address, for edit
+    add_memory_mapping((uint32_t *)tss->esp, stack_addr, p->paging_directory); // map ldt in process space, for access
+ 
     tss->ebp = 0;
     tss->esi = 0;
     tss->edi = 0;
@@ -237,6 +241,21 @@ int execv(const char *pathname, char *const argv[]) {
     uint16_t *ip = (uint16_t *)0x20200000;
     *ip = 0x28;
     *ip = 0x00;
+
+    // stack layout after exception of interrupt, with privilege transition, without error code
+    // old SS, old ESP, old EFLAGS, old CS, old EIP
+    // SS=selector,ESP=?,EFLAGS=0,CS=another selector, EIP=e_entry 
+    uint32_t data = 0;
+    data = tss->ss;
+    __asm__ __volatile__("push %0\n\t"::"r"(data));
+    data = tss->esp;
+    __asm__ __volatile__("push %0\n\t"::"r"(data));
+    data = tss->eflags;
+    __asm__ __volatile__("push %0\n\t"::"r"(data));
+    data = tss->cs;
+    __asm__ __volatile__("push %0\n\t"::"r"(data));
+    data = tss->eip;
+    __asm__ __volatile__("push %0\n\t"::"r"(data));
 
     KERNEL_TSS->back_link = selector; // FIXME: bug
     __asm__ __volatile__("debug_process:\n\t" ::);
