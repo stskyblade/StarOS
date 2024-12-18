@@ -134,7 +134,7 @@ int execv(const char *pathname, char *const argv[]) {
     tss->esp2 = 0;
     tss->cr3 = (uint32_t)p->paging_directory;
     tss->eip = header.e_entry;
-    tss->eflags = 0; // FIXME
+    tss->eflags = 0x00000200; // copy from xv6-public
     tss->eax = 0;
     tss->ebx = 0;
     tss->ecx = 0;
@@ -149,9 +149,10 @@ int execv(const char *pathname, char *const argv[]) {
     tss->esi = 0;
     tss->edi = 0;
 
-    uint16_t selector = (1 << 3) + (1 << 2) + 0; // index = 1
+    uint16_t dpl_user = 0x3;
+    uint16_t selector = (1 << 3) + (1 << 2) + dpl_user; // index = 1
     tss->cs = selector;
-    selector = (2 << 3) + (1 << 2) + 0; // index = 2
+    selector = (2 << 3) + (1 << 2) + dpl_user; // index = 2
     tss->ds = selector;
     tss->es = selector;
     tss->fs = selector;
