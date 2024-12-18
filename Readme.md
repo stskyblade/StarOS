@@ -1,6 +1,16 @@
 # StarOS
 i386
 
+## Build
+
+```
+git clone -b dev-process https://github.com/stskyblade/StarOS.git
+cd StarOS
+mkdir build
+cd build
+cmake ..
+cmake --build . --target qemu
+```
 
 ## TODO
 - [x] hello,world
