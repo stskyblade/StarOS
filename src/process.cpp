@@ -60,6 +60,7 @@ int execv(const char *pathname, char *const argv[]) {
                 memset(page, 0, 1024 * 4);
                 auto vpage = (uint8_t *)(phentry.p_vaddr & (~0xFFF)); // address of page in program mapping
                 add_memory_mapping(vpage, page, p->paging_directory);
+		debug("section mapping: 0x%x -> 0x%x", vpage, page);
                 uint32_t bytes_to_copy = phentry.p_memsz;
                 // first page, which is incomplete. only use one page
                 if ((bytes_to_copy + offset_in_page) < page_size) {
@@ -105,46 +106,14 @@ int execv(const char *pathname, char *const argv[]) {
     // LDT[1] code segment
     // LDT[2] data segment
     // https://wiki.osdev.org/GDT_Tutorial
-    SegmentDescriptor *ldt = (SegmentDescriptor *)malloc(1024 * 4);
+    SegmentDescriptor *ldt = (SegmentDescriptor *)alloc_page();
     add_paging_map(ldt, ldt); // map ldt in kernel address, for edit
     SegmentDescriptor *vaddr = (SegmentDescriptor *)0x20000000; // LDT's start address at user space
     add_memory_mapping(vaddr, ldt, p->paging_directory); // map ldt in process space, for access
     p->ldt = vaddr;
-    // ldt[0] = {};
-    // ldt[1] = {
-    //     0xffff, // limit low
-    //     0x0,    // base low
-    //     0x0,    // base mid
-    //     // 0xFA, for user code segment
-    //     0b1010, // type
-    //     0b1,    // s
-    //     0b11,   // dpl
-    //     0b1,    // p
-    //     0xf,    // limit_high
-    //     // 0xC, 0b1100
-    //     0,   // avl
-    //     0,   // o
-    //     1,   // x
-    //     1,   // g
-    //     0x0, // base_high
-    // };
-    // ldt[2] = {
-    //     0xffff, // limit low
-    //     0x0,    // base low
-    //     0x0,    // base mid
-    //     // 0xF2, for user data segment
-    //     0b0010, // type
-    //     0b1,    // s
-    //     0b11,   // dpl
-    //     0b1,    // p
-    //     0xf,    // limit_high
-    //     // 0xC, 0b1100
-    //     0,   // avl
-    //     0,   // o
-    //     1,   // x
-    //     1,   // g
-    //     0x0, // base_high
-    // };
+    ldt[0] = {};
+    ldt[1] = SegmentDescriptor(0, 0xfffff, 0xfa, 0xc); // process code segmet 
+    ldt[2] = SegmentDescriptor(0, 0xfffff, 0xfa, 0xc); // process data segment
 
     if (sizeof(SegmentDescriptor) != 8) {
         fatal("invalid SegmentDescriptor size: %d", (int)sizeof(SegmentDescriptor));
@@ -160,7 +129,7 @@ int execv(const char *pathname, char *const argv[]) {
     tss->ss0 = 0x10;
     tss->ss1 = 0x10;
     tss->ss2 = 0x10;
-    tss->esp0 = (uint32_t)malloc(1024 * 4); // 4kb, kernel stack
+    tss->esp0 = (uint32_t)malloc(1024 * 4) + 1024 * 4; // 4kb, kernel stack
     tss->esp1 = 0;
     tss->esp2 = 0;
     tss->cr3 = (uint32_t)p->paging_directory;
@@ -174,6 +143,7 @@ int execv(const char *pathname, char *const argv[]) {
     uint32_t *stack_addr = (uint32_t *)alloc_page(); // 4kb user space stack
     add_paging_map(stack_addr, stack_addr); // map stack in kernel address, for edit
     add_memory_mapping((uint32_t *)tss->esp, stack_addr, p->paging_directory); // map ldt in process space, for access
+    tss->esp += 1024 * 4; // point to stack bottom
  
     tss->ebp = 0;
     tss->esi = 0;
