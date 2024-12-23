@@ -112,7 +112,7 @@ int execv(const char *pathname, char *const argv[]) {
     add_memory_mapping(vaddr, ldt, p->paging_directory); // map ldt in process space, for access
     p->ldt = vaddr;
     ldt[0] = {};
-    ldt[1] = SegmentDescriptor(0, 0xfffff, 0xfa, 0xc); // process code segmet 
+    ldt[1] = SegmentDescriptor(0, 0xfffff, 0xfa, 0xc); // process code segmet
     ldt[2] = SegmentDescriptor(0, 0xfffff, 0xfa, 0xc); // process data segment
 
     if (sizeof(SegmentDescriptor) != 8) {
@@ -144,7 +144,7 @@ int execv(const char *pathname, char *const argv[]) {
     add_paging_map(stack_addr, stack_addr); // map stack in kernel address, for edit
     add_memory_mapping((uint32_t *)tss->esp, stack_addr, p->paging_directory); // map ldt in process space, for access
     tss->esp += 1024 * 4; // point to stack bottom
- 
+
     tss->ebp = 0;
     tss->esi = 0;
     tss->edi = 0;
@@ -215,7 +215,7 @@ int execv(const char *pathname, char *const argv[]) {
 
     // stack layout after exception of interrupt, with privilege transition, without error code
     // old SS, old ESP, old EFLAGS, old CS, old EIP
-    // SS=selector,ESP=?,EFLAGS=0,CS=another selector, EIP=e_entry 
+    // SS=selector,ESP=?,EFLAGS=0,CS=another selector, EIP=e_entry
     uint32_t data = 0;
     data = tss->ss;
     __asm__ __volatile__("push %0\n\t"::"r"(data));
