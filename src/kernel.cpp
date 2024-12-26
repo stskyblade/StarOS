@@ -2,25 +2,26 @@
 #include "bootloader32.h"
 
 void test_malloc() {
-    int first_addr = 0x20200068;
+    int first_addr =
+        (int)free_memory_start + sizeof(TSS); // kernel.cpp allocate a TSS
     int *ip = (int *)malloc(sizeof(int));
     if (ip != (int *)first_addr) {
-        panic("failed");
+        panic("malloc failed 1");
     }
 
     int *ip2 = (int *)malloc(sizeof(int));
     if (ip2 != (int *)(first_addr + 8)) { // first int allocate 8 bytes
-        panic("failed");
+        panic("malloc failed 2");
     }
 
     char *cp = (char *)malloc(25);
     if (cp != (char *)(first_addr + 16)) { // last int allocate 8 bytes
-        panic("failed");
+        panic("malloc failed 3");
     }
 
     char *cp2 = (char *)malloc(1);
     if (cp2 != (char *)(first_addr + 16 + 25 + 7)) { // last allocate 25 bytes, padding 7 bytes
-        panic("failed");
+        panic("malloc failed 4");
     }
 
     printf(".");
@@ -60,13 +61,14 @@ GDTR gdtr;
 int GDT_INDEX = 0; // one past last descriptor
 TSS *KERNEL_TSS = 0;
 
+alignas(
+    PAGE_SIZE) char KERNEL_STACK_START[KERNEL_STACK_SIZE]; // 1MB kernel stack
+char *const KERNEL_STACK_END = KERNEL_STACK_START + KERNEL_STACK_SIZE;
+
 extern "C" {
 void kernel_main() {
     // init stack
-    uint8_t *STACK_BOTTOM = (uint8_t *)0x20000000 - 1024 * 1024; // leave 1MB free space
-    __asm__ __volatile__("mov %0, %%esp\n\t"
-                         :
-                         : "m"(STACK_BOTTOM));
+    __asm__ __volatile__("mov %0, %%esp\n\t" : : "m"(KERNEL_STACK_END));
 
     info("Enter kernel...       OK");
     info("Welcome to StarOS, by stskyblade");
@@ -81,9 +83,6 @@ void kernel_main() {
     GDT[1] = SegmentDescriptor(0, 0xfffff, 0x9a, 0xc); // kernel code segment
     GDT[2] = SegmentDescriptor(0, 0xfffff, 0x92, 0xc); // kernel data segment
     KERNEL_TSS = (TSS *)malloc(sizeof(TSS));
-    uint16_t *ip = (uint16_t *)0x20200000;
-    *ip = 0x28;
-    *ip = 0x00;
 
     GDT[3] = SegmentDescriptor((uint32_t)KERNEL_TSS, sizeof(TSS) - 1, 0x89, 0x1); // kernel TSS
     GDT_INDEX = 4;
@@ -98,9 +97,6 @@ void kernel_main() {
     // set Task Register
     uint16_t selector = (3 << 3) + (0 << 2) + 0;
     __asm__ __volatile__("ltr %0\n\r" ::"r"(selector));
-
-    *ip = 0x28;
-    *ip = 0x00;
 
     // init interrupt handlers
     init_interrupt_handler();

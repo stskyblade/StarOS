@@ -1,14 +1,7 @@
-// ## 总结：Qemu 和笔记本都能用的内存区域
-
-// 取二者重合的话
-// 0x100000 - 0x20000000, 大概 500MB.   这部分用于内核的代码和数据
-// 0x20200000 - 0x40004000，大概 500MB  自由分配
-// 0x40005000 - 0xbffe0000，大概 2GB    自由分配
-
 #include "bootloader32.h"
 #include "kernel.h"
 
-uint8_t *free_memory = reinterpret_cast<uint8_t *>(0x20200000);
+uint8_t *free_memory = reinterpret_cast<uint8_t *>(free_memory_start);
 
 // Return a block of memory at least `size` bytes, aligned to 8-byte boundary
 // Physical memory address
@@ -31,12 +24,13 @@ void *malloc(uint64_t size) {
 
 // Return a 4KB memory block, aligned at 4KB boundary
 void *alloc_page() {
-    int size = 1024 * 4;
-    while ((uint32_t)free_memory % size) {
+    // info("Free memory: 0x%x, 0x%x", (uint32_t)free_memory,
+    // (uint32_t)free_memory_start);
+    while ((uint32_t)free_memory % PAGE_SIZE) {
         free_memory = free_memory + 1;
     }
     void *allocated_memory = free_memory;
-    free_memory += size;
+    free_memory += PAGE_SIZE;
 
     // if (is_paging_enabled) {
     //     // add kernel paging map if necessary

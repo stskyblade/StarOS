@@ -1,5 +1,37 @@
 #include <stdint.h>
 
+// kernel space memory mappings: (keep same with kernel.ld)
+// 0x40005000 - 0x4c805000: 200MB, text, text*。权限 AX, 读取和执行
+// 0x4c805000 - 0x52c05000: 100MB, rodata。权限 A，仅读取
+// 0x52c05000 - 0x59005000: 100MB: data, bss。权限 AW，读取和写入.
+
+struct MemoryMap {
+    uint32_t virtual_address;
+    uint32_t physical_address;
+    uint32_t length; // in byte
+};
+
+constexpr uint32_t not_used_memory_start = 0x20200000; // to 0x40004000, 500MB
+constexpr uint32_t text_memory_start = 0x40005000;
+constexpr uint32_t text_memory_length = 0xc800000; // 200MB
+constexpr uint32_t rodata_memory_start = text_memory_start + text_memory_length;
+constexpr uint32_t rodata_memory_length = 0x6400000; // 100MB
+constexpr uint32_t data_memory_start =
+    rodata_memory_start + rodata_memory_length;
+constexpr uint32_t data_memory_length = 0x6400000; // 100MB
+constexpr uint32_t data_memory_end = data_memory_start + data_memory_length;
+constexpr uint32_t free_memory_start = data_memory_end;
+constexpr int kernel_maps_length = 4;
+const MemoryMap Kernel_maps[kernel_maps_length] = {
+    {0, 0, 1024 * 1024 * 4}, // map first 4MB to 4MB, including IO ports
+    {text_memory_start, text_memory_start, text_memory_length},
+    {rodata_memory_start, rodata_memory_start, rodata_memory_length},
+    {data_memory_start, data_memory_start, data_memory_length},
+};
+
+const int PAGE_SIZE = 1024 * 4;
+const int KERNEL_STACK_SIZE = 1024 * 1024;
+
 // Page 157. Figure 9-3
 struct Gate_Descriptor {
     uint16_t offset_low;

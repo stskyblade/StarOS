@@ -57,6 +57,7 @@ add_executable(${KERNEL_FILE}
 )
 target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)
 target_link_libraries(${KERNEL_FILE} PUBLIC bootloadershared)
+target_compile_options(${KERNEL_FILE} PRIVATE -Wno-packed-bitfield-compat)
 
 set(DISK_IMG_FILENAME disk.img)
 # Write MBR to disk image
