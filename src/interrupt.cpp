@@ -47,7 +47,14 @@ void interrupt_handler(TrapFrame *tf) {
         return;
         break;
     case 12: // stack exception
-        debug("pass 12");
+        if (tf->error_code) {
+            // due to not-pressent, or overflow
+            debug("due to not-pressent, or overflow");
+            debug("index: 0x%x, ti: %d, rpl: 0x%x", error_code >> 3,
+                  (error_code >> 2) & 0b1, error_code & 0b11);
+        } else {
+            debug("other reasons");
+        }
         break;
     case 14:
         // page fault
@@ -76,7 +83,7 @@ void interrupt_handler(TrapFrame *tf) {
         }
 
         addr = (uint8_t *)(data & ~0x111);
-        add_paging_map(addr, addr);
+        add_kernel_memory_mapping(addr, addr);
         return;
         break;
 
@@ -94,6 +101,8 @@ extern uint32_t vectors[];
 uint16_t IDTR[3];
 
 void init_interrupt_handler() {
+    debug("IDE address 0x%x", (int)&IDT[0]);
+    debug("vectors address 0x%x", (int)&vectors[0]);
     Gate_Descriptor desc; // interrupt gate
     uint32_t handler_pointer = 0;
 
@@ -111,6 +120,7 @@ void init_interrupt_handler() {
         handler_pointer = vectors[i];
         desc.offset_low = handler_pointer;
         desc.offset_high = handler_pointer >> 16;
+        debug("handler_pointer address 0x%x", handler_pointer);
     }
 
     // set IDTR

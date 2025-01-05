@@ -5,16 +5,57 @@ PTE *kernel_paging_directory = nullptr;
 bool is_paging_enabled = false;
 
 // add mapping to kernel space
-void add_paging_map(void *linear_address, void *physical_address) {
-    return add_memory_mapping(linear_address, physical_address, kernel_paging_directory);
+void add_kernel_memory_mapping(void *linear_address, void *physical_address) {
+    return add_memory_mapping(linear_address, physical_address,
+                              kernel_paging_directory);
+}
+
+void check_address_mapping(void *addr, const PTE *paging_directory) {
+    uint32_t address = (uint32_t)addr;
+    debug("check mapping: 0x%x...", address);
+    debug("page_directory: 0x%x", (uint32_t)paging_directory);
+    const PTE &dir_entry = paging_directory[address >> 22];
+    int dir_index = address >> 22;
+    int dir_offset = dir_index * sizeof(PTE);
+    debug("dir_index: 0x%x,  dir_offset: 0x%x, entry.p: %d", dir_index,
+          dir_offset, dir_entry.p);
+    debug("dir_entry address: 0x%x", (uint32_t)&dir_entry);
+    if (!dir_entry.p) {
+        info("address 0x%x not mapped in paging_directory 0x%x level 1",
+             address, (uint32_t)paging_directory);
+        return;
+    }
+
+    PTE *page_table = reinterpret_cast<PTE *>(
+        reinterpret_cast<uint32_t>(dir_entry.address) << 12);
+    PTE &entry = page_table[reinterpret_cast<uint32_t>(address) >> 12 &
+                            0b1111111111]; // middle 10bit
+    debug("entry.address: 0x%x", dir_entry.address);
+    debug("page_table: 0x%x", (int)page_table);
+    int table_index = reinterpret_cast<uint32_t>(address) >> 12 & 0b1111111111;
+    int table_offset = table_index * sizeof(PTE);
+    debug("table_index: 0x%x, table_offset: 0x%x, entry.p: %d", table_index,
+          table_offset, entry.p);
+    debug("table entry address: 0x%x", (int)&entry);
+
+    if (!entry.p) {
+        info("address 0x%x not mapped in paging_directory 0x%x level 2",
+             address, (uint32_t)paging_directory);
+        return;
+    }
+    uint32_t physical_addr = (entry.address << 12) + (address & 0xfff);
+    debug("check mapping: 0x%x -> 0x%x success.", address, physical_addr);
 }
 
 // add a Page Table Entry
 // map `linear_address` to `physical_address`, 4KB
-// FIXME:linear_address provide DIR index & PTE index. So page table is not added to directory at index 0, 1, 2...
-// but index comes from linear_address. 1024 entries match 10-bit dir, 10-bit page
-void add_memory_mapping(void *linear_address, void *physical_address, PTE *&paging_directory) {
-    // debug("page mapping 0x%x -> 0x%x", (uint32_t)linear_address, (uint32_t)physical_address);
+// FIXME:linear_address provide DIR index & PTE index. So page table is not
+// added to directory at index 0, 1, 2... but index comes from linear_address.
+// 1024 entries match 10-bit dir, 10-bit page
+void add_memory_mapping(void *linear_address, void *physical_address,
+                        PTE *&paging_directory) {
+    // debug("page mapping 0x%x -> 0x%x", (uint32_t)linear_address,
+    //      (uint32_t)physical_address);
     if (sizeof(PTE) != 4) {
         panic("expected PTE size to be 4");
     }
@@ -39,7 +80,8 @@ void add_memory_mapping(void *linear_address, void *physical_address, PTE *&pagi
         new_allocated_paging_directory = true;
     }
 
-    PTE &dir_entry = paging_directory[reinterpret_cast<uint32_t>(linear_address) >> 22];
+    PTE &dir_entry =
+        paging_directory[reinterpret_cast<uint32_t>(linear_address) >> 22];
     int dir_entry_offset = reinterpret_cast<uint32_t>(linear_address) >> 22;
     bool new_allocated_page_table = false;
     if (!dir_entry.p) { // invalid dir_entry
@@ -56,17 +98,20 @@ void add_memory_mapping(void *linear_address, void *physical_address, PTE *&pagi
         dir_entry.dirty = 0;
         dir_entry.reserved2 = 0;
         dir_entry.avail = 0;
-        dir_entry.address = reinterpret_cast<uint32_t>(page_table) >> 12; // save high 20bit
+        dir_entry.address =
+            reinterpret_cast<uint32_t>(page_table) >> 12; // save high 20bit
     }
 
-    // use dir_entry.address, page part in linear_address to calculate the location of page table entry
+    // use dir_entry.address, page part in linear_address to calculate the
+    // location of page table entry
     PTE *page_table = reinterpret_cast<PTE *>(
         reinterpret_cast<uint32_t>(dir_entry.address) << 12);
     int entry_offset =
         reinterpret_cast<uint32_t>(linear_address) >> 12 & 0b1111111111;
-    PTE &entry = page_table[reinterpret_cast<uint32_t>(linear_address) >> 12 & 0b1111111111]; // middle 10bit
+    PTE &entry = page_table[reinterpret_cast<uint32_t>(linear_address) >> 12 &
+                            0b1111111111]; // middle 10bit
     if (new_allocated_page_table) {
-        add_paging_map(page_table, page_table);
+        add_kernel_memory_mapping(page_table, page_table);
     }
     entry.p = 1;
     entry.rw = 1;
@@ -76,10 +121,12 @@ void add_memory_mapping(void *linear_address, void *physical_address, PTE *&pagi
     entry.dirty = 0;
     entry.reserved2 = 0;
     entry.avail = 0;
-    entry.address = reinterpret_cast<uint32_t>(physical_address) >> 12; // save high 20bit
+    entry.address =
+        reinterpret_cast<uint32_t>(physical_address) >> 12; // save high 20bit
 
     if (new_allocated_paging_directory) {
-        add_memory_mapping(paging_directory, paging_directory, paging_directory);
+        add_memory_mapping(paging_directory, paging_directory,
+                           paging_directory);
     }
 
     if (new_allocated_page_table) {
@@ -87,52 +134,49 @@ void add_memory_mapping(void *linear_address, void *physical_address, PTE *&pagi
     }
 }
 
-// set up page tables, linear memory address map to same physical memory address
-// first 4MB -> 4MB
-// map STACK to same address, range from 0x92D00000 to 0xa0000000
-// map 00100000 -> 00100000
-// map 00101000 -> 00101000
-// map 00102000 -> 00102000
-// map 00103000 -> 00103000
-// map 0c900000 -> 0c900000
-// map 92d00000 -> a0000000
-// map a0200000 -> a0200000
+// add kernel mappings into kernel paging directory
 void prepare_kernel_paging() {
+    add_kernel_mappings(kernel_paging_directory);
+}
+
+// add kernel mappings into target paging directory
+// set up page tables, linear memory address map to same physical memory address
+void add_kernel_mappings(PTE *&page_directory) {
     for (int index = 0; index < kernel_maps_length; index++) {
         MemoryMap map = Kernel_maps[index];
         uint32_t pages_count = map.length / PAGE_SIZE;
         for (unsigned int offset = 0; offset < pages_count; offset++) {
-            add_paging_map((char *)map.virtual_address + PAGE_SIZE * offset,
-                           (char *)map.physical_address + PAGE_SIZE * offset);
+            char *vaddr = (char *)map.virtual_address + PAGE_SIZE * offset;
+            char *physical_address =
+                (char *)map.physical_address + PAGE_SIZE * offset;
+            add_memory_mapping(vaddr, physical_address, page_directory);
         }
+        debug("Mapping 0x%x -> 0x%x, %d pages, page_directory 0x%x",
+              map.virtual_address, map.physical_address, pages_count,
+              page_directory);
+        debug("Mapping last page: 0x%x -> 0x%x",
+              map.virtual_address + PAGE_SIZE * (pages_count - 1),
+              map.physical_address + PAGE_SIZE * (pages_count - 1));
     }
 
     // heap memory will be mapped only when used
     uint32_t *free_addr = (uint32_t *)free_memory_start; // for malloc
-    add_paging_map(free_addr, free_addr);
+    add_memory_mapping(free_addr, free_addr, page_directory);
 }
 
 void enable_kernel_paging() {
     // load kernel paging map to cr3(PDBR)
     int pdbr = (int)kernel_paging_directory;
-    __asm__ __volatile__("movl %0, %%cr3\n\t"
-                         :
-                         : "r"(pdbr));
+    __asm__ __volatile__("movl %0, %%cr3\n\t" : : "r"(pdbr));
 
     // enable paging
     uint32_t data;
-    __asm__ __volatile__("movl %%cr0, %0\n\t"
-                         : "=r"(data)
-                         :);
+    __asm__ __volatile__("movl %%cr0, %0\n\t" : "=r"(data) :);
     data = data | 0x80000000; // set PG bit
-    __asm__ __volatile__("movl %0, %%cr0\n\t"
-                         :
-                         : "r"(data));
+    __asm__ __volatile__("movl %0, %%cr0\n\t" : : "r"(data));
 
     debug("after enable PG bit");
-    __asm__ __volatile__("jmp $0x0008, $flash_after_enable_paging\n\t"
-                         :
-                         :);
+    __asm__ __volatile__("jmp $0x0008, $flash_after_enable_paging\n\t" : :);
 
     __asm__ __volatile__("flash_after_enable_paging:\n\t");
     is_paging_enabled = true;
@@ -142,17 +186,11 @@ void enable_kernel_paging() {
 void disable_kernel_paging() {
     // disable paging
     uint32_t data;
-    __asm__ __volatile__("movl %%cr0, %0\n\t"
-                         : "=r"(data)
-                         :);
+    __asm__ __volatile__("movl %%cr0, %0\n\t" : "=r"(data) :);
     data = data & (~(1 << 31)); // clear PG bit
-    __asm__ __volatile__("movl %0, %%cr0\n\t"
-                         :
-                         : "r"(data));
+    __asm__ __volatile__("movl %0, %%cr0\n\t" : : "r"(data));
 
-    __asm__ __volatile__("jmp $0x0008, $flash_after_disable_paging\n\t"
-                         :
-                         :);
+    __asm__ __volatile__("jmp $0x0008, $flash_after_disable_paging\n\t" : :);
     __asm__ __volatile__("flash_after_disable_paging:\n\t");
     is_paging_enabled = false;
     return;
@@ -180,16 +218,15 @@ bool ksetup_kernel_paging() {
     }
     // position1 = 0, position2 = magic
 
-    add_paging_map((void *)((int)position1 - (int)position1 % 0x1000),
-                   (void *)((int)position2 - (int)position2 % 0x1000)); // align to 4KB
+    add_kernel_memory_mapping(
+        (void *)((int)position1 - (int)position1 % 0x1000),
+        (void *)((int)position2 - (int)position2 % 0x1000)); // align to 4KB
 
     enable_kernel_paging();
 
     // check is paging enabled
     uint32_t data;
-    __asm__ __volatile__("movl %%cr0, %0\n\t"
-                         : "=r"(data)
-                         :);
+    __asm__ __volatile__("movl %%cr0, %0\n\t" : "=r"(data) :);
     debug("cr0 PG bit should be 1: %d\n", data >> 31);
 
     // have written magic to position2, should be read back through posision1,
@@ -197,7 +234,6 @@ bool ksetup_kernel_paging() {
     if (*position1 != magic) {
         printf("expected value %d but given %d\n", magic, *position1);
         panic("paging test failed");
-
     } else {
         debug("test paging OK\n");
         return true;

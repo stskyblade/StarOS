@@ -211,6 +211,19 @@ struct Program_header {
     uint32_t p_align;
 } __attribute__((packed));
 
+struct Section_header {
+    uint32_t sh_name;
+    uint32_t sh_type;
+    uint32_t sh_flags;
+    uint32_t sh_addr;
+    uint32_t sh_offset;
+    uint32_t sh_size;
+    uint32_t sh_link;
+    uint32_t sh_info;
+    uint32_t sh_addralign;
+    uint32_t sh_entsize;
+} __attribute__((packed));
+
 struct Memory_layout_entry {
     uint64_t base;
     uint64_t length;

@@ -21,13 +21,27 @@ constexpr uint32_t data_memory_start =
 constexpr uint32_t data_memory_length = 0x6400000; // 100MB
 constexpr uint32_t data_memory_end = data_memory_start + data_memory_length;
 constexpr uint32_t free_memory_start = data_memory_end;
-constexpr int kernel_maps_length = 4;
+constexpr uint32_t free_memory_length = 1024 * 1024 * 500; // 500MB
+// in order to alloc block larget than 4KB, alloc_page should break the
+// continuous of free_memory
+constexpr uint32_t free_memory_page_start =
+    free_memory_start + free_memory_length;
+constexpr uint32_t free_memory_page_length = 1024 * 1024 * 100; // 100MB
+constexpr int kernel_maps_length = 6;
 const MemoryMap Kernel_maps[kernel_maps_length] = {
     {0, 0, 1024 * 1024 * 4}, // map first 4MB to 4MB, including IO ports
     {text_memory_start, text_memory_start, text_memory_length},
     {rodata_memory_start, rodata_memory_start, rodata_memory_length},
     {data_memory_start, data_memory_start, data_memory_length},
+    // free memory is mapped only used
+    {free_memory_start, free_memory_start, free_memory_length},
+    {free_memory_page_start, free_memory_page_start, free_memory_page_length},
 };
+
+// virtual address of User stack, stack bottom, 1MB
+// need manual map
+constexpr uint32_t USER_STACK_VADDRESS = 0x0ff00000;
+constexpr uint32_t USER_STACK_SIZE = 1024 * 1024; // 1MB
 
 const int PAGE_SIZE = 1024 * 4;
 const int KERNEL_STACK_SIZE = 1024 * 1024;
@@ -142,7 +156,7 @@ extern TSS *KERNEL_TSS;
 
 // ====================== stdlib.cpp start ===========================
 
-void *malloc(uint64_t size);
+void *malloc(int64_t size);
 void *alloc_page();
 
 // ====================== stdlib.cpp end ===========================
@@ -163,11 +177,13 @@ struct PTE {
 
 extern bool is_paging_enabled;
 bool ksetup_kernel_paging();
+void add_kernel_mappings(PTE *&page_directory);
+void check_address_mapping(void *addr, const PTE *paging_directory);
 
 // add normal memory mapping
 void add_memory_mapping(void *linear_address, void *physical_address, PTE *&paging_directory);
 // add kernel memory mapping
-void add_paging_map(void *linear_address, void *physical_address);
+void add_kernel_memory_mapping(void *linear_address, void *physical_address);
 // ================== paging.cpp end ======================
 
 // ================== interrupt.cpp start ======================
@@ -177,3 +193,11 @@ void init_interrupt_handler();
 // ================== process.cpp start ======================
 int execv(const char *pathname, char *const argv[]);
 // ================== process.cpp end ======================
+
+// ================== kernel.cpp start ======================
+int add_to_GDT(SegmentDescriptor d);
+uint16_t descriptor_selector(uint16_t index, bool is_GDT, uint16_t RPL);
+// ================== kernel.cpp start ======================
+
+// flush_tss.S
+extern "C" void flush_tss();

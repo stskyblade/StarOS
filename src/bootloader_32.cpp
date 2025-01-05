@@ -85,17 +85,41 @@ void bootloader32_start() {
 
     if (header.magic_num == 0x464c457f && header.bitness == 1 && header.endianness == 1 && header.version == 1 && header.ABI == 0 && header.ABI_version == 0 && header.type == 0x02 && header.machine == 0x03 && header.e_version == 1 && header.e_phnum == 3) {
         // valid kernel
-        Program_header *program_header_table = (Program_header *)&buffer[header.e_phoff];
+        Program_header *program_header_table =
+            (Program_header *)&buffer[header.e_phoff];
         for (uint32_t i = 0; i < header.e_phnum; i++) {
             Program_header phentry = program_header_table[i];
             if (phentry.p_filesz != phentry.p_memsz) {
                 panic("Unsupported Program header entry %d.", i);
             } else {
-                memcpy((uint8_t *)phentry.p_vaddr, (uint8_t *)&buffer[phentry.p_offset], phentry.p_memsz);
-                // printf("Memory at 0x%x after copy:\n", phentry.p_vaddr);
-                // print_memory((uint8_t *)phentry.p_vaddr, 80);
+                memcpy((uint8_t *)phentry.p_vaddr,
+                       (uint8_t *)&buffer[phentry.p_offset], phentry.p_memsz);
             }
         }
+
+        // ============ run initialization function inside .ctor section
+        // read section names
+        Section_header *section_header_table =
+            (Section_header *)&buffer[header.e_shoff];
+        Section_header names_entry = section_header_table[header.e_shstrndx];
+        char *names = (char *)&buffer[names_entry.sh_offset];
+        for (uint32_t i = 0; i < header.e_shnum; i++) {
+            Section_header shentry = section_header_table[i];
+            char *section_name = names + shentry.sh_name;
+            debug("Section %d: %s\n", i, names + shentry.sh_name);
+            if (strcmp(section_name, ".ctors") == 0) {
+                typedef void (*function_pointer)();
+                function_pointer *initialization_functions =
+                    (function_pointer *)shentry.sh_addr;
+                int funcs_count = shentry.sh_size / sizeof(function_pointer);
+                for (int i = 0; i < funcs_count; i++) {
+                    debug("Execute initialization function at address 0x%x",
+                          (uint32_t)initialization_functions[i]);
+                    initialization_functions[i]();
+                }
+            }
+        }
+
     } else {
         panic("Unsupported kernel file");
     }

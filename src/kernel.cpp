@@ -60,9 +60,29 @@ SegmentDescriptor GDT[GDT_SIZE];
 GDTR gdtr;
 int GDT_INDEX = 0; // one past last descriptor
 TSS *KERNEL_TSS = 0;
+constexpr int Kernel_code_segment_desc_index = 1;
+constexpr int Kernel_data_segment_desc_index = 2;
+constexpr int Kernel_tss_segment_desc_index = 3;
 
-alignas(
-    PAGE_SIZE) char KERNEL_STACK_START[KERNEL_STACK_SIZE]; // 1MB kernel stack
+int add_to_GDT(SegmentDescriptor d) {
+    if (GDT_INDEX >= GDT_SIZE) {
+        fatal("GDT exceeds limit: %d", GDT_INDEX);
+    }
+    int index = GDT_INDEX;
+    GDT[GDT_INDEX] = d;
+    GDT_INDEX++;
+    return index;
+}
+
+// construct a selector of descriptor in GDT or LDT
+// https://wiki.osdev.org/Segment_Selector
+uint16_t descriptor_selector(uint16_t index, bool is_GDT, uint16_t RPL) {
+    uint16_t ti = is_GDT ? 0 : 1;
+    return (index << 3) + (ti << 1) + (RPL & 0b11);
+}
+
+alignas(PAGE_SIZE) char KERNEL_STACK_START[KERNEL_STACK_SIZE]; // 1MB kernel
+                                                               // stack
 char *const KERNEL_STACK_END = KERNEL_STACK_START + KERNEL_STACK_SIZE;
 
 extern "C" {
@@ -80,11 +100,26 @@ void kernel_main() {
     // init GDT, replace GDT in mbr
     // https://wiki.osdev.org/GDT_Tutorial
     GDT[0] = {0, 0, 0, 0};
-    GDT[1] = SegmentDescriptor(0, 0xfffff, 0x9a, 0xc); // kernel code segment
-    GDT[2] = SegmentDescriptor(0, 0xfffff, 0x92, 0xc); // kernel data segment
+    GDT[Kernel_code_segment_desc_index] =
+        SegmentDescriptor(0, 0xfffff, 0x9a, 0xc); // kernel code segment
+    GDT[Kernel_data_segment_desc_index] =
+        SegmentDescriptor(0, 0xfffff, 0x92, 0xc); // kernel data segment
     KERNEL_TSS = (TSS *)malloc(sizeof(TSS));
+    memset(KERNEL_TSS, 0, sizeof(TSS));
+    uint16_t selector =
+        descriptor_selector(Kernel_data_segment_desc_index, true, 0);
+    if (selector != 0x0010) {
+        fatal("invalid data selector: 0x%x", selector);
+    }
 
-    GDT[3] = SegmentDescriptor((uint32_t)KERNEL_TSS, sizeof(TSS) - 1, 0x89, 0x1); // kernel TSS
+    KERNEL_TSS->ss0 = selector;
+    KERNEL_TSS->esp0 = (uint32_t)KERNEL_STACK_END; // maybe wrong
+
+    // value comes from https://wiki.osdev.org/Getting_to_Ring_3
+    GDT[Kernel_tss_segment_desc_index] =
+        SegmentDescriptor((uint32_t)KERNEL_TSS, sizeof(TSS), 0x89,
+                          0x0); // kernel TSS
+
     GDT_INDEX = 4;
     gdtr = {GDT_SIZE * 8, (uint32_t)GDT};
     // check GDTR has no padding
@@ -92,11 +127,25 @@ void kernel_main() {
         fatal("padding in GDTR");
     }
     __asm__ __volatile__("lgdt (%0)\n\t" ::"r"(&gdtr));
+    __asm__ __volatile__("jmp $0x0008, $flush_gdt\n\t" ::);
+    __asm__ __volatile__("flush_gdt:\n\t" ::);
+    uint32_t data = selector;
+    __asm__ __volatile__("push %%eax\n\t" ::);
+    __asm__ __volatile__("mov %0, %%eax\n\t" ::"r"(data));
+    __asm__ __volatile__("mov %%eax, %%ds\n\t" ::);
+    __asm__ __volatile__("mov %%eax, %%es\n\t" ::);
+    __asm__ __volatile__("mov %%eax, %%fs\n\t" ::);
+    __asm__ __volatile__("mov %%eax, %%gs\n\t" ::);
+    __asm__ __volatile__("mov %%eax, %%ss\n\t" ::);
+    __asm__ __volatile__("pop %%eax\n\t" ::);
     debug("change GDT success");
+    // flush_tss();
 
-    // set Task Register
-    uint16_t selector = (3 << 3) + (0 << 2) + 0;
-    __asm__ __volatile__("ltr %0\n\r" ::"r"(selector));
+    // setup Task Register
+    selector = (Kernel_tss_segment_desc_index * 8) | 0;
+    // __asm__ __volatile__("mov %0, %%ax\n\t" ::"r"(selector));
+    __asm__ __volatile__("ltr %0\n\t" ::"r"(selector));
+    debug("change TR success");
 
     // init interrupt handlers
     init_interrupt_handler();
