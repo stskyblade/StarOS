@@ -198,6 +198,3 @@ int execv(const char *pathname, char *const argv[]);
 int add_to_GDT(SegmentDescriptor d);
 uint16_t descriptor_selector(uint16_t index, bool is_GDT, uint16_t RPL);
 // ================== kernel.cpp start ======================
-
-// flush_tss.S
-extern "C" void flush_tss();

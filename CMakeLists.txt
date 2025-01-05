@@ -54,7 +54,6 @@ add_executable(${KERNEL_FILE}
   ${SRC_DIR}/paging.cpp
   ${SRC_DIR}/interrupt.cpp
   ${SRC_DIR}/process.cpp
-  ${SRC_DIR}/flush_tss.S
 )
 target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)
 target_link_libraries(${KERNEL_FILE} PUBLIC bootloadershared)

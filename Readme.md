@@ -3,13 +3,16 @@ i386
 
 ## Build
 
-```
+```bash
 git clone -b dev-process https://github.com/stskyblade/StarOS.git
 cd StarOS
 mkdir build
 cd build
 cmake ..
 cmake --build . --target qemu
+cmake --build . --target debug # for gdb debug
+cd <Project_root>
+gdbgui .  # start a gui gdb
 ```
 
 ## TODO

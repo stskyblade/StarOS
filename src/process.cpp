@@ -21,9 +21,6 @@ int execv(const char *pathname, char *const argv[]) {
     Process *p = (Process *)malloc(sizeof(Process));
     p->paging_directory = (PTE *)alloc_page();
     p->buffer = buffer;
-    // in order to edit page mapping of process,
-    // need to map the memory which page_directory occupies in kernel mapping
-    add_kernel_memory_mapping(p->paging_directory, p->paging_directory);
     memset(p->paging_directory, 0, 1024 * 4);
 
     // for each section in program,
@@ -62,14 +59,11 @@ int execv(const char *pathname, char *const argv[]) {
                 auto offset_in_page =
                     phentry.p_vaddr & 0xFFF; // virtual address of that process
                 // vaddr like 0x08048000, is the address of kernel .text section
-                add_kernel_memory_mapping(
-                    page,
-                    page); // add kernel mapping of `page`, to edit content
                 memset(page, 0, PAGE_SIZE);
                 auto vpage =
                     (uint8_t *)(phentry.p_vaddr &
                                 (~0xFFF)); // address of page in program mapping
-                // add process mappting of `page`
+                // add process mapping of `page`
                 add_memory_mapping(vpage, page, p->paging_directory);
                 debug("section mapping: 0x%x -> 0x%x", vpage, page);
                 uint32_t bytes_to_copy = phentry.p_memsz;
@@ -94,8 +88,6 @@ int execv(const char *pathname, char *const argv[]) {
                 uint8_t *src_addr = &buffer[PAGE_SIZE];
                 while (bytes_to_copy) {
                     page = (uint8_t *)alloc_page();
-                    add_kernel_memory_mapping(
-                        page, page); // same as add_paging_map above
                     add_memory_mapping(vaddr, page, p->paging_directory);
                     memset(page, 0, PAGE_SIZE);
                     if (bytes_to_copy >= PAGE_SIZE) {
@@ -119,12 +111,6 @@ int execv(const char *pathname, char *const argv[]) {
     }
     debug("load program to memory, done");
 
-    // setup memory segment descriptor in GDT
-    int code_segment_index = add_to_GDT(
-        SegmentDescriptor(0, 0xfffff, 0xfa, 0xc)); // process code segmet
-    int data_segment_index = add_to_GDT(
-        SegmentDescriptor(0, 0xfffff, 0xf2, 0xc)); // process data segmet
-
     if (sizeof(SegmentDescriptor) != 8) {
         fatal("invalid SegmentDescriptor size: %d",
               (int)sizeof(SegmentDescriptor));
@@ -134,37 +120,10 @@ int execv(const char *pathname, char *const argv[]) {
         fatal("invalid TSS size: %d", (int)sizeof(TSS));
     }
 
-    // use iret to run Task Gate. read P313, TASK-RETURN
-    // fake stack status, p159, with privilege transition, without error code
-    // EFLAGS, 0xff old CS, old EIP
-
-    // stack layout after exception of interrupt, with privilege transition,
-    // without error code old SS, old ESP, old EFLAGS, old CS, old EIP
-    // SS=selector,ESP=?,EFLAGS=0,CS=another selector, EIP=e_entry
-    // each one should be 4 bytes
-    uint32_t data = 0;
-    uint16_t selector = descriptor_selector(data_segment_index, true, 3);
-    data = selector;
-    debug("SS selector: 0x%x", data);
-    __asm__ __volatile__("pushl %0\n\t" ::"r"(data)); // SS segment
-    data = USER_STACK_VADDRESS;                       // ESP
-    __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
-    data = 0; // Eflags
-    __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
-    // __asm__ __volatile__("pushf\n\t" ::); // EFLAGS
-    selector = descriptor_selector(code_segment_index, true, 3);
-    data = selector; // CS segment
-    debug("CS selector: 0x%x", data);
-    __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
-    data = header.e_entry + 0x6; // EIP
-    __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
-
     // mapping program stack pages
     // -1MB ~ USER_STACK_VADDRESS
     for (uint32_t offset = 0; offset < USER_STACK_SIZE; offset += PAGE_SIZE) {
         char *page = (char *)alloc_page();
-        // for edit, map in kernel space
-        add_kernel_memory_mapping(page, page);
         // map in process space
         add_memory_mapping((char *)USER_STACK_VADDRESS - PAGE_SIZE - offset,
                            page, p->paging_directory);
@@ -174,8 +133,44 @@ int execv(const char *pathname, char *const argv[]) {
 
     // for debug
     // check if some addresses be mapped in process space
-    check_address_mapping((char *)p->paging_directory, p->paging_directory);
-    check_address_mapping((char *)0x52d07fa8, p->paging_directory);
+    // check_address_mapping((char *)p->paging_directory, p->paging_directory);
+    // check_address_mapping((char *)0x52d07fa8, p->paging_directory);
+
+    // use iret to run Task Gate. read P313, TASK-RETURN
+    // fake stack status, p159, with privilege transition, without error code
+    // stack layout after exception of interrupt, with privilege transition,
+    // without error code old SS, old ESP, old EFLAGS, old CS, old EIP
+    // SS=selector,ESP=?,EFLAGS=0,CS=another selector, EIP=e_entry
+
+    // setup memory segment descriptor in GDT
+    int code_segment_index = add_to_GDT(
+        SegmentDescriptor(0, 0xfffff, 0xfa, 0xc)); // process code segmet
+    int data_segment_index = add_to_GDT(
+        SegmentDescriptor(0, 0xfffff, 0xf2, 0xc)); // process data segmet
+
+    // each one should be 4 bytes
+    uint32_t data = 0;
+    uint16_t selector = descriptor_selector(data_segment_index, true, 3);
+    // set data segment registers
+    __asm__ __volatile__("mov %0, %%ds\n\t" ::"r"(selector));
+    __asm__ __volatile__("mov %0, %%es\n\t" ::"r"(selector));
+    __asm__ __volatile__("mov %0, %%fs\n\t" ::"r"(selector));
+    __asm__ __volatile__("mov %0, %%gs\n\t" ::"r"(selector));
+
+    data = selector;
+    debug("SS selector: 0x%x", data);
+    __asm__ __volatile__("pushl %0\n\t" ::"r"(data)); // SS segment selector
+    data = USER_STACK_VADDRESS - 4;                   // ESP
+    __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
+    data = 0; // Eflags
+    // __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
+    __asm__ __volatile__("pushf\n\t" ::); // EFLAGS
+    selector = descriptor_selector(code_segment_index, true, 3);
+    data = selector; // CS segment
+    debug("CS selector: 0x%x", data);
+    __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
+    data = header.e_entry + 0x6; // EIP
+    __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
 
     // switch to process address space
     int pdbr = (int)p->paging_directory;

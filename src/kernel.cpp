@@ -83,7 +83,7 @@ uint16_t descriptor_selector(uint16_t index, bool is_GDT, uint16_t RPL) {
 
 alignas(PAGE_SIZE) char KERNEL_STACK_START[KERNEL_STACK_SIZE]; // 1MB kernel
                                                                // stack
-char *const KERNEL_STACK_END = KERNEL_STACK_START + KERNEL_STACK_SIZE;
+char *const KERNEL_STACK_END = KERNEL_STACK_START + KERNEL_STACK_SIZE - 4;
 
 extern "C" {
 void kernel_main() {
