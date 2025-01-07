@@ -84,7 +84,7 @@ add_custom_target(
   qemu
   DEPENDS disk.img
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-  COMMAND qemu-system-i386 -m 5G -serial stdio ${DISK_IMG_FILENAME}
+  COMMAND qemu-system-i386 -d int -m 5G -serial stdio ${DISK_IMG_FILENAME}
 )
 
 # run gdbserver
@@ -92,7 +92,7 @@ add_custom_target(
   debug
   DEPENDS disk.img
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-  COMMAND qemu-system-i386 -m 5G -serial stdio ${DISK_IMG_FILENAME} -s -S
+  COMMAND qemu-system-i386 -d int -m 5G -serial stdio ${DISK_IMG_FILENAME} -s -S
 )
 
 # make a disk image

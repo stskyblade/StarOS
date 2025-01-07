@@ -7,7 +7,7 @@ bool is_paging_enabled = false;
 // add mapping to kernel space
 void add_kernel_memory_mapping(void *linear_address, void *physical_address) {
     return add_memory_mapping(linear_address, physical_address,
-                              kernel_paging_directory);
+                              kernel_paging_directory, false);
 }
 
 void check_address_mapping(void *addr, const PTE *paging_directory) {
@@ -53,7 +53,7 @@ void check_address_mapping(void *addr, const PTE *paging_directory) {
 // added to directory at index 0, 1, 2... but index comes from linear_address.
 // 1024 entries match 10-bit dir, 10-bit page
 void add_memory_mapping(void *linear_address, void *physical_address,
-                        PTE *&paging_directory) {
+                        PTE *&paging_directory, bool user_level) {
     // debug("page mapping 0x%x -> 0x%x", (uint32_t)linear_address,
     //      (uint32_t)physical_address);
     if (sizeof(PTE) != 4) {
@@ -92,7 +92,7 @@ void add_memory_mapping(void *linear_address, void *physical_address,
 
         dir_entry.p = 1;
         dir_entry.rw = 1;
-        dir_entry.user_or_supervisor = 0;
+        dir_entry.user_or_supervisor = user_level;
         dir_entry.reserved1 = 0;
         dir_entry.access = 0;
         dir_entry.dirty = 0;
@@ -115,7 +115,7 @@ void add_memory_mapping(void *linear_address, void *physical_address,
     }
     entry.p = 1;
     entry.rw = 1;
-    entry.user_or_supervisor = 0;
+    entry.user_or_supervisor = user_level;
     entry.reserved1 = 0;
     entry.access = 0;
     entry.dirty = 0;
@@ -125,12 +125,13 @@ void add_memory_mapping(void *linear_address, void *physical_address,
         reinterpret_cast<uint32_t>(physical_address) >> 12; // save high 20bit
 
     if (new_allocated_paging_directory) {
-        add_memory_mapping(paging_directory, paging_directory,
-                           paging_directory);
+        add_memory_mapping(paging_directory, paging_directory, paging_directory,
+                           user_level);
     }
 
     if (new_allocated_page_table) {
-        add_memory_mapping(page_table, page_table, paging_directory);
+        add_memory_mapping(page_table, page_table, paging_directory,
+                           user_level);
     }
 }
 
@@ -149,7 +150,7 @@ void add_kernel_mappings(PTE *&page_directory) {
             char *vaddr = (char *)map.virtual_address + PAGE_SIZE * offset;
             char *physical_address =
                 (char *)map.physical_address + PAGE_SIZE * offset;
-            add_memory_mapping(vaddr, physical_address, page_directory);
+            add_memory_mapping(vaddr, physical_address, page_directory, true);
         }
         debug("Mapping 0x%x -> 0x%x, %d pages, page_directory 0x%x",
               map.virtual_address, map.physical_address, pages_count,
@@ -161,7 +162,7 @@ void add_kernel_mappings(PTE *&page_directory) {
 
     // heap memory will be mapped only when used
     uint32_t *free_addr = (uint32_t *)free_memory_start; // for malloc
-    add_memory_mapping(free_addr, free_addr, page_directory);
+    add_memory_mapping(free_addr, free_addr, page_directory, true);
 }
 
 void enable_kernel_paging() {

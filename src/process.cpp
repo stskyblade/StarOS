@@ -64,7 +64,7 @@ int execv(const char *pathname, char *const argv[]) {
                     (uint8_t *)(phentry.p_vaddr &
                                 (~0xFFF)); // address of page in program mapping
                 // add process mapping of `page`
-                add_memory_mapping(vpage, page, p->paging_directory);
+                add_memory_mapping(vpage, page, p->paging_directory, true);
                 debug("section mapping: 0x%x -> 0x%x", vpage, page);
                 uint32_t bytes_to_copy = phentry.p_memsz;
                 // first page, which is incomplete. only use one page
@@ -88,7 +88,7 @@ int execv(const char *pathname, char *const argv[]) {
                 uint8_t *src_addr = &buffer[PAGE_SIZE];
                 while (bytes_to_copy) {
                     page = (uint8_t *)alloc_page();
-                    add_memory_mapping(vaddr, page, p->paging_directory);
+                    add_memory_mapping(vaddr, page, p->paging_directory, true);
                     memset(page, 0, PAGE_SIZE);
                     if (bytes_to_copy >= PAGE_SIZE) {
                         // copy next page
@@ -126,7 +126,7 @@ int execv(const char *pathname, char *const argv[]) {
         char *page = (char *)alloc_page();
         // map in process space
         add_memory_mapping((char *)USER_STACK_VADDRESS - PAGE_SIZE - offset,
-                           page, p->paging_directory);
+                           page, p->paging_directory, true);
     }
 
     add_kernel_mappings(p->paging_directory);
@@ -169,7 +169,7 @@ int execv(const char *pathname, char *const argv[]) {
     data = selector; // CS segment
     debug("CS selector: 0x%x", data);
     __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
-    data = header.e_entry + 0x6; // EIP
+    data = header.e_entry; // EIP
     __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
 
     // switch to process address space

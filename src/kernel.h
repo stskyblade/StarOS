@@ -181,7 +181,8 @@ void add_kernel_mappings(PTE *&page_directory);
 void check_address_mapping(void *addr, const PTE *paging_directory);
 
 // add normal memory mapping
-void add_memory_mapping(void *linear_address, void *physical_address, PTE *&paging_directory);
+void add_memory_mapping(void *linear_address, void *physical_address,
+                        PTE *&paging_directory, bool user_level = true);
 // add kernel memory mapping
 void add_kernel_memory_mapping(void *linear_address, void *physical_address);
 // ================== paging.cpp end ======================
