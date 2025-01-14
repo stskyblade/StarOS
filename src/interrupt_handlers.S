@@ -52,6 +52,7 @@ jmp alltraps
 
 .global interrupt_handler_8
 interrupt_handler_8:
+pushl $0
 pushl $8
 jmp alltraps
 

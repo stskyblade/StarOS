@@ -7,7 +7,7 @@ def main():
 
     # FIXME: push fake error_code for some condition code
     for i in range(256):
-        padding_error_code = "" if (i == 8 or (i >= 10 and i <= 14) or i == 17) else "pushl $0\n"
+        padding_error_code = "" if ((i >= 10 and i <= 14) or i == 17) else "pushl $0\n"
         print(f""".global interrupt_handler_{i}
 interrupt_handler_{i}:
 """ + padding_error_code +

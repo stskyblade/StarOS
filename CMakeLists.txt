@@ -19,6 +19,7 @@ set(OBJCOPY ${TOOLCHAIN_PREFIX}-objcopy)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "-ffreestanding -Wall -Wno-write-strings -Wno-unused-variable -Wno-unused-parameter -Wextra -fno-exceptions -fno-rtti -nostdlib -g")
 
+
 set(SRC_DIR ${PROJECT_SOURCE_DIR}/src)
 set(BOOTLOADER_KERNEL_SHARED_FILES
   ${SRC_DIR}/bootloader32.h
@@ -33,6 +34,7 @@ add_library(bootloadershared
   STATIC
   ${BOOTLOADER_KERNEL_SHARED_FILES}
 )
+add_dependencies(bootloadershared define_timestamp)
 
 # mbr target
 add_executable(mbr.elf
@@ -58,6 +60,10 @@ add_executable(${KERNEL_FILE}
 target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)
 target_link_libraries(${KERNEL_FILE} PUBLIC bootloadershared)
 target_compile_options(${KERNEL_FILE} PRIVATE -Wno-packed-bitfield-compat)
+
+target_include_directories(${KERNEL_FILE} PUBLIC
+                           "${PROJECT_BINARY_DIR}"
+                           )
 
 set(DISK_IMG_FILENAME disk.img)
 # Write MBR to disk image
@@ -98,7 +104,7 @@ add_custom_target(
 # make a disk image
 # partition 200MB
 # have two text file
-set(USB_DEVICE /dev/sdb)
+set(USB_DEVICE /dev/sdb CACHE STRING "which disk to write into")
 set(MOUNT_POINT /mnt/fat32_device)
 set(FS_IMG /tmp/fs.img)
 set(LOOP_DEVICE /dev/loop0)
@@ -129,6 +135,15 @@ add_custom_command(
   COMMAND sudo cp /tmp/fs.img ${PROJECT_BINARY_DIR}/fs.img
   COMMAND echo "Done."
 )
+
+# define compilation timestamp macro
+add_custom_target(
+  define_timestamp
+  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+  BYPRODUCTS ${PROJECT_BINARY_DIR}/Configs.h
+  COMMAND ${PROJECT_SOURCE_DIR}/create_timestamp_macro.sh
+)
+
 
 # Write first 250MB to /dev/sdb
 add_custom_target(

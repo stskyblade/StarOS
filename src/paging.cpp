@@ -56,6 +56,7 @@ void add_memory_mapping(void *linear_address, void *physical_address,
                         PTE *&paging_directory, bool user_level) {
     // debug("page mapping 0x%x -> 0x%x", (uint32_t)linear_address,
     //      (uint32_t)physical_address);
+    trace("step1");
     if (sizeof(PTE) != 4) {
         panic("expected PTE size to be 4");
     }
@@ -73,22 +74,14 @@ void add_memory_mapping(void *linear_address, void *physical_address,
         panic("address is not aligned to 4KB boundary");
     }
 
-    bool new_allocated_paging_directory = false;
-    if (!paging_directory) {
-        // create a new page directory
-        paging_directory = reinterpret_cast<PTE *>(alloc_page());
-        new_allocated_paging_directory = true;
-    }
-
+    trace("step2");
     PTE &dir_entry =
         paging_directory[reinterpret_cast<uint32_t>(linear_address) >> 22];
     int dir_entry_offset = reinterpret_cast<uint32_t>(linear_address) >> 22;
-    bool new_allocated_page_table = false;
     if (!dir_entry.p) { // invalid dir_entry
         // allocate a new page table, and set up dir_entry
+        trace("step2b");
         PTE *page_table = reinterpret_cast<PTE *>(alloc_page());
-
-        new_allocated_page_table = true;
 
         dir_entry.p = 1;
         dir_entry.rw = 1;
@@ -102,41 +95,39 @@ void add_memory_mapping(void *linear_address, void *physical_address,
             reinterpret_cast<uint32_t>(page_table) >> 12; // save high 20bit
     }
 
+    trace("step3");
     // use dir_entry.address, page part in linear_address to calculate the
     // location of page table entry
     PTE *page_table = reinterpret_cast<PTE *>(
         reinterpret_cast<uint32_t>(dir_entry.address) << 12);
-    int entry_offset =
-        reinterpret_cast<uint32_t>(linear_address) >> 12 & 0b1111111111;
-    PTE &entry = page_table[reinterpret_cast<uint32_t>(linear_address) >> 12 &
-                            0b1111111111]; // middle 10bit
-    if (new_allocated_page_table) {
-        add_kernel_memory_mapping(page_table, page_table);
-    }
+    int entry_offset = reinterpret_cast<uint32_t>(linear_address) >> 12 &
+                       0b1111111111; // middle 10bit
+    trace("step3.1");
+    PTE &entry = page_table[entry_offset];
+    trace("step3.2");
     entry.p = 1;
     entry.rw = 1;
+    trace("step3.3");
     entry.user_or_supervisor = user_level;
+    trace("step3.4");
     entry.reserved1 = 0;
+    trace("step3.4.1");
     entry.access = 0;
+    trace("step3.4.2");
     entry.dirty = 0;
+    trace("step3.4.3");
     entry.reserved2 = 0;
+    trace("step3.4.4");
     entry.avail = 0;
+    trace("step3.5");
     entry.address =
         reinterpret_cast<uint32_t>(physical_address) >> 12; // save high 20bit
-
-    if (new_allocated_paging_directory) {
-        add_memory_mapping(paging_directory, paging_directory, paging_directory,
-                           user_level);
-    }
-
-    if (new_allocated_page_table) {
-        add_memory_mapping(page_table, page_table, paging_directory,
-                           user_level);
-    }
+    trace("step4");
 }
 
 // add kernel mappings into kernel paging directory
 void prepare_kernel_paging() {
+    kernel_paging_directory = (PTE *)alloc_page();
     add_kernel_mappings(kernel_paging_directory);
 }
 
@@ -144,13 +135,19 @@ void prepare_kernel_paging() {
 // set up page tables, linear memory address map to same physical memory address
 void add_kernel_mappings(PTE *&page_directory) {
     for (int index = 0; index < kernel_maps_length; index++) {
+        trace("index: %d/%d", index, kernel_maps_length);
         MemoryMap map = Kernel_maps[index];
         uint32_t pages_count = map.length / PAGE_SIZE;
         for (unsigned int offset = 0; offset < pages_count; offset++) {
+            trace("index: %d/%d offset: %d/%d", index, kernel_maps_length,
+                  offset, pages_count);
             char *vaddr = (char *)map.virtual_address + PAGE_SIZE * offset;
             char *physical_address =
                 (char *)map.physical_address + PAGE_SIZE * offset;
-            add_memory_mapping(vaddr, physical_address, page_directory, true);
+            add_memory_mapping(vaddr, physical_address, page_directory,
+                               page_directory != kernel_paging_directory);
+            trace("index: %d/%d offset: %d/%d end", index, kernel_maps_length,
+                  offset, pages_count);
         }
         debug("Mapping 0x%x -> 0x%x, %d pages, page_directory 0x%x",
               map.virtual_address, map.physical_address, pages_count,

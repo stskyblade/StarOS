@@ -1,3 +1,4 @@
+#include "Configs.h"
 #include "bootloader32.h"
 #include "kernel.h"
 
@@ -24,26 +25,27 @@ struct TrapFrame { // order should be opposite to alltraps.S
 };
 
 void interrupt_handler(TrapFrame *tf) {
+    info("interrupt handler");
     auto condition_code = tf->condition_code;
     auto error_code = tf->error_code;
     auto return_addr = tf->return_addr;
 
     uint32_t num = condition_code;
 
-    if (condition_code == 8) {
-        debug("interrupt_handler %d\n", 8);
-        return;
-    }
-
     uint8_t *addr = nullptr;
     debug("Interrupt %d, error_code 0x%x, return 0x%x", condition_code, error_code, return_addr);
     debug("eax: 0x%x    ebx: 0x%x    ecx: 0x%x    edx:0x%x", tf->eax, tf->ebx, tf->ecx, tf->edx);
     debug("esp: 0x%x    ebp: 0x%x    esi: 0x%x    edi:0x%x", tf->esp, tf->ebp, tf->esi, tf->edi);
     debug("ds: 0x%x     es: 0x%x     fs: 0x%x     gs:0x%x", tf->ds, tf->es, tf->fs, tf->gs);
+    debug("Compiled at: " Compilation_datetime);
 
     switch (condition_code) {
     case 7:
         debug("pass 7");
+        return;
+        break;
+    case 8:
+        debug("pass 8");
         return;
         break;
     case 12: // stack exception
@@ -91,7 +93,8 @@ void interrupt_handler(TrapFrame *tf) {
         break;
     }
 
-    panic("This is interrupt_handler %d 0x%x\n", condition_code, error_code);
+    info("This is interrupt_handler %d 0x%x\n", condition_code, error_code);
+    sleep(10);
 }
 }
 
@@ -115,12 +118,10 @@ void init_interrupt_handler() {
     desc.p = 0b1;
 
     for (int i = 0; i < IDT_size; i++) {
-        IDT[i] = desc;
-
         handler_pointer = vectors[i];
         desc.offset_low = handler_pointer;
         desc.offset_high = handler_pointer >> 16;
-        debug("handler_pointer address 0x%x", handler_pointer);
+        IDT[i] = desc;
     }
 
     // set IDTR

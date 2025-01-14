@@ -28,9 +28,9 @@ void test_malloc() {
 }
 
 void run_test() {
-    debug("Running kernel test:\n");
+    debug("Running kernel test:");
     test_malloc();
-    debug("All test passed.\n");
+    debug("All test passed.");
 }
 
 #define PRINT_SIZE(type) printf("Size of [" #type "] is: %d\n", sizeof(type))

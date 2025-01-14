@@ -175,7 +175,7 @@ int execv(const char *pathname, char *const argv[]) {
     // switch to process address space
     int pdbr = (int)p->paging_directory;
     __asm__ __volatile__("movl %0, %%cr3\n\t" : : "r"(pdbr));
-    __asm__ __volatile__("debug_process:\n\t" ::);
+    info("Entering ring3: ") __asm__ __volatile__("debug_process:\n\t" ::);
     __asm__ __volatile__("iret\n\t" ::);
 
     // execute
