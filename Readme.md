@@ -4,7 +4,7 @@ i386
 ## Build
 
 ```bash
-git clone -b dev-process https://github.com/stskyblade/StarOS.git
+git clone https://github.com/stskyblade/StarOS.git
 cd StarOS
 mkdir build
 cd build
@@ -13,6 +13,11 @@ cmake --build . --target qemu
 cmake --build . --target debug # for gdb debug
 cd <Project_root>
 gdbgui .  # start a gui gdb
+
+# write image to disk. be very carefully, this will write to /dev/sda
+cmake --build . --target burn
+# change to another disk to write into
+cmake -DUSB_DEVICE:STRING=/dev/sdd ..
 ```
 
 ## TODO

@@ -102,9 +102,14 @@ void add_memory_mapping(void *linear_address, void *physical_address,
         reinterpret_cast<uint32_t>(dir_entry.address) << 12);
     int entry_offset = reinterpret_cast<uint32_t>(linear_address) >> 12 &
                        0b1111111111; // middle 10bit
-    trace("step3.1");
+    trace("step3.1 page table at 0x%x", (uint32_t)page_table);
+    if ((uint32_t)page_table < 0x78405000 ||
+        (uint32_t)page_table > 0x80000000) {
+        // sleep(1);
+    }
+
     PTE &entry = page_table[entry_offset];
-    trace("step3.2");
+    trace("step3.2 entry at 0x%x", (uint32_t)&entry);
     entry.p = 1;
     entry.rw = 1;
     trace("step3.3");
@@ -156,10 +161,6 @@ void add_kernel_mappings(PTE *&page_directory) {
               map.virtual_address + PAGE_SIZE * (pages_count - 1),
               map.physical_address + PAGE_SIZE * (pages_count - 1));
     }
-
-    // heap memory will be mapped only when used
-    uint32_t *free_addr = (uint32_t *)free_memory_start; // for malloc
-    add_memory_mapping(free_addr, free_addr, page_directory, true);
 }
 
 void enable_kernel_paging() {
