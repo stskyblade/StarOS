@@ -16,20 +16,34 @@ gdbgui .  # start a gui gdb
 
 # write image to disk. be very carefully, this will write to /dev/sda
 cmake --build . --target burn
+
 # change to another disk to write into
 cmake -DUSB_DEVICE:STRING=/dev/sdd ..
+cmake --build . --target burn
+```
+
+## Test
+
+```base
+cmake -DUSB_DEVICE:STRING=/dev/sda ..
+cmake --build . --target gen_test_data
+make test
 ```
 
 ## TODO
+
 - [x] hello,world
 - [x] write to serial port
 - [x] read data from disk
-- [ ] interrupt generate & handle & restore
-- [ ] virtual memory, page table
-- [ ] user mode, or protected mode
+- [x] interrupt generate & handle & restore
+- [x] virtual memory, page table
+- [x] user mode, or protected mode
 - [ ] clock interrupt
 - [ ] schedular
-- [ ] vga support newline, scoll down, colorful text
+- [x] vga support newline, scoll down, colorful text
+- [ ] add test procedure
+- [ ] hardware interrupt, mapping table, interrupt 18
+- [ ] interrupt from user program
 
 ## Filesystem
 - [x] generate disk image

@@ -3,6 +3,8 @@ project(StarOS
   VERSION 0.1
   LANGUAGES C CXX ASM)
 
+include(CTest)
+
 # generate compiler_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -85,6 +87,8 @@ add_custom_target(
   COMMAND dd status=none if=${PROJECT_SOURCE_DIR}/root_dir/world.txt of=${DISK_IMG_FILENAME} conv=notrunc seek=65
 )
 
+set(QEMU_CMD_STR "qemu-system-i386 -m 5G -serial stdio -drive format=raw,file=${DISK_IMG_FILENAME}")
+separate_arguments(QEMU_CMD NATIVE_COMMAND ${QEMU_CMD_STR})
 # run qemu
 add_custom_target(
   qemu
@@ -174,3 +178,29 @@ add_executable(testadd
   ${USER_DIR}/testadd.cpp
 )
 target_link_options(testadd PRIVATE -T${USER_DIR}/userspace.ld)
+
+set(OUTPUT_STANDARD_FILE standard_log)
+set(OUTPUT_TEST_FILE current_log)
+# generate standard data
+add_custom_target(
+  gen_standard_test_data
+  DEPENDS disk.img
+  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+  COMMAND ${QEMU_CMD} > ${PROJECT_SOURCE_DIR}/${OUTPUT_STANDARD_FILE}
+)
+
+# generate test data
+add_custom_target(
+  gen_test_data
+  DEPENDS disk.img
+  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+  COMMAND ${QEMU_CMD} > ${OUTPUT_TEST_FILE}
+)
+
+# must generate test data first
+# cmake --build . --target gen_test_data
+add_test(NAME stdout_comparison
+  # COMMAND ${QEMU_CMD} > ${PROJECT_BINARY_DIR}/log &&
+  COMMAND ${PROJECT_SOURCE_DIR}/stdout_comparison.sh
+    ${PROJECT_SOURCE_DIR}/${OUTPUT_STANDARD_FILE}
+    ${PROJECT_BINARY_DIR}/${OUTPUT_TEST_FILE})

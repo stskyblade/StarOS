@@ -4,9 +4,9 @@ use software switching
 
 - [x] map kernel to a high address space. like 0x80000000
 - [x] execute initialization code of CPP program, kernel only
-- [ ] setup user stack
-- [ ] setup kernel mappings in process page directory
-- [ ] process execv, software switch
+- [x] setup user stack
+- [x] setup kernel mappings in process page directory
+- [x] process execv, software switch
 
 
 vscode
