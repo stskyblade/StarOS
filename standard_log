@@ -48,7 +48,7 @@
 [DEBUG]: eax: 0x000052d0    ebx: 0x52c05000    ecx: 0x000000ff    edx:0x40008e00
 [DEBUG]: esp: 0x52d07fb8    ebp: 0x52d07ff4    esi: 0x00000000    edi:0x0000aa85
 [DEBUG]: ds: 0x00000010     es: 0x00000010     fs: 0x00000010     gs:0x00000010
-[DEBUG]: Compiled at: 2025-01-15 16:23:03
+[DEBUG]: Compiled at: 2025-01-17 10:29:33
 [DEBUG]: pass 8
 [DEBUG]: Running kernel test:
 .[DEBUG]: All test passed.

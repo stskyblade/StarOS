@@ -1,0 +1,1 @@
+constexpr char SYSCALL_INT_ID = 32;

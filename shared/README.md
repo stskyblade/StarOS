@@ -1,0 +1,1 @@
+This folder contains header files shared by kernel code and user space code.

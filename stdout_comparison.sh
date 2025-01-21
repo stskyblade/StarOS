@@ -9,6 +9,7 @@ CURRENT_LOG=$2
 
 if [ ! -f "$CURRENT_LOG" ] || [ ! -f "$STANDARD_LOG" ]; then
   echo "log files does not exist."
+  echo "generate current_log file first"
   exit 1
 fi
 
@@ -20,3 +21,6 @@ FILTERED_CURRENT_LOG=/tmp/staros_current_output
 sed '/DEBUG]: Compiled at:/d' $STANDARD_LOG > $FILTERED_STANDARD_LOG
 sed '/DEBUG]: Compiled at:/d' $CURRENT_LOG > $FILTERED_CURRENT_LOG
 diff -U 3 $FILTERED_STANDARD_LOG $FILTERED_CURRENT_LOG
+
+# force programmer to generate test data before testing
+rm $2

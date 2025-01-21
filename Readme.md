@@ -38,12 +38,12 @@ make test
 - [x] interrupt generate & handle & restore
 - [x] virtual memory, page table
 - [x] user mode, or protected mode
+- [x] vga support newline, scoll down, colorful text
+- [x] add test procedure
+- [ ] interrupt from user program
+- [ ] hardware interrupt, mapping table, interrupt 18
 - [ ] clock interrupt
 - [ ] schedular
-- [x] vga support newline, scoll down, colorful text
-- [ ] add test procedure
-- [ ] hardware interrupt, mapping table, interrupt 18
-- [ ] interrupt from user program
 
 ## Filesystem
 - [x] generate disk image

@@ -105,6 +105,21 @@ add_custom_target(
   COMMAND qemu-system-i386 -d int -m 5G -serial stdio ${DISK_IMG_FILENAME} -s -S
 )
 
+# ====================== user mode programs
+set(USER_DIR ${PROJECT_SOURCE_DIR}/src_user)
+
+file(GLOB USER_PROGRAM_SOURCES src_user/*.cpp)
+foreach( USER_PROGRAM_SOURCE ${USER_PROGRAM_SOURCES} )
+    # Cut off the file extension and directory path
+    get_filename_component( USER_PROGRAM_NAME ${USER_PROGRAM_SOURCE} NAME_WE )
+    add_executable( ${USER_PROGRAM_NAME} ${USER_PROGRAM_SOURCE} )
+    # Make sure YourLib is linked to each app
+    # target_link_libraries( ${USER_PROGRAM_NAME} YourLib )
+    target_link_options(${USER_PROGRAM_NAME} PRIVATE -T${USER_DIR}/userspace.ld)
+    list(APPEND USER_PROGRAMS ${USER_PROGRAM_NAME})
+endforeach( USER_PROGRAM_SOURCE ${USER_PROGRAM_SOURCES} )
+message(${USER_PROGRAMS})
+
 # make a disk image
 # partition 200MB
 # have two text file
@@ -112,7 +127,7 @@ set(USB_DEVICE /dev/sdb CACHE STRING "which disk to write into")
 set(MOUNT_POINT /mnt/fat32_device)
 set(FS_IMG /tmp/fs.img)
 set(LOOP_DEVICE /dev/loop0)
-set(USER_PROGRAMS testadd)
+# set(USER_PROGRAMS testadd)
 add_custom_command(
   OUTPUT ${PROJECT_BINARY_DIR}/fs.img
   DEPENDS ${KERNEL_FILE} ${USER_PROGRAMS}
@@ -172,13 +187,6 @@ add_custom_command(
   WORKING_DIRECTORY ${SRC_DIR}
 )
 
-# ====================== user mode programs
-set(USER_DIR ${PROJECT_SOURCE_DIR}/src_user)
-add_executable(testadd
-  ${USER_DIR}/testadd.cpp
-)
-target_link_options(testadd PRIVATE -T${USER_DIR}/userspace.ld)
-
 set(OUTPUT_STANDARD_FILE standard_log)
 set(OUTPUT_TEST_FILE current_log)
 # generate standard data
@@ -200,7 +208,8 @@ add_custom_target(
 # must generate test data first
 # cmake --build . --target gen_test_data
 add_test(NAME stdout_comparison
-  # COMMAND ${QEMU_CMD} > ${PROJECT_BINARY_DIR}/log &&
   COMMAND ${PROJECT_SOURCE_DIR}/stdout_comparison.sh
     ${PROJECT_SOURCE_DIR}/${OUTPUT_STANDARD_FILE}
     ${PROJECT_BINARY_DIR}/${OUTPUT_TEST_FILE})
+
+include_directories(${PROJECT_SOURCE_DIR}/shared)

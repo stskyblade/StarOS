@@ -121,6 +121,11 @@ void init_interrupt_handler() {
         handler_pointer = vectors[i];
         desc.offset_low = handler_pointer;
         desc.offset_high = handler_pointer >> 16;
+
+        if (i == 32) { // for software interrupt from ring 3
+            desc.dpl = 0b11;
+        }
+
         IDT[i] = desc;
     }
 
