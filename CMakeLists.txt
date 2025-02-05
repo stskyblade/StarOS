@@ -58,6 +58,7 @@ add_executable(${KERNEL_FILE}
   ${SRC_DIR}/paging.cpp
   ${SRC_DIR}/interrupt.cpp
   ${SRC_DIR}/process.cpp
+  ${SRC_DIR}/system_call.cpp
 )
 target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)
 target_link_libraries(${KERNEL_FILE} PUBLIC bootloadershared)
@@ -94,7 +95,7 @@ add_custom_target(
   qemu
   DEPENDS disk.img
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-  COMMAND qemu-system-i386 -d int -m 5G -serial stdio ${DISK_IMG_FILENAME}
+  COMMAND qemu-system-i386 -m 5G -serial stdio ${DISK_IMG_FILENAME}
 )
 
 # run gdbserver
@@ -105,6 +106,8 @@ add_custom_target(
   COMMAND qemu-system-i386 -d int -m 5G -serial stdio ${DISK_IMG_FILENAME} -s -S
 )
 
+add_library(c STATIC src_libc/system_call.cpp src_libc/test_system_calls.cpp)
+
 # ====================== user mode programs
 set(USER_DIR ${PROJECT_SOURCE_DIR}/src_user)
 
@@ -114,7 +117,8 @@ foreach( USER_PROGRAM_SOURCE ${USER_PROGRAM_SOURCES} )
     get_filename_component( USER_PROGRAM_NAME ${USER_PROGRAM_SOURCE} NAME_WE )
     add_executable( ${USER_PROGRAM_NAME} ${USER_PROGRAM_SOURCE} )
     # Make sure YourLib is linked to each app
-    # target_link_libraries( ${USER_PROGRAM_NAME} YourLib )
+    target_include_directories(${USER_PROGRAM_NAME} PUBLIC src_libc)
+    target_link_libraries( ${USER_PROGRAM_NAME} c )
     target_link_options(${USER_PROGRAM_NAME} PRIVATE -T${USER_DIR}/userspace.ld)
     list(APPEND USER_PROGRAMS ${USER_PROGRAM_NAME})
 endforeach( USER_PROGRAM_SOURCE ${USER_PROGRAM_SOURCES} )

@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "system.h"
 
 // kernel space memory mappings: (keep same with kernel.ld)
 // 0x40005000 - 0x4c805000: 200MB, text, text*。权限 AX, 读取和执行
@@ -199,3 +200,27 @@ int execv(const char *pathname, char *const argv[]);
 int add_to_GDT(SegmentDescriptor d);
 uint16_t descriptor_selector(uint16_t index, bool is_GDT, uint16_t RPL);
 // ================== kernel.cpp start ======================
+
+// in memory bytes, first field comes first, has lower memory address
+// last field comes last, has higher memory address, should be pushed first
+struct TrapFrame { // order should be opposite to alltraps.S
+    uint32_t edi;
+    uint32_t esi;
+    uint32_t ebp;
+    uint32_t esp; // status inside alltraps, useless
+    uint32_t ebx;
+    uint32_t edx;
+    uint32_t ecx;
+    uint32_t eax;
+    uint32_t gs;
+    uint32_t fs;
+    uint32_t es;
+    uint32_t ds;
+    uint32_t condition_code;
+    uint32_t error_code;
+    uint32_t return_addr;
+};
+
+// ================== system_entry.cpp start ======================
+void system_entry(int syscall_id, TrapFrame *tf);
+// ================== system_entry.cpp end ======================

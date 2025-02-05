@@ -44,11 +44,11 @@
 [DEBUG]: IDE address 0x52d08020
 [DEBUG]: vectors address 0x52c05000
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 8, error_code 0x00000000, return 0x400072a9
-[DEBUG]: eax: 0x000052d0    ebx: 0x52c05000    ecx: 0x000000ff    edx:0x40008e00
+[DEBUG]: Interrupt 8, error_code 0x00000000, return 0x400072af
+[DEBUG]: eax: 0x000052d0    ebx: 0x52c05000    ecx: 0x000000ff    edx:0x4000ee00
 [DEBUG]: esp: 0x52d07fb8    ebp: 0x52d07ff4    esi: 0x00000000    edi:0x0000aa85
 [DEBUG]: ds: 0x00000010     es: 0x00000010     fs: 0x00000010     gs:0x00000010
-[DEBUG]: Compiled at: 2025-01-17 10:29:33
+[DEBUG]: Compiled at: 2025-02-05 11:38:34
 [DEBUG]: pass 8
 [DEBUG]: Running kernel test:
 .[DEBUG]: All test passed.
@@ -329,9 +329,10 @@
 [DEBUG]: allocated_page 0x78504000, is_empty 1
 [DEBUG]: allocated_page 0x78505000, is_empty 1
 [DEBUG]: section mapping: 0x10000000 -> 0x78504000
-[DEBUG]: load program to memory, done
 [DEBUG]: allocated_page 0x78506000, is_empty 1
 [DEBUG]: allocated_page 0x78507000, is_empty 1
+[DEBUG]: section mapping: 0x1c800000 -> 0x78506000
+[DEBUG]: load program to memory, done
 [DEBUG]: allocated_page 0x78508000, is_empty 1
 [DEBUG]: allocated_page 0x78509000, is_empty 1
 [DEBUG]: allocated_page 0x7850a000, is_empty 1
@@ -588,10 +589,10 @@
 [DEBUG]: allocated_page 0x78605000, is_empty 1
 [DEBUG]: allocated_page 0x78606000, is_empty 1
 [DEBUG]: allocated_page 0x78607000, is_empty 1
-[DEBUG]: Mapping 0x00000000 -> 0x00000000, 1024 pages, page_directory 0x78503000
-[DEBUG]: Mapping last page: 0x003ff000 -> 0x003ff000
 [DEBUG]: allocated_page 0x78608000, is_empty 1
 [DEBUG]: allocated_page 0x78609000, is_empty 1
+[DEBUG]: Mapping 0x00000000 -> 0x00000000, 1024 pages, page_directory 0x78503000
+[DEBUG]: Mapping last page: 0x003ff000 -> 0x003ff000
 [DEBUG]: allocated_page 0x7860a000, is_empty 1
 [DEBUG]: allocated_page 0x7860b000, is_empty 1
 [DEBUG]: allocated_page 0x7860c000, is_empty 1
@@ -641,10 +642,10 @@
 [DEBUG]: allocated_page 0x78638000, is_empty 1
 [DEBUG]: allocated_page 0x78639000, is_empty 1
 [DEBUG]: allocated_page 0x7863a000, is_empty 1
-[DEBUG]: Mapping 0x40005000 -> 0x40005000, 51200 pages, page_directory 0x78503000
-[DEBUG]: Mapping last page: 0x4c804000 -> 0x4c804000
 [DEBUG]: allocated_page 0x7863b000, is_empty 1
 [DEBUG]: allocated_page 0x7863c000, is_empty 1
+[DEBUG]: Mapping 0x40005000 -> 0x40005000, 51200 pages, page_directory 0x78503000
+[DEBUG]: Mapping last page: 0x4c804000 -> 0x4c804000
 [DEBUG]: allocated_page 0x7863d000, is_empty 1
 [DEBUG]: allocated_page 0x7863e000, is_empty 1
 [DEBUG]: allocated_page 0x7863f000, is_empty 1
@@ -668,10 +669,10 @@
 [DEBUG]: allocated_page 0x78651000, is_empty 1
 [DEBUG]: allocated_page 0x78652000, is_empty 1
 [DEBUG]: allocated_page 0x78653000, is_empty 1
-[DEBUG]: Mapping 0x4c805000 -> 0x4c805000, 25600 pages, page_directory 0x78503000
-[DEBUG]: Mapping last page: 0x52c04000 -> 0x52c04000
 [DEBUG]: allocated_page 0x78654000, is_empty 1
 [DEBUG]: allocated_page 0x78655000, is_empty 1
+[DEBUG]: Mapping 0x4c805000 -> 0x4c805000, 25600 pages, page_directory 0x78503000
+[DEBUG]: Mapping last page: 0x52c04000 -> 0x52c04000
 [DEBUG]: allocated_page 0x78656000, is_empty 1
 [DEBUG]: allocated_page 0x78657000, is_empty 1
 [DEBUG]: allocated_page 0x78658000, is_empty 1
@@ -695,10 +696,10 @@
 [DEBUG]: allocated_page 0x7866a000, is_empty 1
 [DEBUG]: allocated_page 0x7866b000, is_empty 1
 [DEBUG]: allocated_page 0x7866c000, is_empty 1
-[DEBUG]: Mapping 0x52c05000 -> 0x52c05000, 25600 pages, page_directory 0x78503000
-[DEBUG]: Mapping last page: 0x59004000 -> 0x59004000
 [DEBUG]: allocated_page 0x7866d000, is_empty 1
 [DEBUG]: allocated_page 0x7866e000, is_empty 1
+[DEBUG]: Mapping 0x52c05000 -> 0x52c05000, 25600 pages, page_directory 0x78503000
+[DEBUG]: Mapping last page: 0x59004000 -> 0x59004000
 [DEBUG]: allocated_page 0x7866f000, is_empty 1
 [DEBUG]: allocated_page 0x78670000, is_empty 1
 [DEBUG]: allocated_page 0x78671000, is_empty 1
@@ -822,10 +823,10 @@
 [DEBUG]: allocated_page 0x786e7000, is_empty 1
 [DEBUG]: allocated_page 0x786e8000, is_empty 1
 [DEBUG]: allocated_page 0x786e9000, is_empty 1
-[DEBUG]: Mapping 0x59005000 -> 0x59005000, 128000 pages, page_directory 0x78503000
-[DEBUG]: Mapping last page: 0x78404000 -> 0x78404000
 [DEBUG]: allocated_page 0x786ea000, is_empty 1
 [DEBUG]: allocated_page 0x786eb000, is_empty 1
+[DEBUG]: Mapping 0x59005000 -> 0x59005000, 128000 pages, page_directory 0x78503000
+[DEBUG]: Mapping last page: 0x78404000 -> 0x78404000
 [DEBUG]: allocated_page 0x786ec000, is_empty 1
 [DEBUG]: allocated_page 0x786ed000, is_empty 1
 [DEBUG]: allocated_page 0x786ee000, is_empty 1
@@ -849,8 +850,34 @@
 [DEBUG]: allocated_page 0x78700000, is_empty 1
 [DEBUG]: allocated_page 0x78701000, is_empty 1
 [DEBUG]: allocated_page 0x78702000, is_empty 1
+[DEBUG]: allocated_page 0x78703000, is_empty 1
+[DEBUG]: allocated_page 0x78704000, is_empty 1
 [DEBUG]: Mapping 0x78405000 -> 0x78405000, 25600 pages, page_directory 0x78503000
 [DEBUG]: Mapping last page: 0x7e804000 -> 0x7e804000
 [DEBUG]: SS selector: 0x0000002b
 [DEBUG]: CS selector: 0x00000023
 [INFO]: Entering ring3: 
+[INFO]: interrupt handler
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000003a
+[DEBUG]: eax: 0x00000000    ebx: 0x00000456    ecx: 0x00000789    edx:0x00000357
+[DEBUG]: esp: 0x52d07fd0    ebp: 0x0fefffe8    esi: 0x78506000    edi:0x0000aa85
+[DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
+[DEBUG]: Compiled at: 2025-02-05 11:38:34
+[INFO]: hello,world from system call in kernel
+
+[INFO]: interrupt handler
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000003a
+[DEBUG]: eax: 0x00000000    ebx: 0x00000456    ecx: 0x00000789    edx:0x00000357
+[DEBUG]: esp: 0x52d07fd0    ebp: 0x0fefffe8    esi: 0x78506000    edi:0x0000aa85
+[DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
+[DEBUG]: Compiled at: 2025-02-05 11:38:34
+[INFO]: hello,world from system call in kernel
+
+[INFO]: interrupt handler
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000003a
+[DEBUG]: eax: 0x00000000    ebx: 0x00000456    ecx: 0x00000789    edx:0x00000357
+[DEBUG]: esp: 0x52d07fd0    ebp: 0x0fefffe8    esi: 0x78506000    edi:0x0000aa85
+[DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
+[DEBUG]: Compiled at: 2025-02-05 11:38:34
+[INFO]: hello,world from system call in kernel
+

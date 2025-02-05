@@ -163,7 +163,7 @@ void kernel_main() {
     // execute a user program
     char *const arg1 = "arg1";
     char *const argv[1] = {arg1};
-    execv("/test_syscall_int", argv);
+    execv("/test_syscall_helloworld", argv);
 
     // never return
     while (1) {

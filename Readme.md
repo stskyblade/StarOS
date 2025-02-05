@@ -27,6 +27,7 @@ cmake --build . --target burn
 ```base
 cmake -DUSB_DEVICE:STRING=/dev/sda ..
 cmake --build . --target gen_test_data
+# manual close the Qemu window, not by Ctrl-C
 make test
 ```
 
@@ -40,7 +41,8 @@ make test
 - [x] user mode, or protected mode
 - [x] vga support newline, scoll down, colorful text
 - [x] add test procedure
-- [ ] interrupt from user program
+- [x] interrupt from user program
+- [ ] pass arguments in system call
 - [ ] hardware interrupt, mapping table, interrupt 18
 - [ ] clock interrupt
 - [ ] schedular

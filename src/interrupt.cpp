@@ -4,26 +4,6 @@
 
 extern "C" {
 
-// in memory bytes, first field comes first, has lower memory address
-// last field comes last, has higher memory address, should be pushed first
-struct TrapFrame { // order should be opposite to alltraps.S
-    uint32_t edi;
-    uint32_t esi;
-    uint32_t ebp;
-    uint32_t esp; // status inside alltraps, useless
-    uint32_t ebx;
-    uint32_t edx;
-    uint32_t ecx;
-    uint32_t eax;
-    uint32_t gs;
-    uint32_t fs;
-    uint32_t es;
-    uint32_t ds;
-    uint32_t condition_code;
-    uint32_t error_code;
-    uint32_t return_addr;
-};
-
 void interrupt_handler(TrapFrame *tf) {
     info("interrupt handler");
     auto condition_code = tf->condition_code;
@@ -86,6 +66,11 @@ void interrupt_handler(TrapFrame *tf) {
 
         addr = (uint8_t *)(data & ~0x111);
         add_kernel_memory_mapping(addr, addr);
+        return;
+        break;
+
+    case SYSCALL_INT_ID:
+        system_entry(tf->eax, tf);
         return;
         break;
 

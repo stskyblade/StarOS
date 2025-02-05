@@ -20,7 +20,7 @@ FILTERED_CURRENT_LOG=/tmp/staros_current_output
 # So, just remove this line and then compare log files
 sed '/DEBUG]: Compiled at:/d' $STANDARD_LOG > $FILTERED_STANDARD_LOG
 sed '/DEBUG]: Compiled at:/d' $CURRENT_LOG > $FILTERED_CURRENT_LOG
-diff -U 3 $FILTERED_STANDARD_LOG $FILTERED_CURRENT_LOG
+diff -U 3 $FILTERED_STANDARD_LOG $FILTERED_CURRENT_LOG || exit 1
 
 # force programmer to generate test data before testing
 rm $2
