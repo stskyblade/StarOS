@@ -48,7 +48,7 @@
 [DEBUG]: eax: 0x000052d0    ebx: 0x52c05000    ecx: 0x000000ff    edx:0x4000ee00
 [DEBUG]: esp: 0x52d07fb8    ebp: 0x52d07ff4    esi: 0x00000000    edi:0x0000aa85
 [DEBUG]: ds: 0x00000010     es: 0x00000010     fs: 0x00000010     gs:0x00000010
-[DEBUG]: Compiled at: 2025-02-05 11:38:34
+[DEBUG]: Compiled at: 2025-02-06 13:22:06
 [DEBUG]: pass 8
 [DEBUG]: Running kernel test:
 .[DEBUG]: All test passed.
@@ -858,26 +858,50 @@
 [DEBUG]: CS selector: 0x00000023
 [INFO]: Entering ring3: 
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000003a
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100000a4
 [DEBUG]: eax: 0x00000000    ebx: 0x00000456    ecx: 0x00000789    edx:0x00000357
-[DEBUG]: esp: 0x52d07fd0    ebp: 0x0fefffe8    esi: 0x78506000    edi:0x0000aa85
+[DEBUG]: esp: 0x52d07fd0    ebp: 0x0fefffc8    esi: 0x78506000    edi:0x0000aa85
 [DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-05 11:38:34
+[DEBUG]: Compiled at: 2025-02-06 13:22:06
+[DEBUG]: Start of system_entry
 [INFO]: hello,world from system call in kernel
-
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000003a
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100000a4
 [DEBUG]: eax: 0x00000000    ebx: 0x00000456    ecx: 0x00000789    edx:0x00000357
-[DEBUG]: esp: 0x52d07fd0    ebp: 0x0fefffe8    esi: 0x78506000    edi:0x0000aa85
+[DEBUG]: esp: 0x52d07fd0    ebp: 0x0fefffc8    esi: 0x78506000    edi:0x0000aa85
 [DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-05 11:38:34
+[DEBUG]: Compiled at: 2025-02-06 13:22:06
+[DEBUG]: Start of system_entry
 [INFO]: hello,world from system call in kernel
-
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000003a
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100000a4
 [DEBUG]: eax: 0x00000000    ebx: 0x00000456    ecx: 0x00000789    edx:0x00000357
-[DEBUG]: esp: 0x52d07fd0    ebp: 0x0fefffe8    esi: 0x78506000    edi:0x0000aa85
+[DEBUG]: esp: 0x52d07fd0    ebp: 0x0fefffc8    esi: 0x78506000    edi:0x0000aa85
 [DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-05 11:38:34
+[DEBUG]: Compiled at: 2025-02-06 13:22:06
+[DEBUG]: Start of system_entry
 [INFO]: hello,world from system call in kernel
-
+[INFO]: interrupt handler
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100000c1
+[DEBUG]: eax: 0x00000001    ebx: 0x00000001    ecx: 0x00000002    edx:0x00000357
+[DEBUG]: esp: 0x52d07fd0    ebp: 0x0fefffb8    esi: 0x78506000    edi:0x0000aa85
+[DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
+[DEBUG]: Compiled at: 2025-02-06 13:22:06
+[DEBUG]: Start of system_entry
+[DEBUG]: add: 1 + 2 = 3
+[INFO]: interrupt handler
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100000c1
+[DEBUG]: eax: 0x00000001    ebx: 0x00000003    ecx: 0x00000004    edx:0x00000357
+[DEBUG]: esp: 0x52d07fd0    ebp: 0x0fefffb8    esi: 0x78506000    edi:0x0000aa85
+[DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
+[DEBUG]: Compiled at: 2025-02-06 13:22:06
+[DEBUG]: Start of system_entry
+[DEBUG]: add: 3 + 4 = 7
+[INFO]: interrupt handler
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100000c1
+[DEBUG]: eax: 0x00000001    ebx: 0x00000007    ecx: 0x00000010    edx:0x00000357
+[DEBUG]: esp: 0x52d07fd0    ebp: 0x0fefffb8    esi: 0x78506000    edi:0x0000aa85
+[DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
+[DEBUG]: Compiled at: 2025-02-06 13:22:06
+[DEBUG]: Start of system_entry
+[DEBUG]: add: 7 + 16 = 23
