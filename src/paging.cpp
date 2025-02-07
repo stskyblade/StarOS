@@ -10,6 +10,7 @@ void add_kernel_memory_mapping(void *linear_address, void *physical_address) {
                               kernel_paging_directory, false);
 }
 
+// add mapping to given page table
 void check_address_mapping(void *addr, const PTE *paging_directory) {
     uint32_t address = (uint32_t)addr;
     debug("check mapping: 0x%x...", address);
@@ -236,5 +237,17 @@ bool ksetup_kernel_paging() {
     } else {
         debug("test paging OK\n");
         return true;
+    }
+}
+
+void copy_process_mapping(void *start, uint32_t count) {
+    const PTE *paging_directory = CURRENT_PROCESS->paging_directory;
+    // Just copy page dir entry, does it work?
+    uint32_t addr = (uint32_t)start;
+    uint32_t dir_index = addr >> 22;
+    kernel_paging_directory[dir_index] = paging_directory[dir_index];
+
+    if (count > (1024 * 1024 * 4)) {
+        fatal("copy process mapping failed, count is too large");
     }
 }

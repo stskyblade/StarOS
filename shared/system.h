@@ -9,3 +9,18 @@ constexpr char SYSCALL_INT_ID = 32;
 // Return value is put in EAX
 constexpr int SYSCALL_HELLOWORLD = 0;
 constexpr int SYSCALL_ADD = 1;
+constexpr int SYSCALL_STRUCT = 2;
+
+// Struct for test only
+struct TestPack {
+    bool a1;
+    char a2;
+    short a3;
+    int a4;
+    double a5;
+    int a6;
+    short a7;
+    char a8;
+    bool a9;
+    short a10;
+};

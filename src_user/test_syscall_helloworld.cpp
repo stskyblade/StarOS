@@ -18,6 +18,20 @@ int main() {
 
     b = 16;
     c = syscall_test_add(c, b);
+
+    TestPack p;
+    p.a1 = 1;
+    p.a2 = 2;
+    p.a3 = 3;
+    p.a4 = 4;
+    p.a5 = 5;
+    p.a6 = 6;
+    p.a7 = 7;
+    p.a8 = 8;
+    p.a9 = 9;
+    p.a10 = 10;
+    syscall_test_struct_arg(p);
+
     while (true) {
         ;
     }

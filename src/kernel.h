@@ -186,6 +186,9 @@ void add_memory_mapping(void *linear_address, void *physical_address,
                         PTE *&paging_directory, bool user_level = true);
 // add kernel memory mapping
 void add_kernel_memory_mapping(void *linear_address, void *physical_address);
+
+// copy memory mapping in process space [start, start+count) to kernel space
+void copy_process_mapping(void *start, uint32_t count);
 // ================== paging.cpp end ======================
 
 // ================== interrupt.cpp start ======================
@@ -224,3 +227,9 @@ struct TrapFrame { // order should be opposite to alltraps.S
 // ================== system_entry.cpp start ======================
 void system_entry(int syscall_id, TrapFrame *tf);
 // ================== system_entry.cpp end ======================
+
+struct Process {
+    PTE *paging_directory = nullptr;
+    uint8_t *buffer = nullptr; // content of ELF file
+};
+extern Process *CURRENT_PROCESS;

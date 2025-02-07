@@ -1,11 +1,7 @@
 #include "bootloader32.h"
 #include "kernel.h"
 
-struct Process {
-    PTE *paging_directory = nullptr;
-    SegmentDescriptor *ldt;
-    uint8_t *buffer = nullptr; // content of ELF file
-};
+Process *CURRENT_PROCESS = nullptr;
 
 int execv(const char *pathname, char *const argv[]) {
     // read program into memory
@@ -172,6 +168,7 @@ int execv(const char *pathname, char *const argv[]) {
     data = header.e_entry; // EIP
     __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
 
+    CURRENT_PROCESS = p;
     // switch to process address space
     int pdbr = (int)p->paging_directory;
     __asm__ __volatile__("movl %0, %%cr3\n\t" : : "r"(pdbr));
