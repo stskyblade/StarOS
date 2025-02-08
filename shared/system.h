@@ -10,6 +10,7 @@ constexpr char SYSCALL_INT_ID = 32;
 constexpr int SYSCALL_HELLOWORLD = 0;
 constexpr int SYSCALL_ADD = 1;
 constexpr int SYSCALL_STRUCT = 2;
+constexpr int SYSCALL_PRINTF = 3;
 
 // Struct for test only
 struct TestPack {

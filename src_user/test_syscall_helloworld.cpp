@@ -32,6 +32,8 @@ int main() {
     p.a10 = 10;
     syscall_test_struct_arg(p);
 
+    printf("hello,world from user space\n");
+
     while (true) {
         ;
     }

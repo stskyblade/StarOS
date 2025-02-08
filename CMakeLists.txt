@@ -8,6 +8,9 @@ include(CTest)
 # generate compiler_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# warning as error
+set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
+
 # the name of the target operating system
 set(CMAKE_SYSTEM_NAME Generic)
 
@@ -46,13 +49,20 @@ add_executable(mbr.elf
 )
 target_link_options(mbr.elf PRIVATE -T${SRC_DIR}/mbr.ld)
 target_link_libraries(mbr.elf PUBLIC bootloadershared)
+# asm file can't compile with warning as error option
+set_property(TARGET mbr.elf PROPERTY COMPILE_WARNING_AS_ERROR OFF)
+
+# in order to disable warning as error option
+add_library(interrupt STATIC
+  ${SRC_DIR}/interrupt_handlers.S
+  ${SRC_DIR}/alltraps.S
+)
+set_property(TARGET interrupt PROPERTY COMPILE_WARNING_AS_ERROR OFF)
 
 # kernel target
 set(KERNEL_FILE staros_kernel.elf)
 add_executable(${KERNEL_FILE}
   ${SRC_DIR}/kernel.h
-  ${SRC_DIR}/interrupt_handlers.S
-  ${SRC_DIR}/alltraps.S
   ${SRC_DIR}/stdlib.cpp
   ${SRC_DIR}/kernel.cpp
   ${SRC_DIR}/paging.cpp
@@ -61,7 +71,7 @@ add_executable(${KERNEL_FILE}
   ${SRC_DIR}/system_call.cpp
 )
 target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)
-target_link_libraries(${KERNEL_FILE} PUBLIC bootloadershared)
+target_link_libraries(${KERNEL_FILE} PUBLIC bootloadershared interrupt)
 target_compile_options(${KERNEL_FILE} PRIVATE -Wno-packed-bitfield-compat)
 
 target_include_directories(${KERNEL_FILE} PUBLIC
@@ -106,7 +116,11 @@ add_custom_target(
   COMMAND qemu-system-i386 -d int -m 5G -serial stdio ${DISK_IMG_FILENAME} -s -S
 )
 
-add_library(c STATIC src_libc/system_call.cpp src_libc/test_system_calls.cpp)
+add_library(c STATIC src_libc/system_call.cpp
+  src_libc/test_system_calls.cpp
+  src_libc/printf.cpp
+  src_libc/string_utils.cpp
+  )
 
 # ====================== user mode programs
 set(USER_DIR ${PROJECT_SOURCE_DIR}/src_user)

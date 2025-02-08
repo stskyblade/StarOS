@@ -69,8 +69,18 @@ void write_serial(char a) {
     outb(PORT, a);
 }
 
+bool is_printable(char c) {
+    if (c == '\n') {
+        return true;
+    }
+    return (c >= 32) && (c <= 126);
+}
+
 // print a char, and increse position
 void print_c(char c) {
+    if (!is_printable(c)) {
+        fatal("Non printable char 0x%x", c);
+    }
     write_serial(c);
 
     if (c == '\n') {

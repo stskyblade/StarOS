@@ -47,6 +47,14 @@ void system_entry(int syscall_id, TrapFrame *tf) {
         data = p->a10;
         debug("a10: %d", data);
     } break;
+    case SYSCALL_PRINTF: {
+        debug("syscall printf");
+        char *p = (char *)tf->ebx;
+        uint32_t size = tf->ecx;
+        copy_process_mapping(p, size);
+        debug("copy mapping done");
+        printf(p);
+    } break;
     default:
         printf("%d ");
         fatal("syscall id not supported");
