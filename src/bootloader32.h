@@ -82,7 +82,7 @@ const LoggingLevel CURRENT_LOGGING_LEVEL = DEBUG;
     }
 
 void print_c(char c);
-void printf(const char *restrict, ...);
+int printf(const char *restrict, ...);
 void print_memory(uint8_t *buf, int length);
 
 // print a 16-bit unsigned `data` in hex representation

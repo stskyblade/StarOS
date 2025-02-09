@@ -32,7 +32,8 @@ int main() {
     p.a10 = 10;
     syscall_test_struct_arg(p);
 
-    printf("hello,world from user space\n");
+    printf("I'm in user mode.\n");
+    printf("hello,world from user space %d %x %d\n", 16, 17, true);
 
     while (true) {
         ;

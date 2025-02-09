@@ -146,9 +146,9 @@ void print_memory(uint8_t *buf, int length) {
 }
 
 // Same as C function printf
-void printf(const char *restrict, ...) {
+int printf(const char *format, ...) {
     va_list args;
-    va_start(args, restrict);
+    va_start(args, format);
 
     if (!is_screen_cleared) {
         for (int row = 0; row < 25; row++) {
@@ -164,7 +164,7 @@ void printf(const char *restrict, ...) {
         is_serial_inited = true;
     }
 
-    for (const char *p = restrict; *p != '\0'; p++) {
+    for (const char *p = format; *p != '\0'; p++) {
         char c = *p;
         if (c == '%') {
             p++;
@@ -187,4 +187,5 @@ void printf(const char *restrict, ...) {
     }
 
     va_end(args);
+    return 0; // FIXME: return length
 }

@@ -49,11 +49,30 @@ void system_entry(int syscall_id, TrapFrame *tf) {
     } break;
     case SYSCALL_PRINTF: {
         debug("syscall printf");
+        // format string
         char *p = (char *)tf->ebx;
         uint32_t size = tf->ecx;
         copy_process_mapping(p, size);
         debug("copy mapping done");
-        printf(p);
+
+        // ... arguments
+        char *args = (char *)tf->edx;
+        uint32_t last_arg_size = tf->esi;
+        copy_process_mapping(args, 1024 * 4);
+        // process stack is different from kernel stack, so can't simply use it
+        // just copy 10 * 4B, should be enough
+        uint32_t *first_ellipses_arg = (uint32_t *)(args + last_arg_size);
+        // push last 4B first
+        for (int i = 0; i < 10; i++) {
+            uint32_t last_ellipses_arg = *(first_ellipses_arg + 9 - i);
+            __asm__ __volatile__("pushl %0\n\t" ::"m"(last_ellipses_arg));
+        }
+        // ellipses args are manually pushed to stack
+        __asm__ __volatile__("pushl %0\n\t" ::"m"(p));
+        __asm__ __volatile__("call _Z6printfPKcz\n\t" ::);
+        __asm__ __volatile__("add    $0x10,%%esp\n\t" ::);
+        __asm__ __volatile__(
+            "add    $0x28,%%esp\n\t" ::); // 40B for ellipses args
     } break;
     default:
         printf("%d ");
