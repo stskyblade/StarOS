@@ -64,6 +64,7 @@ set(KERNEL_FILE staros_kernel.elf)
 add_executable(${KERNEL_FILE}
   ${SRC_DIR}/kernel.h
   ${SRC_DIR}/stdlib.cpp
+  ${SRC_DIR}/memory_management.cpp
   ${SRC_DIR}/kernel.cpp
   ${SRC_DIR}/paging.cpp
   ${SRC_DIR}/interrupt.cpp

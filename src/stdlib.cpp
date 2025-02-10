@@ -6,7 +6,7 @@ uint8_t *free_memory_page = (uint8_t *)(free_memory_page_start);
 
 // Return a block of memory at least `size` bytes, aligned to 8-byte boundary
 // Physical memory address
-void *malloc(int64_t size) {
+void *_malloc_abandoned(int64_t size) {
     void *allocated_memory = free_memory;
     free_memory += size;
 

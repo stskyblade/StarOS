@@ -42,7 +42,7 @@ make test
 - [x] vga support newline, scoll down, colorful text
 - [x] add test procedure
 - [x] interrupt from user program
-- [ ] pass arguments in system call
+- [x] pass arguments in system call
 - [ ] hardware interrupt, mapping table, interrupt 18
 - [ ] clock interrupt
 - [ ] schedular

@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include "system.h"
 
+typedef uint32_t size_t;
+
 // kernel space memory mappings: (keep same with kernel.ld)
 // 0x40005000 - 0x4c805000: 200MB, text, text*。权限 AX, 读取和执行
 // 0x4c805000 - 0x52c05000: 100MB, rodata。权限 A，仅读取
@@ -157,7 +159,6 @@ extern TSS *KERNEL_TSS;
 
 // ====================== stdlib.cpp start ===========================
 
-void *malloc(int64_t size);
 void *alloc_page();
 
 // ====================== stdlib.cpp end ===========================
@@ -233,3 +234,15 @@ struct Process {
     uint8_t *buffer = nullptr; // content of ELF file
 };
 extern Process *CURRENT_PROCESS;
+
+// ================== memory_management.cpp start ======================
+struct MemoryBlock {
+    size_t start; // including
+    size_t end;   // excluding
+    size_t size;
+    bool is_valid;
+};
+extern MemoryBlock Free_blocks[];
+extern int Blocks_count;
+void *malloc(size_t size);
+// ================== memory_management.cpp end ======================
