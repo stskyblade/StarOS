@@ -1,3 +1,4 @@
+#pragma once
 #include <stdint.h>
 #include "system.h"
 
@@ -197,7 +198,23 @@ void init_interrupt_handler();
 // ================== interrupt.cpp end ======================
 
 // ================== process.cpp start ======================
+template <class T> class LinkedList;
+
+enum ProcessStatus { Ready, Running };
+struct Process {
+    PTE *paging_directory = nullptr;
+    uint8_t *buffer = nullptr; // content of ELF file
+    ProcessStatus status;
+    int data_segment_index;
+    int code_segment_index;
+    uint32_t entry;
+};
+extern Process *CURRENT_PROCESS;
+
+extern LinkedList<Process> ready_queue;
+extern LinkedList<Process> running_queue;
 int execv(const char *pathname, char *const argv[]);
+void switch_to_process(Process *p);
 // ================== process.cpp end ======================
 
 // ================== kernel.cpp start ======================
@@ -228,13 +245,6 @@ struct TrapFrame { // order should be opposite to alltraps.S
 // ================== system_entry.cpp start ======================
 void system_entry(int syscall_id, TrapFrame *tf);
 // ================== system_entry.cpp end ======================
-
-struct Process {
-    PTE *paging_directory = nullptr;
-    uint8_t *buffer = nullptr; // content of ELF file
-};
-extern Process *CURRENT_PROCESS;
-
 // ================== memory_management.cpp start ======================
 struct MemoryBlock {
     size_t start; // including
@@ -245,4 +255,8 @@ struct MemoryBlock {
 extern MemoryBlock Free_blocks[];
 extern int Blocks_count;
 void *malloc(size_t size);
+void free(void *);
 // ================== memory_management.cpp end ======================
+// ================== schedular.cpp start ======================
+void schedular();
+// ================== schedular.cpp end ======================

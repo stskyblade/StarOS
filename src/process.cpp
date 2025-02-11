@@ -1,7 +1,10 @@
 #include "bootloader32.h"
 #include "kernel.h"
+#include "linked_list.h"
 
 Process *CURRENT_PROCESS = nullptr;
+LinkedList<Process> ready_queue;
+LinkedList<Process> running_queue;
 
 int execv(const char *pathname, char *const argv[]) {
     // read program into memory
@@ -17,6 +20,7 @@ int execv(const char *pathname, char *const argv[]) {
     Process *p = (Process *)malloc(sizeof(Process));
     p->paging_directory = (PTE *)alloc_page();
     p->buffer = buffer;
+    p->status = Ready;
     memset(p->paging_directory, 0, 1024 * 4);
 
     // for each section in program,
@@ -139,14 +143,21 @@ int execv(const char *pathname, char *const argv[]) {
     // SS=selector,ESP=?,EFLAGS=0,CS=another selector, EIP=e_entry
 
     // setup memory segment descriptor in GDT
-    int code_segment_index = add_to_GDT(
+    p->code_segment_index = add_to_GDT(
         SegmentDescriptor(0, 0xfffff, 0xfa, 0xc)); // process code segmet
-    int data_segment_index = add_to_GDT(
+    p->data_segment_index = add_to_GDT(
         SegmentDescriptor(0, 0xfffff, 0xf2, 0xc)); // process data segmet
+    p->entry = header.e_entry;
 
+    ready_queue.push_back(*p);
+    free(p);
+    return 0;
+}
+
+void switch_to_process(Process *p) {
     // each one should be 4 bytes
     uint32_t data = 0;
-    uint16_t selector = descriptor_selector(data_segment_index, true, 3);
+    uint16_t selector = descriptor_selector(p->data_segment_index, true, 3);
     // set data segment registers
     __asm__ __volatile__("mov %0, %%ds\n\t" ::"r"(selector));
     __asm__ __volatile__("mov %0, %%es\n\t" ::"r"(selector));
@@ -161,34 +172,18 @@ int execv(const char *pathname, char *const argv[]) {
     data = 0; // Eflags
     // __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
     __asm__ __volatile__("pushf\n\t" ::); // EFLAGS
-    selector = descriptor_selector(code_segment_index, true, 3);
+    selector = descriptor_selector(p->code_segment_index, true, 3);
     data = selector; // CS segment
     debug("CS selector: 0x%x", data);
     __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
-    data = header.e_entry; // EIP
+    data = p->entry; // EIP
     __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
 
     CURRENT_PROCESS = p;
     // switch to process address space
     int pdbr = (int)p->paging_directory;
     __asm__ __volatile__("movl %0, %%cr3\n\t" : : "r"(pdbr));
-    info("Entering ring3: ") __asm__ __volatile__("debug_process:\n\t" ::);
+    info("Entering ring3: ");
+    __asm__ __volatile__("debug_process:\n\t" ::);
     __asm__ __volatile__("iret\n\t" ::);
-
-    // execute
-    // should just add to ready queue, waiting for the Schedular to run the
-    // process to debug, jump to process entry directly
-    // __asm__ __volatile__("movl %0, %%eax\n\t"
-    // :
-    // : "r"(header.e_entry));
-    // FIXME: infinite reboot
-    __asm__ __volatile__("jmp $0x0008, $0x8048054\n\t" ::);
-
-    int a = 3;
-    int b = 4;
-    int c = a + b;
-    int d = c + 338;
-    void (*program_entry)() = (void (*)())header.e_entry;
-    program_entry();
-    return 0;
 }

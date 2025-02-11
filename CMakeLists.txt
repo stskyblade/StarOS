@@ -63,12 +63,14 @@ set_property(TARGET interrupt PROPERTY COMPILE_WARNING_AS_ERROR OFF)
 set(KERNEL_FILE staros_kernel.elf)
 add_executable(${KERNEL_FILE}
   ${SRC_DIR}/kernel.h
+  ${SRC_DIR}/linked_list.h
   ${SRC_DIR}/stdlib.cpp
   ${SRC_DIR}/memory_management.cpp
   ${SRC_DIR}/kernel.cpp
   ${SRC_DIR}/paging.cpp
   ${SRC_DIR}/interrupt.cpp
   ${SRC_DIR}/process.cpp
+  ${SRC_DIR}/schedular.cpp
   ${SRC_DIR}/system_call.cpp
 )
 target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)

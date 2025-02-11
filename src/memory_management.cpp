@@ -83,6 +83,7 @@ void _free_array(void *p) {
         if (allocated_block.start == (size_t)p) {
             allocated = allocated_block;
             allocated.is_valid = true;
+            allocated_block.is_valid = false;
             break;
         }
     }
@@ -100,11 +101,8 @@ void _free_array(void *p) {
             // merge
             block.start = allocated.start;
             block.size += allocated.size;
-            allocated.is_valid = false;
             return;
         }
-
-        // TODO
     }
 
     // case can't merge

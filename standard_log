@@ -9,7 +9,8 @@
 
 [DEBUG]: Section 4: .ctors
 
-[DEBUG]: Execute initialization function at address 0x40005cc8
+[DEBUG]: Execute initialization function at address 0x40005cb3
+[DEBUG]: Execute initialization function at address 0x400073eb
 [DEBUG]: Section 5: .debug_info
 
 [DEBUG]: Section 6: .debug_abbrev
@@ -44,11 +45,11 @@
 [DEBUG]: IDE address 0x52d34020
 [DEBUG]: vectors address 0x52c0500c
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 8, error_code 0x00000000, return 0x40006d1c
+[DEBUG]: Interrupt 8, error_code 0x00000000, return 0x40006d07
 [DEBUG]: eax: 0x000052d3    ebx: 0x52c05000    ecx: 0x000000ff    edx:0x4000ee00
 [DEBUG]: esp: 0x52d33fb8    ebp: 0x52d33ff4    esi: 0x00000000    edi:0x0000ab08
 [DEBUG]: ds: 0x00000010     es: 0x00000010     fs: 0x00000010     gs:0x00000010
-[DEBUG]: Compiled at: 2025-02-10 09:46:50
+[DEBUG]: Compiled at: 2025-02-11 09:31:57
 [DEBUG]: pass 8
 [DEBUG]: Running kernel test:
 .[DEBUG]: All test passed.
@@ -854,63 +855,65 @@
 [DEBUG]: allocated_page 0x78704000, is_empty 1
 [DEBUG]: Mapping 0x78405000 -> 0x78405000, 25600 pages, page_directory 0x78503000
 [DEBUG]: Mapping last page: 0x7e804000 -> 0x7e804000
+[DEBUG]: Running Schedular...
+[DEBUG]: Schedular switching to process...
 [DEBUG]: SS selector: 0x0000002b
 [DEBUG]: CS selector: 0x00000023
 [INFO]: Entering ring3: 
 [INFO]: interrupt handler
 [DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000120
 [DEBUG]: eax: 0x00000000    ebx: 0x00000456    ecx: 0x00000789    edx:0x00000357
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefffa8    esi: 0x78506000    edi:0x0000ab08
+[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefffa8    esi: 0x00000000    edi:0x0000ab08
 [DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-10 09:46:50
+[DEBUG]: Compiled at: 2025-02-11 09:31:57
 [DEBUG]: Start of system_entry
 [INFO]: hello,world from system call in kernel
 [INFO]: interrupt handler
 [DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000120
 [DEBUG]: eax: 0x00000000    ebx: 0x00000456    ecx: 0x00000789    edx:0x00000357
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefffa8    esi: 0x78506000    edi:0x0000ab08
+[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefffa8    esi: 0x00000000    edi:0x0000ab08
 [DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-10 09:46:50
+[DEBUG]: Compiled at: 2025-02-11 09:31:57
 [DEBUG]: Start of system_entry
 [INFO]: hello,world from system call in kernel
 [INFO]: interrupt handler
 [DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000120
 [DEBUG]: eax: 0x00000000    ebx: 0x00000456    ecx: 0x00000789    edx:0x00000357
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefffa8    esi: 0x78506000    edi:0x0000ab08
+[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefffa8    esi: 0x00000000    edi:0x0000ab08
 [DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-10 09:46:50
+[DEBUG]: Compiled at: 2025-02-11 09:31:57
 [DEBUG]: Start of system_entry
 [INFO]: hello,world from system call in kernel
 [INFO]: interrupt handler
 [DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000013d
 [DEBUG]: eax: 0x00000001    ebx: 0x00000001    ecx: 0x00000002    edx:0x00000357
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff98    esi: 0x78506000    edi:0x0000ab08
+[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff98    esi: 0x00000000    edi:0x0000ab08
 [DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-10 09:46:50
+[DEBUG]: Compiled at: 2025-02-11 09:31:57
 [DEBUG]: Start of system_entry
 [DEBUG]: add: 1 + 2 = 3
 [INFO]: interrupt handler
 [DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000013d
 [DEBUG]: eax: 0x00000001    ebx: 0x00000003    ecx: 0x00000004    edx:0x00000357
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff98    esi: 0x78506000    edi:0x0000ab08
+[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff98    esi: 0x00000000    edi:0x0000ab08
 [DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-10 09:46:50
+[DEBUG]: Compiled at: 2025-02-11 09:31:57
 [DEBUG]: Start of system_entry
 [DEBUG]: add: 3 + 4 = 7
 [INFO]: interrupt handler
 [DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000013d
 [DEBUG]: eax: 0x00000001    ebx: 0x00000007    ecx: 0x00000010    edx:0x00000357
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff98    esi: 0x78506000    edi:0x0000ab08
+[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff98    esi: 0x00000000    edi:0x0000ab08
 [DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-10 09:46:50
+[DEBUG]: Compiled at: 2025-02-11 09:31:57
 [DEBUG]: Start of system_entry
 [DEBUG]: add: 7 + 16 = 23
 [INFO]: interrupt handler
 [DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000167
 [DEBUG]: eax: 0x00000002    ebx: 0x0fefff90    ecx: 0x0000001c    edx:0x00000357
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff88    esi: 0x78506000    edi:0x0000ab08
+[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff88    esi: 0x00000000    edi:0x0000ab08
 [DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-10 09:46:50
+[DEBUG]: Compiled at: 2025-02-11 09:31:57
 [DEBUG]: Start of system_entry
 [DEBUG]: syscall struct
 [DEBUG]: pointer of struct: 0x0fefff90
@@ -929,7 +932,7 @@
 [DEBUG]: eax: 0x00000003    ebx: 0x1c800014    ecx: 0x00000012    edx:0x0fefffa0
 [DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff98    esi: 0x00000004    edi:0x0000ab08
 [DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-10 09:46:50
+[DEBUG]: Compiled at: 2025-02-11 09:31:57
 [DEBUG]: Start of system_entry
 [DEBUG]: syscall printf
 [DEBUG]: copy mapping done
@@ -939,7 +942,7 @@ I'm in user mode.
 [DEBUG]: eax: 0x00000003    ebx: 0x1c800028    ecx: 0x00000025    edx:0x0fefffa0
 [DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff98    esi: 0x00000004    edi:0x0000ab08
 [DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-10 09:46:50
+[DEBUG]: Compiled at: 2025-02-11 09:31:57
 [DEBUG]: Start of system_entry
 [DEBUG]: syscall printf
 [DEBUG]: copy mapping done

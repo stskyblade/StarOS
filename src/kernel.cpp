@@ -164,12 +164,7 @@ void kernel_main() {
     char *const arg1 = "arg1";
     char *const argv[1] = {arg1};
     execv("/test_syscall_helloworld", argv);
-
     // never return
-    while (1) {
-        sleep(1);
-        printf(".");
-        ;
-    }
+    schedular();
 }
 }
