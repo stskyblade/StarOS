@@ -43,9 +43,9 @@ make test
 - [x] add test procedure
 - [x] interrupt from user program
 - [x] pass arguments in system call
-- [ ] hardware interrupt, mapping table, interrupt 18
+- [ ] hardware interrupt, mapping table, interrupt 18, keyboard, time
 - [ ] clock interrupt
-- [ ] schedular
+- [x] schedular
 
 ## Filesystem
 - [x] generate disk image

@@ -149,6 +149,7 @@ void kernel_main() {
 
     // init interrupt handlers
     init_interrupt_handler();
+    init_PIC();
 
     run_test();
 

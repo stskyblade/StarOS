@@ -2,6 +2,74 @@
 #include "bootloader32.h"
 #include "kernel.h"
 
+uint8_t scan_code_table[] = {0,
+                             0, // escape
+                             '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+                             0,   0,   0,   0,   'Q', 'W', 'E', 'R', 'T', 'Y',
+                             'U', 'I', 'O', 'P', 0,   0,   0,   0,   'A', 'S',
+                             'D', 'F', 'G', 'H', 'J', 'K', 'L', 0,   0,   0,
+                             0,   0,   'Z', 'X', 'C', 'V', 'B', 'N', 'M'};
+
+bool is_hardware_interrupt(uint32_t condition_code) {
+    if (condition_code >= PIC1_BASE_ID && condition_code < (PIC1_BASE_ID + 8)) {
+        return true;
+    }
+    if (condition_code >= PIC2_BASE_ID && condition_code < (PIC2_BASE_ID + 8)) {
+        return true;
+    }
+    return false;
+}
+
+void hardware_interrupt_handler(uint32_t condition_code, TrapFrame *tf) {
+    // convert interrupt vector to IRQ number
+    int IRQ = -1;
+    if (condition_code >= PIC1_BASE_ID && condition_code < (PIC1_BASE_ID + 8)) {
+        IRQ = condition_code - PIC1_BASE_ID;
+    }
+    if (condition_code >= PIC2_BASE_ID && condition_code < (PIC2_BASE_ID + 8)) {
+        IRQ = condition_code - PIC2_BASE_ID;
+    }
+
+    uint8_t data = 0;
+    // https://wiki.osdev.org/Interrupts#Types_of_Interrupts
+    switch (IRQ) {
+    case 0:
+        debug("timer interrupt");
+        break;
+    case IRQ_KEYBOARD: {
+        uint8_t scan_code = inb(0x60);
+        outb(0x20, 0x20);       // send Ack to keyboard
+        bool is_pressed = true; // false for released
+        if (scan_code > 0x80) {
+            is_pressed = false;
+            scan_code -= 0x80;
+        }
+
+        if (scan_code > 0x32) {
+            debug("Key not recognized yet. 0x%x", scan_code);
+            return;
+        }
+        if (scan_code_table[scan_code] == 0) {
+            debug("Key not recognized yet. 0x%x", scan_code);
+            return;
+        }
+        char c = scan_code_table[scan_code];
+        if (is_pressed) {
+            printf("key pressed 0x%x ", scan_code);
+            print_c(c);
+            printf("\n");
+        } else {
+            printf("key released 0x%x ", scan_code);
+            print_c(c);
+            printf("\n");
+        }
+    } break;
+    default:
+        fatal("Unsupported IRQ %d", IRQ);
+        break;
+    }
+}
+
 extern "C" {
 
 void interrupt_handler(TrapFrame *tf) {
@@ -75,6 +143,10 @@ void interrupt_handler(TrapFrame *tf) {
         break;
 
     default:
+        if (is_hardware_interrupt(condition_code)) {
+            hardware_interrupt_handler(condition_code, tf);
+            return;
+        }
         break;
     }
 

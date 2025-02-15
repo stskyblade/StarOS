@@ -39,6 +39,10 @@ inline void outl(uint16_t port, uint32_t data) {
                          : "a"(data), "d"(port));
 }
 
+inline void io_wait(void) {
+    outb(0x80, 0);
+}
+
 enum LoggingLevel {
     TRACE,
     DEBUG,

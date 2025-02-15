@@ -260,3 +260,6 @@ void free(void *);
 // ================== schedular.cpp start ======================
 void schedular();
 // ================== schedular.cpp end ======================
+// ================== PIC.cpp start ======================
+void init_PIC();
+// ================== PIC.cpp end ======================

@@ -179,7 +179,6 @@ void switch_to_process(Process *p) {
     data = p->entry; // EIP
     __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
 
-    CURRENT_PROCESS = p;
     // switch to process address space
     int pdbr = (int)p->paging_directory;
     __asm__ __volatile__("movl %0, %%cr3\n\t" : : "r"(pdbr));
