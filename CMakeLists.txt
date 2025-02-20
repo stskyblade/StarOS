@@ -71,7 +71,7 @@ add_executable(${KERNEL_FILE}
   ${SRC_DIR}/interrupt.cpp
   ${SRC_DIR}/process.cpp
   ${SRC_DIR}/schedular.cpp
-  ${SRC_DIR}/system_call.cpp
+  ${SRC_DIR}/system_entry.cpp
   ${SRC_DIR}/PIC.cpp
 )
 target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)
@@ -124,6 +124,7 @@ add_library(c STATIC src_libc/system_call.cpp
   src_libc/test_system_calls.cpp
   src_libc/printf.cpp
   src_libc/string_utils.cpp
+  src_libc/gets.cpp
   )
 
 # ====================== user mode programs

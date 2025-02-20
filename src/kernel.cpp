@@ -64,6 +64,10 @@ constexpr int Kernel_code_segment_desc_index = 1;
 constexpr int Kernel_data_segment_desc_index = 2;
 constexpr int Kernel_tss_segment_desc_index = 3;
 
+// used by system entry to distinguish whether it triggered by kernel or user
+// space
+int Current_control_flow = 0;
+
 int add_to_GDT(SegmentDescriptor d) {
     if (GDT_INDEX >= GDT_SIZE) {
         fatal("GDT exceeds limit: %d", GDT_INDEX);
@@ -87,6 +91,7 @@ char *const KERNEL_STACK_END = KERNEL_STACK_START + KERNEL_STACK_SIZE - 4;
 
 extern "C" {
 void kernel_main() {
+    Current_control_flow = Kernel_thread;
     // init stack
     __asm__ __volatile__("mov %0, %%esp\n\t" : : "m"(KERNEL_STACK_END));
 

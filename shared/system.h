@@ -1,4 +1,6 @@
 #pragma once
+#include <stdint.h>
+typedef uint32_t size_t;
 // Interrupt number used by system call
 constexpr char SYSCALL_INT_ID = 32;
 constexpr char PIC1_BASE_ID = 0x30;
@@ -14,6 +16,7 @@ constexpr int SYSCALL_HELLOWORLD = 0;
 constexpr int SYSCALL_ADD = 1;
 constexpr int SYSCALL_STRUCT = 2;
 constexpr int SYSCALL_PRINTF = 3;
+constexpr int SYSCALL_GETS = 4;
 
 // IRQ numbers
 constexpr int IRQ_KEYBOARD = 1;

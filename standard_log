@@ -1,5 +1,5 @@
 [INFO]: Enter C source code of bootloader32...        OK
-[DEBUG]: Section 0: 
+[DEBUG]: Section 0:
 
 [DEBUG]: Section 1: .text
 
@@ -9,8 +9,8 @@
 
 [DEBUG]: Section 4: .ctors
 
-[DEBUG]: Execute initialization function at address 0x40005cb3
-[DEBUG]: Execute initialization function at address 0x400073eb
+[DEBUG]: Execute initialization function at address 0x40005cc2
+[DEBUG]: Execute initialization function at address 0x400075e4
 [DEBUG]: Section 5: .debug_info
 
 [DEBUG]: Section 6: .debug_abbrev
@@ -43,14 +43,13 @@
 [DEBUG]: change GDT success
 [DEBUG]: change TR success
 [DEBUG]: IDE address 0x52d34020
-[DEBUG]: vectors address 0x52c0500c
+[DEBUG]: vectors address 0x52c05058
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 8, error_code 0x00000000, return 0x40006d07
-[DEBUG]: eax: 0x000052d3    ebx: 0x52c05000    ecx: 0x000000ff    edx:0x4000ee00
-[DEBUG]: esp: 0x52d33fb8    ebp: 0x52d33ff4    esi: 0x00000000    edi:0x0000ab08
-[DEBUG]: ds: 0x00000010     es: 0x00000010     fs: 0x00000010     gs:0x00000010
-[DEBUG]: Compiled at: 2025-02-11 09:31:57
+[DEBUG]: Interrupt 8, error_code 0x00000000, return 0x40006e35
 [DEBUG]: pass 8
+[DEBUG]: return from interrupt_handler
+[DEBUG]: Start init PIC...
+[DEBUG]: Finished init PIC.
 [DEBUG]: Running kernel test:
 .[DEBUG]: All test passed.
 [DEBUG]: allocated_page 0x78405000, is_empty 1
@@ -859,64 +858,42 @@
 [DEBUG]: Schedular switching to process...
 [DEBUG]: SS selector: 0x0000002b
 [DEBUG]: CS selector: 0x00000023
-[INFO]: Entering ring3: 
+[INFO]: Entering ring3:
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000120
-[DEBUG]: eax: 0x00000000    ebx: 0x00000456    ecx: 0x00000789    edx:0x00000357
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefffa8    esi: 0x00000000    edi:0x0000ab08
-[DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-11 09:31:57
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000183
 [DEBUG]: Start of system_entry
 [INFO]: hello,world from system call in kernel
+[DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000120
-[DEBUG]: eax: 0x00000000    ebx: 0x00000456    ecx: 0x00000789    edx:0x00000357
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefffa8    esi: 0x00000000    edi:0x0000ab08
-[DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-11 09:31:57
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000183
 [DEBUG]: Start of system_entry
 [INFO]: hello,world from system call in kernel
+[DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000120
-[DEBUG]: eax: 0x00000000    ebx: 0x00000456    ecx: 0x00000789    edx:0x00000357
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefffa8    esi: 0x00000000    edi:0x0000ab08
-[DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-11 09:31:57
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000183
 [DEBUG]: Start of system_entry
 [INFO]: hello,world from system call in kernel
+[DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000013d
-[DEBUG]: eax: 0x00000001    ebx: 0x00000001    ecx: 0x00000002    edx:0x00000357
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff98    esi: 0x00000000    edi:0x0000ab08
-[DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-11 09:31:57
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100001a0
 [DEBUG]: Start of system_entry
 [DEBUG]: add: 1 + 2 = 3
+[DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000013d
-[DEBUG]: eax: 0x00000001    ebx: 0x00000003    ecx: 0x00000004    edx:0x00000357
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff98    esi: 0x00000000    edi:0x0000ab08
-[DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-11 09:31:57
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100001a0
 [DEBUG]: Start of system_entry
 [DEBUG]: add: 3 + 4 = 7
+[DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000013d
-[DEBUG]: eax: 0x00000001    ebx: 0x00000007    ecx: 0x00000010    edx:0x00000357
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff98    esi: 0x00000000    edi:0x0000ab08
-[DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-11 09:31:57
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100001a0
 [DEBUG]: Start of system_entry
 [DEBUG]: add: 7 + 16 = 23
+[DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000167
-[DEBUG]: eax: 0x00000002    ebx: 0x0fefff90    ecx: 0x0000001c    edx:0x00000357
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff88    esi: 0x00000000    edi:0x0000ab08
-[DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-11 09:31:57
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100001ca
 [DEBUG]: Start of system_entry
 [DEBUG]: syscall struct
-[DEBUG]: pointer of struct: 0x0fefff90
+[DEBUG]: pointer of struct: 0x0fefff70
 [DEBUG]: a1: 1
 [DEBUG]: a2: 2
 [DEBUG]: a3: 3
@@ -927,23 +904,32 @@
 [DEBUG]: a8: 8
 [DEBUG]: a9: 1
 [DEBUG]: a10: 10
+[DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100001a8
-[DEBUG]: eax: 0x00000003    ebx: 0x1c800014    ecx: 0x00000012    edx:0x0fefffa0
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff98    esi: 0x00000004    edi:0x0000ab08
-[DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-11 09:31:57
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000020b
 [DEBUG]: Start of system_entry
 [DEBUG]: syscall printf
 [DEBUG]: copy mapping done
 I'm in user mode.
+[DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100001a8
-[DEBUG]: eax: 0x00000003    ebx: 0x1c800028    ecx: 0x00000025    edx:0x0fefffa0
-[DEBUG]: esp: 0x52d33fd0    ebp: 0x0fefff98    esi: 0x00000004    edi:0x0000ab08
-[DEBUG]: ds: 0x0000002b     es: 0x0000002b     fs: 0x0000002b     gs:0x0000002b
-[DEBUG]: Compiled at: 2025-02-11 09:31:57
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000020b
 [DEBUG]: Start of system_entry
 [DEBUG]: syscall printf
 [DEBUG]: copy mapping done
 hello,world from user space 16 00000011 1
+[DEBUG]: return from interrupt_handler
+[INFO]: interrupt handler
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000020b
+[DEBUG]: Start of system_entry
+[DEBUG]: syscall printf
+[DEBUG]: copy mapping done
+Please enter a string(Press Enter key to finish):
+[DEBUG]: return from interrupt_handler
+[INFO]: interrupt handler
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000250
+[DEBUG]: Start of system_entry
+[DEBUG]: syscall gets
+[DEBUG]: return from system_entry
+[DEBUG]: return from interrupt_handler
+....

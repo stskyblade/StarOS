@@ -12,4 +12,8 @@ void syscall_test_struct_arg(TestPack p);
 // additional arguments are not supported yet
 int printf(char *format, ...);
 
+// read a string from STDIN
+// Return buf on success, nullptr on failure
+char *gets(char *buf, size_t buf_size);
+
 inline void system_call(int id);

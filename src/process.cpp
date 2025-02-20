@@ -3,8 +3,10 @@
 #include "linked_list.h"
 
 Process *CURRENT_PROCESS = nullptr;
-LinkedList<Process> ready_queue;
-LinkedList<Process> running_queue;
+// must include linked_list if you want to use below vairables
+LinkedList<Process *> ready_queue;
+LinkedList<Process *> running_queue;
+LinkedList<Process *> blocking_queue;
 
 int execv(const char *pathname, char *const argv[]) {
     // read program into memory
@@ -149,15 +151,36 @@ int execv(const char *pathname, char *const argv[]) {
         SegmentDescriptor(0, 0xfffff, 0xf2, 0xc)); // process data segmet
     p->entry = header.e_entry;
 
-    ready_queue.push_back(*p);
-    free(p);
+    ready_queue.push_back(p);
     return 0;
 }
+
+Process Kernel_proc;
 
 void switch_to_process(Process *p) {
     // each one should be 4 bytes
     uint32_t data = 0;
+    uint16_t short_data = 0;
     uint16_t selector = descriptor_selector(p->data_segment_index, true, 3);
+    // save segment registers
+    __asm__ __volatile__("mov %%ds, %0\n\t" : "=m"(short_data) :);
+    Kernel_proc.context.ds = short_data;
+    __asm__ __volatile__("mov %%es, %0\n\t" : "=m"(short_data) :);
+    Kernel_proc.context.es = short_data;
+    __asm__ __volatile__("mov %%fs, %0\n\t" : "=m"(short_data) :);
+    Kernel_proc.context.fs = short_data;
+    __asm__ __volatile__("mov %%gs, %0\n\t" : "=m"(short_data) :);
+    Kernel_proc.context.gs = short_data;
+    __asm__ __volatile__("mov %%ss, %0\n\t" : "=m"(short_data) :);
+    Kernel_proc.context.ss = short_data;
+    __asm__ __volatile__("movl %%esp, %0\n\t" : "=m"(data) :);
+    Kernel_proc.context.esp = data;
+    KERNEL_TSS->esp0 = data;
+    __asm__ __volatile__("movl %%ebp, %0\n\t" : "=m"(data) :);
+    Kernel_proc.context.ebp = data;
+    data = 0;
+    short_data = 0;
+
     // set data segment registers
     __asm__ __volatile__("mov %0, %%ds\n\t" ::"r"(selector));
     __asm__ __volatile__("mov %0, %%es\n\t" ::"r"(selector));
@@ -169,9 +192,13 @@ void switch_to_process(Process *p) {
     __asm__ __volatile__("pushl %0\n\t" ::"r"(data)); // SS segment selector
     data = USER_STACK_VADDRESS - 4;                   // ESP
     __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
-    data = 0; // Eflags
-    // __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
+    data = 0;                             // Eflags
     __asm__ __volatile__("pushf\n\t" ::); // EFLAGS
+    // save EFLAGS
+    __asm__ __volatile__("movl (%%esp), %0\n\t" : "=r"(data) :);
+    Kernel_proc.context.eflags = data;
+    data = 0;
+
     selector = descriptor_selector(p->code_segment_index, true, 3);
     data = selector; // CS segment
     debug("CS selector: 0x%x", data);
@@ -183,6 +210,17 @@ void switch_to_process(Process *p) {
     int pdbr = (int)p->paging_directory;
     __asm__ __volatile__("movl %0, %%cr3\n\t" : : "r"(pdbr));
     info("Entering ring3: ");
+    __asm__ __volatile__("mov %%cs, %0\n\t" : "=m"(short_data) :);
+    Kernel_proc.context.cs = short_data;
     __asm__ __volatile__("debug_process:\n\t" ::);
+    // __asm__ __volatile__("mov %%eip, %0\n\t" : "=m"(data) :);
+    // FIXME: eip should point to the next instruction of IRET
+    extern int scheduler_restore_here[];
+    int return_addr = (int)&scheduler_restore_here[0];
+    Kernel_proc.context.eip = return_addr;
+    Kernel_proc.context.page_directory = (uint32_t)kernel_paging_directory;
+    Current_control_flow = Process_thread;
     __asm__ __volatile__("iret\n\t" ::);
+    __asm__ __volatile__("scheduler_restore_here:\n\t" ::);
+    Current_control_flow = Kernel_thread;
 }

@@ -21,6 +21,7 @@ bool is_hardware_interrupt(uint32_t condition_code) {
 }
 
 void hardware_interrupt_handler(uint32_t condition_code, TrapFrame *tf) {
+    // FIXME: syscall gets
     // convert interrupt vector to IRQ number
     int IRQ = -1;
     if (condition_code >= PIC1_BASE_ID && condition_code < (PIC1_BASE_ID + 8)) {
@@ -82,19 +83,20 @@ void interrupt_handler(TrapFrame *tf) {
 
     uint8_t *addr = nullptr;
     debug("Interrupt %d, error_code 0x%x, return 0x%x", condition_code, error_code, return_addr);
-    debug("eax: 0x%x    ebx: 0x%x    ecx: 0x%x    edx:0x%x", tf->eax, tf->ebx, tf->ecx, tf->edx);
-    debug("esp: 0x%x    ebp: 0x%x    esi: 0x%x    edi:0x%x", tf->esp, tf->ebp, tf->esi, tf->edi);
-    debug("ds: 0x%x     es: 0x%x     fs: 0x%x     gs:0x%x", tf->ds, tf->es, tf->fs, tf->gs);
-    debug("Compiled at: " Compilation_datetime);
+    trace("eax: 0x%x    ebx: 0x%x    ecx: 0x%x    edx:0x%x", tf->eax, tf->ebx,
+          tf->ecx, tf->edx);
+    trace("esp: 0x%x    ebp: 0x%x    esi: 0x%x    edi:0x%x", tf->esp, tf->ebp,
+          tf->esi, tf->edi);
+    trace("ds: 0x%x     es: 0x%x     fs: 0x%x     gs:0x%x", tf->ds, tf->es,
+          tf->fs, tf->gs);
+    trace("Compiled at: " Compilation_datetime);
 
     switch (condition_code) {
     case 7:
         debug("pass 7");
-        return;
         break;
     case 8:
         debug("pass 8");
-        return;
         break;
     case 12: // stack exception
         if (tf->error_code) {
@@ -134,24 +136,20 @@ void interrupt_handler(TrapFrame *tf) {
 
         addr = (uint8_t *)(data & ~0x111);
         add_kernel_memory_mapping(addr, addr);
-        return;
         break;
 
     case SYSCALL_INT_ID:
         system_entry(tf->eax, tf);
-        return;
         break;
 
     default:
         if (is_hardware_interrupt(condition_code)) {
             hardware_interrupt_handler(condition_code, tf);
-            return;
         }
         break;
     }
-
-    info("This is interrupt_handler %d 0x%x\n", condition_code, error_code);
-    sleep(10);
+    debug("return from interrupt_handler");
+    return;
 }
 }
 

@@ -178,6 +178,7 @@ struct PTE {
 
 } __attribute__((packed));
 
+extern PTE *kernel_paging_directory;
 extern bool is_paging_enabled;
 bool ksetup_kernel_paging();
 void add_kernel_mappings(PTE *&page_directory);
@@ -200,7 +201,27 @@ void init_interrupt_handler();
 // ================== process.cpp start ======================
 template <class T> class LinkedList;
 
-enum ProcessStatus { Ready, Running };
+struct Context {
+    uint32_t edi;
+    uint32_t esi;
+    uint32_t ebp;
+    uint32_t esp;
+    uint32_t ebx;
+    uint32_t edx;
+    uint32_t ecx;
+    uint32_t eax;
+    uint32_t gs;
+    uint32_t fs;
+    uint32_t es;
+    uint32_t ds;
+
+    uint32_t ss;
+    uint32_t cs;
+    uint32_t eip;
+    uint32_t page_directory;
+    uint32_t eflags;
+};
+enum ProcessStatus { Ready, Running, Blocking };
 struct Process {
     PTE *paging_directory = nullptr;
     uint8_t *buffer = nullptr; // content of ELF file
@@ -208,16 +229,21 @@ struct Process {
     int data_segment_index;
     int code_segment_index;
     uint32_t entry;
+    Context context;
 };
 extern Process *CURRENT_PROCESS;
+extern Process Kernel_proc;
 
-extern LinkedList<Process> ready_queue;
-extern LinkedList<Process> running_queue;
+extern LinkedList<Process *> ready_queue;
+extern LinkedList<Process *> running_queue;
+extern LinkedList<Process *> blocking_queue;
 int execv(const char *pathname, char *const argv[]);
 void switch_to_process(Process *p);
 // ================== process.cpp end ======================
 
 // ================== kernel.cpp start ======================
+enum { Kernel_thread, Process_thread, Interrupt_thread };
+extern int Current_control_flow; // Kernel, Process, or Interrupt
 int add_to_GDT(SegmentDescriptor d);
 uint16_t descriptor_selector(uint16_t index, bool is_GDT, uint16_t RPL);
 // ================== kernel.cpp start ======================
@@ -239,11 +265,18 @@ struct TrapFrame { // order should be opposite to alltraps.S
     uint32_t ds;
     uint32_t condition_code;
     uint32_t error_code;
-    uint32_t return_addr;
+    uint32_t return_addr; // EIP in page159
+    uint32_t old_cs;
+    uint32_t old_eflags;
+    // below two fields only valid in interrupt with privilege transition
+    uint32_t old_esp;
+    uint32_t old_ss;
 };
 
 // ================== system_entry.cpp start ======================
 void system_entry(int syscall_id, TrapFrame *tf);
+extern bool gets_enabled;
+extern int gets_count;
 // ================== system_entry.cpp end ======================
 // ================== memory_management.cpp start ======================
 struct MemoryBlock {

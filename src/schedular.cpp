@@ -6,17 +6,14 @@ void schedular() {
     debug("Running Schedular...");
     while (true) {
         if (!ready_queue.is_empty()) {
-            Process *p = (Process *)malloc(sizeof(Process));
-            *p = ready_queue.pop_front();
+            Process *p = ready_queue.pop_front();
             p->status = Running;
-            running_queue.push_back(*p);
-            if (CURRENT_PROCESS) {
-                free(CURRENT_PROCESS);
-            }
+            running_queue.push_back(p);
             CURRENT_PROCESS = p;
             debug("Schedular switching to process...");
             switch_to_process(p);
         }
         sleep(1);
+        printf(".");
     }
 }

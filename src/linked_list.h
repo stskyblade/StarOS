@@ -27,14 +27,14 @@ template <class T> class LinkedList {
     void remove(T elem) {
         Node *cur = head.next;
         Node *prev = &head;
-        while (cur && cur->next) {
+        while (cur) {
             if (cur->data == elem) {
                 prev->next = cur->next;
                 free(cur);
                 if (tail == cur) {
                     tail = prev;
                 }
-                break;
+                return;
             }
 
             prev = cur;
