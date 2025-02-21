@@ -241,7 +241,7 @@ bool ksetup_kernel_paging() {
 }
 
 void copy_process_mapping(void *start, uint32_t count) {
-    const PTE *paging_directory = CURRENT_PROCESS->paging_directory;
+    const PTE *paging_directory = CURRENT_PROCESS->context.page_directory;
     // Just copy page dir entry, does it work?
     uint32_t addr = (uint32_t)start;
     uint32_t dir_index = addr >> 22;

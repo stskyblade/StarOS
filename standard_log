@@ -10,7 +10,7 @@
 [DEBUG]: Section 4: .ctors
 
 [DEBUG]: Execute initialization function at address 0x40005cc2
-[DEBUG]: Execute initialization function at address 0x400075e4
+[DEBUG]: Execute initialization function at address 0x4000754b
 [DEBUG]: Section 5: .debug_info
 
 [DEBUG]: Section 6: .debug_abbrev
@@ -45,7 +45,7 @@
 [DEBUG]: IDE address 0x52d34020
 [DEBUG]: vectors address 0x52c05058
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 8, error_code 0x00000000, return 0x40006e35
+[DEBUG]: Interrupt 8, error_code 0x00000000, return 0x40006e36
 [DEBUG]: pass 8
 [DEBUG]: return from interrupt_handler
 [DEBUG]: Start init PIC...
@@ -856,8 +856,6 @@
 [DEBUG]: Mapping last page: 0x7e804000 -> 0x7e804000
 [DEBUG]: Running Schedular...
 [DEBUG]: Schedular switching to process...
-[DEBUG]: SS selector: 0x0000002b
-[DEBUG]: CS selector: 0x00000023
 [INFO]: Entering ring3:
 [INFO]: interrupt handler
 [DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000183

@@ -85,8 +85,8 @@ void interrupt_handler(TrapFrame *tf) {
     debug("Interrupt %d, error_code 0x%x, return 0x%x", condition_code, error_code, return_addr);
     trace("eax: 0x%x    ebx: 0x%x    ecx: 0x%x    edx:0x%x", tf->eax, tf->ebx,
           tf->ecx, tf->edx);
-    trace("esp: 0x%x    ebp: 0x%x    esi: 0x%x    edi:0x%x", tf->esp, tf->ebp,
-          tf->esi, tf->edi);
+    trace("esp: 0x%x    ebp: 0x%x    esi: 0x%x    edi:0x%x", tf->unused_esp,
+          tf->ebp, tf->esi, tf->edi);
     trace("ds: 0x%x     es: 0x%x     fs: 0x%x     gs:0x%x", tf->ds, tf->es,
           tf->fs, tf->gs);
     trace("Compiled at: " Compilation_datetime);

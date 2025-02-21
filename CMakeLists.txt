@@ -76,7 +76,7 @@ add_executable(${KERNEL_FILE}
 )
 target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)
 target_link_libraries(${KERNEL_FILE} PUBLIC bootloadershared interrupt)
-target_compile_options(${KERNEL_FILE} PRIVATE -Wno-packed-bitfield-compat)
+target_compile_options(${KERNEL_FILE} PRIVATE -Wno-packed-bitfield-compat -save-temps)
 
 target_include_directories(${KERNEL_FILE} PUBLIC
                            "${PROJECT_BINARY_DIR}"

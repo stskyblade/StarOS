@@ -218,17 +218,14 @@ struct Context {
     uint32_t ss;
     uint32_t cs;
     uint32_t eip;
-    uint32_t page_directory;
     uint32_t eflags;
+
+    PTE *page_directory = nullptr;
 };
 enum ProcessStatus { Ready, Running, Blocking };
 struct Process {
-    PTE *paging_directory = nullptr;
     uint8_t *buffer = nullptr; // content of ELF file
     ProcessStatus status;
-    int data_segment_index;
-    int code_segment_index;
-    uint32_t entry;
     Context context;
 };
 extern Process *CURRENT_PROCESS;
@@ -254,7 +251,7 @@ struct TrapFrame { // order should be opposite to alltraps.S
     uint32_t edi;
     uint32_t esi;
     uint32_t ebp;
-    uint32_t esp; // status inside alltraps, useless
+    uint32_t unused_esp; // status inside alltraps, useless
     uint32_t ebx;
     uint32_t edx;
     uint32_t ecx;

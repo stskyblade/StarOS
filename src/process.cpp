@@ -20,10 +20,10 @@ int execv(const char *pathname, char *const argv[]) {
 
     // construct Process struct
     Process *p = (Process *)malloc(sizeof(Process));
-    p->paging_directory = (PTE *)alloc_page();
+    p->context.page_directory = (PTE *)alloc_page();
     p->buffer = buffer;
     p->status = Ready;
-    memset(p->paging_directory, 0, 1024 * 4);
+    memset(p->context.page_directory, 0, 1024 * 4);
 
     // for each section in program,
     // copy content to a new page, keep offset
@@ -66,7 +66,8 @@ int execv(const char *pathname, char *const argv[]) {
                     (uint8_t *)(phentry.p_vaddr &
                                 (~0xFFF)); // address of page in program mapping
                 // add process mapping of `page`
-                add_memory_mapping(vpage, page, p->paging_directory, true);
+                add_memory_mapping(vpage, page, p->context.page_directory,
+                                   true);
                 debug("section mapping: 0x%x -> 0x%x", vpage, page);
                 uint32_t bytes_to_copy = phentry.p_memsz;
                 // first page, which is incomplete. only use one page
@@ -90,7 +91,8 @@ int execv(const char *pathname, char *const argv[]) {
                 uint8_t *src_addr = &buffer[PAGE_SIZE];
                 while (bytes_to_copy) {
                     page = (uint8_t *)alloc_page();
-                    add_memory_mapping(vaddr, page, p->paging_directory, true);
+                    add_memory_mapping(vaddr, page, p->context.page_directory,
+                                       true);
                     memset(page, 0, PAGE_SIZE);
                     if (bytes_to_copy >= PAGE_SIZE) {
                         // copy next page
@@ -128,10 +130,10 @@ int execv(const char *pathname, char *const argv[]) {
         char *page = (char *)alloc_page();
         // map in process space
         add_memory_mapping((char *)USER_STACK_VADDRESS - PAGE_SIZE - offset,
-                           page, p->paging_directory, true);
+                           page, p->context.page_directory, true);
     }
 
-    add_kernel_mappings(p->paging_directory);
+    add_kernel_mappings(p->context.page_directory);
 
     // for debug
     // check if some addresses be mapped in process space
@@ -145,41 +147,71 @@ int execv(const char *pathname, char *const argv[]) {
     // SS=selector,ESP=?,EFLAGS=0,CS=another selector, EIP=e_entry
 
     // setup memory segment descriptor in GDT
-    p->code_segment_index = add_to_GDT(
+    int segment_index;
+    segment_index = add_to_GDT(
         SegmentDescriptor(0, 0xfffff, 0xfa, 0xc)); // process code segmet
-    p->data_segment_index = add_to_GDT(
+    p->context.cs = segment_index;
+    segment_index = add_to_GDT(
         SegmentDescriptor(0, 0xfffff, 0xf2, 0xc)); // process data segmet
-    p->entry = header.e_entry;
+    p->context.ds = segment_index;
+    p->context.es = segment_index;
+    p->context.fs = segment_index;
+    p->context.gs = segment_index;
+    p->context.ss = segment_index;
+    p->context.eip = header.e_entry;
 
     ready_queue.push_back(p);
     return 0;
 }
 
+// Save current Context of kernel, including page_directory, registers
+// EIP is left empty
+// When call this function, EAX and ESP, EBP has been modified
+inline Context save_context() {
+    uint32_t data = 0;
+    // save eax before use it
+    __asm__ __volatile__("mov %%eax, %0\n\t" : "=m"(data) :);
+
+    // construct a Context in reverse order
+    __asm__ __volatile__("mov %%cr3, %%eax\n\t" ::);
+    __asm__ __volatile__("push %%eax\n\t" ::); // value of cr3
+
+    __asm__ __volatile__("pushf\n\t" ::); // eflags
+
+    __asm__ __volatile__("push %0\n\t" ::"i"(0)); // leave EIP empty
+
+    __asm__ __volatile__("push %%cs\n\t" ::);
+    __asm__ __volatile__("push %%ss\n\t" ::);
+    __asm__ __volatile__("push %%ds\n\t" ::);
+    __asm__ __volatile__("push %%es\n\t" ::);
+    __asm__ __volatile__("push %%fs\n\t" ::);
+    __asm__ __volatile__("push %%gs\n\t" ::);
+    __asm__ __volatile__("pusha\n\t" ::);
+    Context *p = nullptr;
+    __asm__ __volatile__("mov %%esp, %0\n\t" : "=m"(p) :);
+    p->eax = 0; // invalid value, it has been modified outside
+    Context result = *p;
+    // restore stack pointer
+    __asm__ __volatile__("add %0, %%esp\n\t" ::"i"(sizeof(Context)));
+    return result;
+}
+
 Process Kernel_proc;
 
 void switch_to_process(Process *p) {
+    Context kernel_context = save_context();
+    __asm__ __volatile__("mov %%esp, %0" : "=m"(kernel_context.esp) :);
+    __asm__ __volatile__("mov %%ebp, %0" : "=m"(kernel_context.ebp) :);
+    extern int scheduler_restore_here;
+    kernel_context.eip = (int)&scheduler_restore_here;
+    KERNEL_TSS->esp0 = kernel_context.esp;
+    // save current context of kernel
+    Kernel_proc.context = kernel_context;
+
     // each one should be 4 bytes
     uint32_t data = 0;
-    uint16_t short_data = 0;
-    uint16_t selector = descriptor_selector(p->data_segment_index, true, 3);
-    // save segment registers
-    __asm__ __volatile__("mov %%ds, %0\n\t" : "=m"(short_data) :);
-    Kernel_proc.context.ds = short_data;
-    __asm__ __volatile__("mov %%es, %0\n\t" : "=m"(short_data) :);
-    Kernel_proc.context.es = short_data;
-    __asm__ __volatile__("mov %%fs, %0\n\t" : "=m"(short_data) :);
-    Kernel_proc.context.fs = short_data;
-    __asm__ __volatile__("mov %%gs, %0\n\t" : "=m"(short_data) :);
-    Kernel_proc.context.gs = short_data;
-    __asm__ __volatile__("mov %%ss, %0\n\t" : "=m"(short_data) :);
-    Kernel_proc.context.ss = short_data;
-    __asm__ __volatile__("movl %%esp, %0\n\t" : "=m"(data) :);
-    Kernel_proc.context.esp = data;
-    KERNEL_TSS->esp0 = data;
-    __asm__ __volatile__("movl %%ebp, %0\n\t" : "=m"(data) :);
-    Kernel_proc.context.ebp = data;
-    data = 0;
-    short_data = 0;
+    Context &cxt = p->context;
+    uint16_t selector = descriptor_selector(cxt.ds, true, 3);
 
     // set data segment registers
     __asm__ __volatile__("mov %0, %%ds\n\t" ::"r"(selector));
@@ -188,37 +220,22 @@ void switch_to_process(Process *p) {
     __asm__ __volatile__("mov %0, %%gs\n\t" ::"r"(selector));
 
     data = selector;
-    debug("SS selector: 0x%x", data);
     __asm__ __volatile__("pushl %0\n\t" ::"r"(data)); // SS segment selector
     data = USER_STACK_VADDRESS - 4;                   // ESP
     __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
-    data = 0;                             // Eflags
     __asm__ __volatile__("pushf\n\t" ::); // EFLAGS
-    // save EFLAGS
-    __asm__ __volatile__("movl (%%esp), %0\n\t" : "=r"(data) :);
-    Kernel_proc.context.eflags = data;
-    data = 0;
 
-    selector = descriptor_selector(p->code_segment_index, true, 3);
+    selector = descriptor_selector(cxt.cs, true, 3);
     data = selector; // CS segment
-    debug("CS selector: 0x%x", data);
     __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
-    data = p->entry; // EIP
+    data = cxt.eip; // EIP
     __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
 
     // switch to process address space
-    int pdbr = (int)p->paging_directory;
-    __asm__ __volatile__("movl %0, %%cr3\n\t" : : "r"(pdbr));
+    __asm__ __volatile__("movl %0, %%cr3\n\t" : : "r"(cxt.page_directory));
     info("Entering ring3: ");
-    __asm__ __volatile__("mov %%cs, %0\n\t" : "=m"(short_data) :);
-    Kernel_proc.context.cs = short_data;
     __asm__ __volatile__("debug_process:\n\t" ::);
-    // __asm__ __volatile__("mov %%eip, %0\n\t" : "=m"(data) :);
-    // FIXME: eip should point to the next instruction of IRET
-    extern int scheduler_restore_here[];
-    int return_addr = (int)&scheduler_restore_here[0];
-    Kernel_proc.context.eip = return_addr;
-    Kernel_proc.context.page_directory = (uint32_t)kernel_paging_directory;
+
     Current_control_flow = Process_thread;
     __asm__ __volatile__("iret\n\t" ::);
     __asm__ __volatile__("scheduler_restore_here:\n\t" ::);
