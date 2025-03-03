@@ -89,21 +89,7 @@ alignas(PAGE_SIZE) char KERNEL_STACK_START[KERNEL_STACK_SIZE]; // 1MB kernel
                                                                // stack
 char *const KERNEL_STACK_END = KERNEL_STACK_START + KERNEL_STACK_SIZE - 4;
 
-extern "C" {
-void kernel_main() {
-    Current_control_flow = Kernel_thread;
-    // init stack
-    __asm__ __volatile__("mov %0, %%esp\n\t" : : "m"(KERNEL_STACK_END));
-
-    info("Enter kernel...       OK");
-    info("Welcome to StarOS, by stskyblade");
-    info("=====================================================================");
-    info("There must be another me in this world, doing what I dare not do and living the life I want to live.");
-    info("=====================================================================");
-    // test_int_size();
-
-    // init GDT, replace GDT in mbr
-    // https://wiki.osdev.org/GDT_Tutorial
+void init_GDT() {
     GDT[0] = {0, 0, 0, 0};
     GDT[Kernel_code_segment_desc_index] =
         SegmentDescriptor(0, 0xfffff, 0x9a, 0xc); // kernel code segment
@@ -134,6 +120,7 @@ void kernel_main() {
     __asm__ __volatile__("lgdt (%0)\n\t" ::"r"(&gdtr));
     __asm__ __volatile__("jmp $0x0008, $flush_gdt\n\t" ::);
     __asm__ __volatile__("flush_gdt:\n\t" ::);
+    // https://wiki.osdev.org/GDT_Tutorial
     uint32_t data = selector;
     __asm__ __volatile__("push %%eax\n\t" ::);
     __asm__ __volatile__("mov %0, %%eax\n\t" ::"r"(data));
@@ -146,11 +133,31 @@ void kernel_main() {
     debug("change GDT success");
     // flush_tss();
 
-    // setup Task Register
+    // set Task Register
     selector = (Kernel_tss_segment_desc_index * 8) | 0;
     // __asm__ __volatile__("mov %0, %%ax\n\t" ::"r"(selector));
     __asm__ __volatile__("ltr %0\n\t" ::"r"(selector));
     debug("change TR success");
+}
+
+extern "C" {
+void kernel_main() {
+    Current_control_flow = Kernel_thread;
+    // init stack
+    __asm__ __volatile__("mov %0, %%esp\n\t" : : "m"(KERNEL_STACK_END));
+
+    info("Enter kernel...       OK");
+    info("Welcome to StarOS, by stskyblade");
+    info("===================================================================="
+         "=");
+    info("There must be another me in this world, doing what I dare not do and "
+         "living the life I want to live.");
+    info("===================================================================="
+         "=");
+    // test_int_size();
+
+    // init GDT, replace GDT in mbr
+    init_GDT();
 
     // init interrupt handlers
     init_interrupt_handler();
@@ -166,7 +173,7 @@ void kernel_main() {
         fatal("Enable paging...     Failed");
     }
 
-    // execute a user program
+    // execute first user program
     char *const arg1 = "arg1";
     char *const argv[1] = {arg1};
     execv("/test_syscall_helloworld", argv);

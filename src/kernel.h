@@ -293,3 +293,6 @@ void schedular();
 // ================== PIC.cpp start ======================
 void init_PIC();
 // ================== PIC.cpp end ======================
+// ================== ps2_keyboard.cpp start ======================
+void ps2_keyboard_interrupt();
+// ================== ps2_keyboard.cpp end ======================

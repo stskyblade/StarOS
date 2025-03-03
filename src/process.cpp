@@ -20,6 +20,7 @@ int execv(const char *pathname, char *const argv[]) {
 
     // construct Process struct
     Process *p = (Process *)malloc(sizeof(Process));
+    zeromem(p, sizeof(Process));
     p->context.page_directory = (PTE *)alloc_page();
     p->buffer = buffer;
     p->status = Ready;
@@ -219,25 +220,26 @@ void switch_to_process(Process *p) {
     __asm__ __volatile__("mov %0, %%fs\n\t" ::"r"(selector));
     __asm__ __volatile__("mov %0, %%gs\n\t" ::"r"(selector));
 
+    // prepare data for IRET
     data = selector;
     __asm__ __volatile__("pushl %0\n\t" ::"r"(data)); // SS segment selector
-    data = USER_STACK_VADDRESS - 4;                   // ESP
-    __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
-    __asm__ __volatile__("pushf\n\t" ::); // EFLAGS
-
+    data = USER_STACK_VADDRESS - 4;
+    __asm__ __volatile__("pushl %0\n\t" ::"r"(data)); // ESP
+    __asm__ __volatile__("pushf\n\t" ::);             // EFLAGS
     selector = descriptor_selector(cxt.cs, true, 3);
     data = selector; // CS segment
-    __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
+    __asm__ __volatile__("pushl %0\n\t" ::"r"(data)); // CS
     data = cxt.eip; // EIP
-    __asm__ __volatile__("pushl %0\n\t" ::"r"(data));
+    __asm__ __volatile__("pushl %0\n\t" ::"r"(data)); // EIP
 
     // switch to process address space
     __asm__ __volatile__("movl %0, %%cr3\n\t" : : "r"(cxt.page_directory));
     info("Entering ring3: ");
     __asm__ __volatile__("debug_process:\n\t" ::);
-
     Current_control_flow = Process_thread;
     __asm__ __volatile__("iret\n\t" ::);
+
+    // return from interrupt
     __asm__ __volatile__("scheduler_restore_here:\n\t" ::);
     Current_control_flow = Kernel_thread;
 }
