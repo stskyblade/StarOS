@@ -294,5 +294,6 @@ void schedular();
 void init_PIC();
 // ================== PIC.cpp end ======================
 // ================== ps2_keyboard.cpp start ======================
+constexpr uint8_t KEYBOARD_DATA_PORT = 0x60;
 void ps2_keyboard_interrupt();
 // ================== ps2_keyboard.cpp end ======================

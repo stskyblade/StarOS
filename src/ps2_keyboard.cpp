@@ -9,56 +9,75 @@ uint8_t scan_code_table[] = {0,
                              'D', 'F', 'G', 'H', 'J', 'K', 'L', 0,   0,   0,
                              0,   0,   'Z', 'X', 'C', 'V', 'B', 'N', 'M'};
 
+// return true if data <= right && data >= left
+bool in_range(uint64_t data, uint32_t left, uint32_t right) {
+    return (data >= left) && (data <= right);
+}
+
+bool is_complete_scancode(uint64_t code) {
+    // scan_code_1.txt
+
+    // single byte
+    if (code <= 0xFF) {
+        if (in_range(code, 0x01, 0x53)) {
+            return true;
+        }
+        if (in_range(code, 0x57, 0x58)) {
+            return true;
+        }
+        if (in_range(code, 0x81, 0xd3)) {
+            return true;
+        }
+        if (in_range(code, 0xd7, 0xd8)) {
+            return true;
+        }
+        return false;
+    }
+
+    // two bytes
+    if (code <= 0xFFFF) {
+        // not accurate, including invalid scan codes
+        uint32_t high_byte = (code & 0xff00) >> 8;
+        uint32_t low_byte = code & 0xff;
+        debug("expr1 %d", high_byte == 0xe0);
+        debug("expr2 %d", low_byte != 0x2a && low_byte != 0xb7);
+        if (high_byte == 0xE0 && (low_byte != 0x2A && low_byte != 0xB7)) {
+            return true;
+        }
+        return false;
+    }
+
+    // four bytes
+    if (code <= 0xFFFFFFFF) {
+        return code == 0xe02ae037 || code == 0xe0b7e0aa;
+    }
+
+    // six bytes
+    if (code <= 0xFFFFFFFFFFFF) {
+        auto result = code == 0xe11d45e19dc5;
+
+        uint32_t high_four_bytes = code >> 32;
+        uint32_t low_four_bytes = code;
+        return result;
+    }
+    return false;
+}
+
+void response_scancode(uint64_t code) {
+    uint32_t high_four_bytes = code >> 32;
+    uint32_t low_four_bytes = code;
+    debug("scan_code: 0x%x%x", high_four_bytes, low_four_bytes);
+}
+
+uint64_t SCAN_CODE = 0;
 void ps2_keyboard_interrupt() {
-    uint32_t scan_code = inb(0x60);
-    outb(0x20, 0x20); // send Ack to keyboard
+    uint32_t data = inb(KEYBOARD_DATA_PORT);
+    outb(0x20, 0x20); // send EOI to PIC interrupt controller
 
-    if (scan_code == 0xE0 || scan_code == 0xe1) {
-        // 2 bytes scan code
-        debug("Reading multi bytes scan code");
-        scan_code = (scan_code << 8) + inb(0x60);
-
-        // 4 bytes scan code
-        if (scan_code == 0xe02a || scan_code == 0xe0b7 || scan_code == 0xe11d) {
-
-            scan_code = (scan_code << 8) + inb(0x60);
-            scan_code = (scan_code << 8) + inb(0x60);
-        }
-
-        // 6 bytes
-        if (scan_code == 0xe11d45e1) {
-            uint16_t last_byte = inb(0x60);
-            last_byte = (last_byte << 8) + inb(0x60);
-            if (last_byte == 0x9dc5) {
-                debug("pause pressed");
-            }
-        }
-        debug("0x%x", scan_code);
-        return;
+    SCAN_CODE = (SCAN_CODE << 8) + data;
+    if (is_complete_scancode(SCAN_CODE)) {
+        response_scancode(SCAN_CODE);
+        SCAN_CODE = 0;
     }
-
-    bool is_pressed = true; // false for released
-    if (scan_code > 0x80) {
-        is_pressed = false;
-        scan_code -= 0x80;
-    }
-
-    if (scan_code > 0x32) {
-        debug("Key not recognized yet. 0x%x", scan_code);
-        return;
-    }
-    if (scan_code_table[scan_code] == 0) {
-        debug("Key not recognized yet. 0x%x", scan_code);
-        return;
-    }
-    char c = scan_code_table[scan_code];
-    if (is_pressed) {
-        printf("key pressed 0x%x ", scan_code);
-        print_c(c);
-        printf("\n");
-    } else {
-        printf("key released 0x%x ", scan_code);
-        print_c(c);
-        printf("\n");
-    }
+    return;
 }
