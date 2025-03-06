@@ -63,10 +63,78 @@ bool is_complete_scancode(uint64_t code) {
     return false;
 }
 
+int index_of(uint8_t array[], int length, uint8_t data) {
+    for (int i = 0; i < length; i++) {
+        if (array[i] == data) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// there are less than 256 key events, so convert multi bytes scan codes to
+// single byte. Single byte scan code remains unchanged.
+uint8_t to_event_id(uint64_t code) {
+    if (code <= 0xff) {
+        return code;
+    }
+
+    // convert 0xE0,0xxx to 0x59-0x80
+    uint8_t scancodes_part1[] = {
+        0x10, 0x19, 0x1C, 0x1D, 0x20, 0x21, 0x22, 0x24, 0x2E, 0x30,
+        0x32, 0x35, 0x38, 0x47, 0x48, 0x49, 0x4B, 0x4D, 0x4F, 0x50,
+        0x51, 0x52, 0x53, 0x5B, 0x5C, 0x5D, 0x5E, 0x5F, 0x63, 0x65,
+        0x66, 0x67, 0x68, 0x69, 0x6A, 0x6B, 0x6C, 0x6D, 0x90, 0x99};
+    uint8_t scancodes_part2[] = {0x9c, 0x9D, 0xA0, 0xA1, 0xA2, 0xA4, 0xAE, 0xB0,
+                                 0xB2, 0xB5, 0xB8, 0xC7, 0xC8, 0xC9, 0xCB, 0xCD,
+                                 0xCF, 0xD0, 0xD1, 0xD2, 0xD3, 0xDB, 0xDC, 0xDD,
+                                 0xDE, 0xDF, 0xE3, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9,
+                                 0xEA, 0xEB, 0xEC, 0xE0, 0xED};
+    if (code <= 0xFFFF) {
+        if (code <= 0xE09C) {
+            uint8_t low_byte = code & 0xff;
+            uint8_t event_id = 0x59 + index_of(scancodes_part1, 40, low_byte);
+            if (in_range(event_id, 0x59, 0x80)) {
+                return event_id;
+            } else {
+                fatal("invalid scan_code 0x%x", low_byte);
+            }
+        } else {
+            uint8_t low_byte = code & 0xff;
+            uint8_t event_id = 0xD9 + index_of(scancodes_part2, 37, low_byte);
+            if (in_range(event_id, 0xD9, 0xFC)) {
+                return event_id;
+            } else {
+                fatal("invalid scan_code 0x%x", low_byte);
+            }
+        }
+    } else if (code <= 0xFFFFFFFF) {
+        if (code == 0xe02ae037) {
+            return 0xFD;
+        }
+        if (code == 0xe0b7e0aa) {
+            return 0xFE;
+        }
+        uint32_t low_part = code & 0xFFFFFFFF;
+    } else {
+        // six bytes
+        if (code == 0xE11D45E19DC5) {
+            return 0xff;
+        }
+    }
+    // invalid scan code
+    uint32_t high_word = code >> 32;
+    uint32_t low_word = code & 0xFFFFFFFF;
+    fatal("invalid scan_code 0x%x%x", high_word, low_word);
+}
+
 void response_scancode(uint64_t code) {
     uint32_t high_four_bytes = code >> 32;
     uint32_t low_four_bytes = code;
     debug("scan_code: 0x%x%x", high_four_bytes, low_four_bytes);
+
+    uint8_t keyevent_id = to_event_id(code);
+    debug("event_id: 0x%x %d", keyevent_id, keyevent_id);
 }
 
 uint64_t SCAN_CODE = 0;
