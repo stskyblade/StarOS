@@ -1,4 +1,4 @@
-0x00    not used
+0x00	invalid key pressed
 0x01	escape pressed
 0x02	1 pressed
 0x03	2 pressed
@@ -82,9 +82,9 @@
 0x51	(keypad) 3 pressed
 0x52	(keypad) 0 pressed
 0x53	(keypad) . pressed
-0x00    not used
-0x00    not used
-0x00    not used
+0x00	invalid key pressed
+0x00	invalid key pressed
+0x00	invalid key pressed
 0x57	F11 pressed
 0x58	F12 pressed
 0xE0, 0x10	(multimedia) previous track pressed
@@ -210,9 +210,9 @@
 0xD1	(keypad) 3 released
 0xD2	(keypad) 0 released
 0xD3	(keypad) . released
-0x00    not used
-0x00    not used
-0x00    not used
+0x00	invalid key pressed
+0x00	invalid key pressed
+0x00	invalid key pressed
 0xD7	F11 released
 0xD8	F12 released
 0xE0, 0x9C	(keypad) enter released

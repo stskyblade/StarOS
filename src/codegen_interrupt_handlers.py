@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+# Generate Entry functions for interrupt in assembly code
+
 
 def main():
     print("// generated from codegen_interrupt_handlers.py")

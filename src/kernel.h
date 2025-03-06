@@ -295,5 +295,18 @@ void init_PIC();
 // ================== PIC.cpp end ======================
 // ================== ps2_keyboard.cpp start ======================
 constexpr uint8_t KEYBOARD_DATA_PORT = 0x60;
+
+struct KeyboardKey {
+    int id;
+    char *name;
+};
+struct KeyEvent {
+    int event_id;
+    int key_id;
+    char *keyname;
+    bool is_pressed;
+};
+extern KeyboardKey Key_table[];
+extern KeyEvent Keyevent_table[];
 void ps2_keyboard_interrupt();
 // ================== ps2_keyboard.cpp end ======================

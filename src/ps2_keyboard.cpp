@@ -135,6 +135,11 @@ void response_scancode(uint64_t code) {
 
     uint8_t keyevent_id = to_event_id(code);
     debug("event_id: 0x%x %d", keyevent_id, keyevent_id);
+
+    KeyEvent event = Keyevent_table[keyevent_id];
+    printf("Keyevent: 0x%x 0x%x ", event.event_id, event.key_id);
+    printf(event.keyname);
+    printf(" is_pressed: %d\n", event.is_pressed);
 }
 
 uint64_t SCAN_CODE = 0;
