@@ -1,3 +1,5 @@
+#pragma once
+#include "bootloader32.h"
 #include "kernel.h"
 
 template <class T> class LinkedList {
@@ -41,6 +43,18 @@ template <class T> class LinkedList {
             cur = cur->next;
         }
         fatal("elem not found");
+    }
+
+    // return the first element matching function
+    T locate(bool (*filter)(T)) {
+        Node *cur = head.next;
+        while (cur) {
+            if (filter(cur->data)) {
+                return cur->data;
+            }
+            cur = cur->next;
+        }
+        fatal("Element not found in linked list");
     }
 
     bool is_empty() {

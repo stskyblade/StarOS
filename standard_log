@@ -10,7 +10,7 @@
 [DEBUG]: Section 4: .ctors
 
 [DEBUG]: Execute initialization function at address 0x40005cd0
-[DEBUG]: Execute initialization function at address 0x4000742f
+[DEBUG]: Execute initialization function at address 0x40007765
 [DEBUG]: Section 5: .debug_info
 
 [DEBUG]: Section 6: .debug_abbrev
@@ -42,10 +42,10 @@
 [INFO]: =====================================================================
 [DEBUG]: change GDT success
 [DEBUG]: change TR success
-[DEBUG]: IDE address 0x52d34020
-[DEBUG]: vectors address 0x52c05058
+[DEBUG]: IDE address 0x52d35040
+[DEBUG]: vectors address 0x52c06464
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 8, error_code 0x00000000, return 0x40006d0a
+[DEBUG]: Interrupt 8, error_code 0x00000000, return 0x40006e0c
 [DEBUG]: pass 8
 [DEBUG]: return from interrupt_handler
 [DEBUG]: Start init PIC...
@@ -858,40 +858,40 @@
 [DEBUG]: Schedular switching to process...
 [INFO]: Entering ring3: 
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000183
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000177
 [DEBUG]: Start of system_entry
 [INFO]: hello,world from system call in kernel
 [DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000183
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000177
 [DEBUG]: Start of system_entry
 [INFO]: hello,world from system call in kernel
 [DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000183
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000177
 [DEBUG]: Start of system_entry
 [INFO]: hello,world from system call in kernel
 [DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100001a0
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000194
 [DEBUG]: Start of system_entry
 [DEBUG]: add: 1 + 2 = 3
 [DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100001a0
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000194
 [DEBUG]: Start of system_entry
 [DEBUG]: add: 3 + 4 = 7
 [DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100001a0
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000194
 [DEBUG]: Start of system_entry
 [DEBUG]: add: 7 + 16 = 23
 [DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100001ca
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100001be
 [DEBUG]: Start of system_entry
 [DEBUG]: syscall struct
-[DEBUG]: pointer of struct: 0x0fefff70
+[DEBUG]: pointer of struct: 0x0fefff80
 [DEBUG]: a1: 1
 [DEBUG]: a2: 2
 [DEBUG]: a3: 3
@@ -904,106 +904,77 @@
 [DEBUG]: a10: 10
 [DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000020b
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100001ff
 [DEBUG]: Start of system_entry
 [DEBUG]: syscall printf
 [DEBUG]: copy mapping done
 I'm in user mode.
 [DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000020b
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100001ff
 [DEBUG]: Start of system_entry
 [DEBUG]: syscall printf
 [DEBUG]: copy mapping done
 hello,world from user space 16 00000011 1
 [DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x1000020b
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100001ff
 [DEBUG]: Start of system_entry
 [DEBUG]: syscall printf
 [DEBUG]: copy mapping done
-Please enter a string(Press Enter key to finish): 
+Please enter a string, 29 chars(Press Enter key to finish): 
 [DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000250
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x10000244
 [DEBUG]: Start of system_entry
 [DEBUG]: syscall gets
 [DEBUG]: return from system_entry
 [DEBUG]: return from interrupt_handler
 ...[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
+[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x4000997e
+Keyevent: 0x0000001e 0x0000001e [A] is_pressed: 1
 [DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: expr1 1
-[DEBUG]: expr2 1
-[DEBUG]: scan_code: 0x000000000000e047
-[DEBUG]: return from interrupt_handler
-[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: return from interrupt_handler
-[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: expr1 1
-[DEBUG]: expr2 1
-[DEBUG]: scan_code: 0x000000000000e0c7
-[DEBUG]: return from interrupt_handler
-...[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: return from interrupt_handler
-[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: expr1 1
-[DEBUG]: expr2 0
-[DEBUG]: return from interrupt_handler
-[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: return from interrupt_handler
-[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: scan_code: 0x00000000e02ae037
-[DEBUG]: return from interrupt_handler
-[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: return from interrupt_handler
-[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: expr1 1
-[DEBUG]: expr2 0
-[DEBUG]: return from interrupt_handler
-[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: return from interrupt_handler
-[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: scan_code: 0x00000000e0b7e0aa
-[DEBUG]: return from interrupt_handler
-...[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: return from interrupt_handler
-[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: expr1 0
-[DEBUG]: expr2 1
-[DEBUG]: return from interrupt_handler
-[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: return from interrupt_handler
-[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: return from interrupt_handler
-[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: return from interrupt_handler
-[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: scan_code: 0x0000e11d45e19dc5
+[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x4000997e
+Keyevent: 0x0000009e 0x0000001e [A] is_pressed: 0
 [DEBUG]: return from interrupt_handler
 ..[INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: scan_code: 0x0000000000000038
+[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x4000997e
+Keyevent: 0x0000001e 0x0000001e [A] is_pressed: 1
 [DEBUG]: return from interrupt_handler
 [INFO]: interrupt handler
-[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x40009237
-[DEBUG]: scan_code: 0x000000000000002a
+[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x4000997e
+Keyevent: 0x0000009e 0x0000001e [A] is_pressed: 0
+[DEBUG]: return from interrupt_handler
+[INFO]: interrupt handler
+[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x4000997e
+Keyevent: 0x0000001e 0x0000001e [A] is_pressed: 1
+[DEBUG]: return from interrupt_handler
+[INFO]: interrupt handler
+[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x4000997e
+Keyevent: 0x0000009e 0x0000001e [A] is_pressed: 0
+[DEBUG]: return from interrupt_handler
+[INFO]: interrupt handler
+[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x4000997e
+Keyevent: 0x0000001e 0x0000001e [A] is_pressed: 1
+[DEBUG]: return from interrupt_handler
+[INFO]: interrupt handler
+[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x4000997e
+Keyevent: 0x0000009e 0x0000001e [A] is_pressed: 0
+[DEBUG]: return from interrupt_handler
+.[DEBUG]: Schedular switching to process...
+[INFO]: Entering ring3: 
+[INFO]: interrupt handler
+[DEBUG]: Interrupt 32, error_code 0x00000000, return 0x100001ff
+[DEBUG]: Start of system_entry
+[DEBUG]: syscall printf
+[DEBUG]: copy mapping done
+aaaa[DEBUG]: return from interrupt_handler
+[INFO]: interrupt handler
+[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x10000168
+Keyevent: 0x0000002a 0x0000002a [left shift] is_pressed: 1
+[DEBUG]: return from interrupt_handler
+[INFO]: interrupt handler
+[DEBUG]: Interrupt 49, error_code 0x00000000, return 0x10000168
+Keyevent: 0x00000038 0x00000038 [left alt] is_pressed: 1
 [DEBUG]: return from interrupt_handler

@@ -9,7 +9,7 @@
 0x08	7 pressed
 0x09	8 pressed
 0x0A	9 pressed
-0x0B	0 (zero) pressed
+0x0B	0 pressed
 0x0C	- pressed
 0x0D	= pressed
 0x0E	backspace pressed
@@ -38,8 +38,8 @@
 0x25	K pressed
 0x26	L pressed
 0x27	; pressed
-0x28	' (single quote) pressed
-0x29	` (back tick) pressed
+0x28	' pressed
+0x29	` pressed
 0x2A	left shift pressed
 0x2B	\ pressed
 0x2C	Z pressed
@@ -137,7 +137,7 @@
 0x88	7 released
 0x89	8 released
 0x8A	9 released
-0x8B	0 (zero) released
+0x8B	0 released
 0x8C	- released
 0x8D	= released
 0x8E	backspace released
@@ -166,8 +166,8 @@
 0xA5	K released
 0xA6	L released
 0xA7	; released
-0xA8	' (single quote) released
-0xA9	` (back tick) released
+0xA8	' released
+0xA9	` released
 0xAA	left shift released
 0xAB	\ released
 0xAC	Z released

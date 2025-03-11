@@ -5,7 +5,10 @@
 #include "linked_list.h"
 
 bool gets_enabled = false;
-int gets_count = 0;
+int gets_count = 0;         // how many bytes to wait
+int gets_already_count = 0; // how many bytes have been read
+char *gets_buffer;
+int gets_process_id; // the id of process waiting for input
 
 void system_entry(int syscall_id, TrapFrame *tf) {
     debug("Start of system_entry");
@@ -83,6 +86,7 @@ void system_entry(int syscall_id, TrapFrame *tf) {
         debug("syscall gets");
         uint32_t pointer = tf->ebx;
         uint32_t size = tf->ecx;
+        copy_process_mapping((char *)pointer, size);
 
         // save TrapFrame to Process context
         // how to find current Process?
@@ -91,41 +95,7 @@ void system_entry(int syscall_id, TrapFrame *tf) {
         // Process.
         // Or current_proc points the memory inside running_queue.
         // I just need a easy way to change the content of Process.
-        Context &current_proc = CURRENT_PROCESS->context;
-        // uint32_t edi;
-        current_proc.edi = tf->edi;
-        // uint32_t esi;
-        current_proc.esi = tf->esi;
-        // uint32_t ebp;
-        current_proc.ebp = tf->ebp;
-        // uint32_t esp;
-        current_proc.esp = tf->old_esp;
-        // uint32_t ebx;
-        current_proc.ebx = tf->ebx;
-        // uint32_t edx;
-        current_proc.edx = tf->edx;
-        // uint32_t ecx;
-        current_proc.ecx = tf->ecx;
-        // uint32_t eax;
-        current_proc.eax = tf->eax;
-        // uint32_t gs;
-        current_proc.gs = tf->gs;
-        // uint32_t fs;
-        current_proc.fs = tf->fs;
-        // uint32_t es;
-        current_proc.es = tf->es;
-        // uint32_t ds;
-        current_proc.ds = tf->ds;
-
-        // FIXME: need to distinguish from interrupt from kernel space or user
-        // space uint32_t ss;
-        current_proc.ss = tf->old_ss;
-        // uint32_t cs;
-        current_proc.cs = tf->old_cs;
-        // uint32_t eip;
-        current_proc.eip = tf->return_addr;
-        // uint32_t eflags;
-        current_proc.eflags = tf->old_eflags;
+        save_context_from_trapframe(CURRENT_PROCESS->context, tf);
 
         if (Current_control_flow != Process_thread) {
             fatal("Invalid source of system entry");
@@ -133,6 +103,9 @@ void system_entry(int syscall_id, TrapFrame *tf) {
 
         gets_enabled = true;
         gets_count = size;
+        gets_already_count = 0;
+        gets_buffer = (char *)pointer;
+        gets_process_id = CURRENT_PROCESS->id;
 
         // TODO:
         // move to blocking queue
@@ -140,26 +113,8 @@ void system_entry(int syscall_id, TrapFrame *tf) {
         blocking_queue.push_back(CURRENT_PROCESS);
         CURRENT_PROCESS->status = Blocking;
         // how to return from keyboard interrupt?
-        Context &kernel_cxt = Kernel_proc.context;
-        tf->eax = kernel_cxt.eax;
-        tf->ebx = kernel_cxt.ebx;
-        tf->ecx = kernel_cxt.ecx;
-        tf->edx = kernel_cxt.edx;
-        tf->esi = kernel_cxt.esi;
-        tf->edi = kernel_cxt.edi;
-        // tf->esp = kernel_cxt.esp; keep it
-        tf->ebp = kernel_cxt.ebp;
-        tf->ds = kernel_cxt.ds;
-        tf->es = kernel_cxt.es;
-        tf->fs = kernel_cxt.fs;
-        tf->gs = kernel_cxt.gs;
-        tf->return_addr = kernel_cxt.eip;
-        tf->old_cs = kernel_cxt.cs;
-        tf->old_ss = kernel_cxt.ss;
-        tf->old_esp = kernel_cxt.esp;
-        tf->old_eflags = kernel_cxt.eflags;
-        int pdbr = (int)kernel_cxt.page_directory;
-        __asm__ __volatile__("movl %0, %%cr3\n\t" : : "r"(pdbr));
+        restore_context_to_trapframe(Kernel_proc.context, tf);
+
         debug("return from system_entry");
     } break;
     default:

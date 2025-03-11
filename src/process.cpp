@@ -3,6 +3,7 @@
 #include "linked_list.h"
 
 Process *CURRENT_PROCESS = nullptr;
+int allocated_process_id = 1;
 // must include linked_list if you want to use below vairables
 LinkedList<Process *> ready_queue;
 LinkedList<Process *> running_queue;
@@ -21,6 +22,8 @@ int execv(const char *pathname, char *const argv[]) {
     // construct Process struct
     Process *p = (Process *)malloc(sizeof(Process));
     zeromem(p, sizeof(Process));
+    p->id = allocated_process_id;
+    allocated_process_id++;
     p->context.page_directory = (PTE *)alloc_page();
     p->buffer = buffer;
     p->status = Ready;
@@ -151,14 +154,15 @@ int execv(const char *pathname, char *const argv[]) {
     int segment_index;
     segment_index = add_to_GDT(
         SegmentDescriptor(0, 0xfffff, 0xfa, 0xc)); // process code segmet
-    p->context.cs = segment_index;
+    p->context.cs = descriptor_selector(segment_index, true, 3);
     segment_index = add_to_GDT(
         SegmentDescriptor(0, 0xfffff, 0xf2, 0xc)); // process data segmet
-    p->context.ds = segment_index;
-    p->context.es = segment_index;
-    p->context.fs = segment_index;
-    p->context.gs = segment_index;
-    p->context.ss = segment_index;
+    p->context.ds = descriptor_selector(segment_index, true, 3);
+    p->context.es = descriptor_selector(segment_index, true, 3);
+    p->context.fs = descriptor_selector(segment_index, true, 3);
+    p->context.gs = descriptor_selector(segment_index, true, 3);
+    p->context.ss = descriptor_selector(segment_index, true, 3);
+    p->context.esp = USER_STACK_VADDRESS - 4;
     p->context.eip = header.e_entry;
 
     ready_queue.push_back(p);
@@ -212,34 +216,96 @@ void switch_to_process(Process *p) {
     // each one should be 4 bytes
     uint32_t data = 0;
     Context &cxt = p->context;
-    uint16_t selector = descriptor_selector(cxt.ds, true, 3);
 
     // set data segment registers
-    __asm__ __volatile__("mov %0, %%ds\n\t" ::"r"(selector));
-    __asm__ __volatile__("mov %0, %%es\n\t" ::"r"(selector));
-    __asm__ __volatile__("mov %0, %%fs\n\t" ::"r"(selector));
-    __asm__ __volatile__("mov %0, %%gs\n\t" ::"r"(selector));
+    __asm__ __volatile__("mov %0, %%ds\n\t" ::"r"(cxt.ds));
+    __asm__ __volatile__("mov %0, %%es\n\t" ::"r"(cxt.es));
+    __asm__ __volatile__("mov %0, %%fs\n\t" ::"r"(cxt.fs));
+    __asm__ __volatile__("mov %0, %%gs\n\t" ::"r"(cxt.gs));
 
     // prepare data for IRET
-    data = selector;
-    __asm__ __volatile__("pushl %0\n\t" ::"r"(data)); // SS segment selector
-    data = USER_STACK_VADDRESS - 4;
-    __asm__ __volatile__("pushl %0\n\t" ::"r"(data)); // ESP
+    __asm__ __volatile__("pushl %0\n\t" ::"r"(cxt.ss));  // SS segment selector
+    __asm__ __volatile__("pushl %0\n\t" ::"r"(cxt.esp)); // ESP
     __asm__ __volatile__("pushf\n\t" ::);             // EFLAGS
-    selector = descriptor_selector(cxt.cs, true, 3);
-    data = selector; // CS segment
-    __asm__ __volatile__("pushl %0\n\t" ::"r"(data)); // CS
-    data = cxt.eip; // EIP
-    __asm__ __volatile__("pushl %0\n\t" ::"r"(data)); // EIP
+    __asm__ __volatile__("pushl %0\n\t" ::"r"(cxt.cs));  // CS
+    __asm__ __volatile__("pushl %0\n\t" ::"r"(cxt.eip)); // EIP
 
     // switch to process address space
     __asm__ __volatile__("movl %0, %%cr3\n\t" : : "r"(cxt.page_directory));
     info("Entering ring3: ");
     __asm__ __volatile__("debug_process:\n\t" ::);
     Current_control_flow = Process_thread;
+
+    // restore general registers
+    __asm__ __volatile__("mov %0, %%eax\n\t" ::"r"(cxt.eax));
+    __asm__ __volatile__("mov %0, %%ebx\n\t" ::"r"(cxt.ebx));
+    __asm__ __volatile__("mov %0, %%ecx\n\t" ::"r"(cxt.ecx));
+    __asm__ __volatile__("mov %0, %%edx\n\t" ::"r"(cxt.edx));
+    __asm__ __volatile__("mov %0, %%esi\n\t" ::"r"(cxt.esi));
+    __asm__ __volatile__("mov %0, %%edi\n\t" ::"r"(cxt.edi));
+    __asm__ __volatile__("mov %0, %%ebp\n\t" ::"r"(cxt.ebp));
     __asm__ __volatile__("iret\n\t" ::);
 
     // return from interrupt
     __asm__ __volatile__("scheduler_restore_here:\n\t" ::);
     Current_control_flow = Kernel_thread;
+}
+
+void restore_context_to_trapframe(Context &cxt, TrapFrame *tf) {
+    tf->eax = cxt.eax;
+    tf->ebx = cxt.ebx;
+    tf->ecx = cxt.ecx;
+    tf->edx = cxt.edx;
+    tf->esi = cxt.esi;
+    tf->edi = cxt.edi;
+    // tf->esp = cxt.esp; keep it
+    tf->ebp = cxt.ebp;
+    tf->ds = cxt.ds;
+    tf->es = cxt.es;
+    tf->fs = cxt.fs;
+    tf->gs = cxt.gs;
+    tf->return_addr = cxt.eip;
+    tf->old_cs = cxt.cs;
+    tf->old_ss = cxt.ss;
+    tf->old_esp = cxt.esp;
+    tf->old_eflags = cxt.eflags;
+    int pdbr = (int)cxt.page_directory;
+    __asm__ __volatile__("movl %0, %%cr3\n\t" : : "r"(pdbr));
+}
+
+void save_context_from_trapframe(Context &cxt, TrapFrame *tf) {
+    // uint32_t edi;
+    cxt.edi = tf->edi;
+    // uint32_t esi;
+    cxt.esi = tf->esi;
+    // uint32_t ebp;
+    cxt.ebp = tf->ebp;
+    // uint32_t esp;
+    cxt.esp = tf->old_esp;
+    // uint32_t ebx;
+    cxt.ebx = tf->ebx;
+    // uint32_t edx;
+    cxt.edx = tf->edx;
+    // uint32_t ecx;
+    cxt.ecx = tf->ecx;
+    // uint32_t eax;
+    cxt.eax = tf->eax;
+    // uint32_t gs;
+    cxt.gs = tf->gs;
+    // uint32_t fs;
+    cxt.fs = tf->fs;
+    // uint32_t es;
+    cxt.es = tf->es;
+    // uint32_t ds;
+    cxt.ds = tf->ds;
+
+    // FIXME: need to distinguish from interrupt from kernel space or user
+    // space uint32_t ss;
+    cxt.ss = tf->old_ss;
+    // uint32_t cs;
+    cxt.cs = tf->old_cs;
+    // uint32_t eip;
+    cxt.eip = tf->return_addr;
+    // uint32_t eflags;
+    cxt.eflags = tf->old_eflags;
 }

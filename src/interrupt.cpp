@@ -2,6 +2,8 @@
 #include "bootloader32.h"
 #include "kernel.h"
 
+bool return_to_process = false;
+
 bool is_hardware_interrupt(uint32_t condition_code) {
     if (condition_code >= PIC1_BASE_ID && condition_code < (PIC1_BASE_ID + 8)) {
         return true;
@@ -31,6 +33,25 @@ void hardware_interrupt_handler(uint32_t condition_code, TrapFrame *tf) {
         break;
     case IRQ_KEYBOARD: {
         ps2_keyboard_interrupt();
+
+        // resume process if possible
+        if (!gets_enabled) {
+            if (gets_count) {
+                Process *p = blocking_queue.locate(
+                    [](Process *p) { return p->id == gets_process_id; });
+                p->context.eax = (uint32_t)gets_buffer;
+
+                // TODO: restore to process
+                blocking_queue.remove(CURRENT_PROCESS);
+                ready_queue.push_back(CURRENT_PROCESS);
+                CURRENT_PROCESS->status = Ready;
+
+                gets_count = 0;
+                gets_already_count = 0;
+                gets_process_id = 0;
+                gets_buffer = nullptr;
+            }
+        }
     } break;
     default:
         fatal("Unsupported IRQ %d", IRQ);
@@ -112,6 +133,10 @@ void interrupt_handler(TrapFrame *tf) {
     default:
         if (is_hardware_interrupt(condition_code)) {
             hardware_interrupt_handler(condition_code, tf);
+            if (return_to_process) {
+                Current_control_flow = Process_thread;
+                return_to_process = false;
+            }
         }
         break;
     }

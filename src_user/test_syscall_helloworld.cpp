@@ -35,12 +35,12 @@ int main() {
     printf("I'm in user mode.\n");
     printf("hello,world from user space %d %x %d\n", 16, 17, true);
 
-    printf("Please enter a string(Press Enter key to finish): \n");
-    const size_t buf_size = 30;
+    printf("Please enter a string, 29 chars(Press Enter key to finish): \n");
+    const size_t buf_size = 5;
     char buf[buf_size];
-    if (gets(buf, buf_size)) {
+    buf[buf_size - 1] = '\0';
+    if (gets(buf, buf_size - 1)) {
         printf(buf);
-        printf("\n");
     } else {
         printf("Error: gets failed");
     }

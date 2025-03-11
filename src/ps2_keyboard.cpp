@@ -128,18 +128,97 @@ uint8_t to_event_id(uint64_t code) {
     fatal("invalid scan_code 0x%x%x", high_word, low_word);
 }
 
+bool is_valid_char(uint8_t key_id) {
+    // 1234567890
+    // 0x2 ~ 0xB
+    if (in_range(key_id, 0x2, 0xb)) {
+        return true;
+    }
+
+    // QWERTYUIOP
+    // 0x10 ~ 0x19
+    if (in_range(key_id, 0x10, 0x19)) {
+        return true;
+    }
+
+    // ASDFGHJKL
+    // 0x1e ~ 0x26
+    if (in_range(key_id, 0x1e, 0x26)) {
+        return true;
+    }
+
+    // ZXCVBNM
+    // 0x2c ~ 0x32
+    if (in_range(key_id, 0x2c, 0x32)) {
+        return true;
+    }
+
+    return false;
+}
+
+bool is_shift_pressed() {
+    return Key_pressed_table[0x2a] || Key_pressed_table[0x36];
+}
+
+bool is_alpha(char c) {
+    return in_range(c, 'a', 'z') || in_range(c, 'A', 'Z');
+}
+
+char to_lower(char c) {
+    if (is_alpha(c)) {
+        if (in_range(c, 'A', 'Z')) {
+            return c - ('A' - 'a');
+        }
+    }
+    return c;
+}
+
+char to_char(KeyEvent event) {
+    char *keyname = Key_table[event.key_id].name;
+
+    if (!is_shift_pressed()) {
+        return to_lower(*keyname);
+    } else {
+        return *keyname;
+    }
+}
+
+bool Key_pressed_table[256];
+bool is_key_pressed_table_initialized = false;
+
 void response_scancode(uint64_t code) {
     uint32_t high_four_bytes = code >> 32;
     uint32_t low_four_bytes = code;
-    debug("scan_code: 0x%x%x", high_four_bytes, low_four_bytes);
+    // debug("scan_code: 0x%x%x", high_four_bytes, low_four_bytes);
 
     uint8_t keyevent_id = to_event_id(code);
-    debug("event_id: 0x%x %d", keyevent_id, keyevent_id);
+    // debug("event_id: 0x%x %d", keyevent_id, keyevent_id);
 
     KeyEvent event = Keyevent_table[keyevent_id];
-    printf("Keyevent: 0x%x 0x%x ", event.event_id, event.key_id);
+    printf("Keyevent: 0x%x 0x%x [", event.event_id, event.key_id);
     printf(event.keyname);
-    printf(" is_pressed: %d\n", event.is_pressed);
+    printf("] is_pressed: %d\n", event.is_pressed);
+
+    if (!is_key_pressed_table_initialized) {
+        for (int i = 0; i < 256; i++) {
+            Key_pressed_table[i] = false;
+        }
+        is_key_pressed_table_initialized = true;
+    }
+
+    Key_pressed_table[event.key_id] = event.is_pressed;
+
+    // chars
+    if (gets_enabled) {
+        if (is_valid_char(event.key_id) && event.is_pressed) {
+            gets_buffer[gets_already_count] = to_char(event);
+            gets_already_count++;
+            if (gets_already_count == gets_count) {
+                gets_enabled = false;
+                // TODO: return to user process
+            }
+        }
+    }
 }
 
 uint64_t SCAN_CODE = 0;

@@ -1,6 +1,6 @@
 #pragma once
-#include <stdint.h>
 #include "system.h"
+#include <stdint.h>
 
 typedef uint32_t size_t;
 
@@ -224,10 +224,12 @@ struct Context {
 };
 enum ProcessStatus { Ready, Running, Blocking };
 struct Process {
+    int id;
     uint8_t *buffer = nullptr; // content of ELF file
     ProcessStatus status;
     Context context;
 };
+extern int allocated_process_id;
 extern Process *CURRENT_PROCESS;
 extern Process Kernel_proc;
 
@@ -236,6 +238,9 @@ extern LinkedList<Process *> running_queue;
 extern LinkedList<Process *> blocking_queue;
 int execv(const char *pathname, char *const argv[]);
 void switch_to_process(Process *p);
+struct TrapFrame;
+void restore_context_to_trapframe(Context &cxt, TrapFrame *tf);
+void save_context_from_trapframe(Context &cxt, TrapFrame *tf);
 // ================== process.cpp end ======================
 
 // ================== kernel.cpp start ======================
@@ -272,8 +277,11 @@ struct TrapFrame { // order should be opposite to alltraps.S
 
 // ================== system_entry.cpp start ======================
 void system_entry(int syscall_id, TrapFrame *tf);
-extern bool gets_enabled;
-extern int gets_count;
+extern bool gets_enabled; // indicate that a process is waiting for user input
+extern int gets_count;    // indicate how many chars is process waiting for
+extern int gets_already_count;
+extern char *gets_buffer;
+extern int gets_process_id; // the id of process waiting for input
 // ================== system_entry.cpp end ======================
 // ================== memory_management.cpp start ======================
 struct MemoryBlock {
@@ -308,5 +316,7 @@ struct KeyEvent {
 };
 extern KeyboardKey Key_table[];
 extern KeyEvent Keyevent_table[];
+extern bool Key_pressed_table[];
 void ps2_keyboard_interrupt();
 // ================== ps2_keyboard.cpp end ======================
+#include "linked_list.h"
