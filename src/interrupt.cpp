@@ -28,8 +28,9 @@ void hardware_interrupt_handler(uint32_t condition_code, TrapFrame *tf) {
     uint8_t data = 0;
     // https://wiki.osdev.org/Interrupts#Types_of_Interrupts
     switch (IRQ) {
-    case 0:
+    case IRQ_TIMER:
         debug("timer interrupt");
+        outb(PIC1_COMMAND, EOI_CMD); // send EOI to PIC interrupt controller
         break;
     case IRQ_KEYBOARD: {
         ps2_keyboard_interrupt();

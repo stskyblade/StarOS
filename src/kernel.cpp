@@ -160,8 +160,8 @@ void kernel_main() {
     init_GDT();
 
     // init interrupt handlers
-    init_interrupt_handler();
     init_PIC();
+    init_interrupt_handler();
 
     run_test();
 

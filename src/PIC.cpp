@@ -2,26 +2,22 @@
 #include "kernel.h"
 
 // copy from https://wiki.osdev.org/8259_PIC#Code_Examples
+// https://wiki.osdev.org/Programmable_Interval_Timer#Mode_2_%E2%80%93_Rate_Generator
 
-#define PIC1 0x20 /* IO base address for master PIC */
-#define PIC2 0xA0 /* IO base address for slave PIC */
-#define PIC1_COMMAND PIC1
-#define PIC1_DATA (PIC1 + 1)
-#define PIC2_COMMAND PIC2
-#define PIC2_DATA (PIC2 + 1)
+// config Timer
+void init_PIT() {
+    char channel = 0b00;     // channel 0
+    char access_mode = 0b11; // lobyte/hibyte
+    char operating_mode = 0b011;
+    char BCD_mode = 0b0;
+    char cmd =
+        (channel << 6) + (access_mode << 4) + (operating_mode << 1) + BCD_mode;
+    outb(PIT_COMMAND_PORT, cmd);
 
-#define ICW1_ICW4 0x01      /* Indicates that ICW4 will be present */
-#define ICW1_SINGLE 0x02    /* Single (cascade) mode */
-#define ICW1_INTERVAL4 0x04 /* Call address interval 4 (8) */
-#define ICW1_LEVEL 0x08     /* Level triggered (edge) mode */
-#define ICW1_INIT 0x10      /* Initialization - required! */
-
-#define ICW4_8086 0x01       /* 8086/88 (MCS-80/85) mode */
-#define ICW4_AUTO 0x02       /* Auto (normal) EOI */
-#define ICW4_BUF_SLAVE 0x08  /* Buffered mode/slave */
-#define ICW4_BUF_MASTER 0x0C /* Buffered mode/master */
-#define ICW4_SFNM 0x10       /* Special fully nested (not) */
-
+    short count = 0;                         // 65536, 18.2Hz
+    outb(CHANNEL_0_DATA_PORT, count & 0xff); // low byte
+    outb(CHANNEL_0_DATA_PORT, count >> 8);   // high byte
+}
 // initialize PIC(Program Interrupt Controller)
 void init_PIC() {
     debug("Start init PIC...");
@@ -47,9 +43,12 @@ void init_PIC() {
     outb(PIC2_DATA, ICW4_8086);
     io_wait();
 
+    init_PIT();
+
     // Unmask both PICs.
     // Only accept Keyboard interrupt at this time
-    outb(PIC1_DATA, 0b11111101);
+    // https://wiki.osdev.org/Interrupts#Types_of_Interrupts
+    outb(PIC1_DATA, 0b11111100); // keyboard interrupt and timer interrupt
     outb(PIC2_DATA, 0xff);
     debug("Finished init PIC.");
 }

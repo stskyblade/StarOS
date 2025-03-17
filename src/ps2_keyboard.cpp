@@ -224,7 +224,7 @@ void response_scancode(uint64_t code) {
 uint64_t SCAN_CODE = 0;
 void ps2_keyboard_interrupt() {
     uint32_t data = inb(KEYBOARD_DATA_PORT);
-    outb(0x20, 0x20); // send EOI to PIC interrupt controller
+    outb(PIC1_COMMAND, EOI_CMD); // send EOI to PIC interrupt controller
 
     SCAN_CODE = (SCAN_CODE << 8) + data;
     if (is_complete_scancode(SCAN_CODE)) {

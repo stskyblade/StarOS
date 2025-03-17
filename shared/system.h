@@ -19,6 +19,7 @@ constexpr int SYSCALL_PRINTF = 3;
 constexpr int SYSCALL_GETS = 4;
 
 // IRQ numbers
+constexpr int IRQ_TIMER = 0;
 constexpr int IRQ_KEYBOARD = 1;
 
 // Struct for test only
