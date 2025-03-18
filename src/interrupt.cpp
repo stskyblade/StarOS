@@ -63,7 +63,7 @@ void hardware_interrupt_handler(uint32_t condition_code, TrapFrame *tf) {
 extern "C" {
 
 void interrupt_handler(TrapFrame *tf) {
-    info("interrupt handler");
+    debug("interrupt handler");
     auto condition_code = tf->condition_code;
     auto error_code = tf->error_code;
     auto return_addr = tf->return_addr;
