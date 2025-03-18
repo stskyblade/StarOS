@@ -29,7 +29,22 @@ void hardware_interrupt_handler(uint32_t condition_code, TrapFrame *tf) {
     // https://wiki.osdev.org/Interrupts#Types_of_Interrupts
     switch (IRQ) {
     case IRQ_TIMER:
+        // return to kernel scheduler only when interrupted from Process thread
         debug("timer interrupt");
+
+        if (Current_control_flow != Process_thread) {
+            // fatal("Invalid source of system entry");
+            outb(PIC1_COMMAND, EOI_CMD); // send EOI to PIC interrupt controller
+            return;
+        }
+
+        // save current process status, return to scheduler
+        save_context_from_trapframe(CURRENT_PROCESS->context, tf);
+        running_queue.remove(CURRENT_PROCESS);
+        ready_queue.push_back(CURRENT_PROCESS);
+        CURRENT_PROCESS->status = Ready;
+        restore_context_to_trapframe(Kernel_proc.context, tf);
+
         outb(PIC1_COMMAND, EOI_CMD); // send EOI to PIC interrupt controller
         break;
     case IRQ_KEYBOARD: {
