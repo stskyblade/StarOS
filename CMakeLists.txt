@@ -75,6 +75,7 @@ add_executable(${KERNEL_FILE}
   ${SRC_DIR}/PIC.cpp
   ${SRC_DIR}/ps2_keyboard.cpp
   ${SRC_DIR}/keyevent_table.cpp
+  ${SRC_DIR}/sleep.cpp
 )
 target_link_options(${KERNEL_FILE} PRIVATE -T${SRC_DIR}/kernel.ld)
 target_link_libraries(${KERNEL_FILE} PUBLIC bootloadershared interrupt)

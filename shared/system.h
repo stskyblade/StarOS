@@ -17,6 +17,7 @@ constexpr int SYSCALL_ADD = 1;
 constexpr int SYSCALL_STRUCT = 2;
 constexpr int SYSCALL_PRINTF = 3;
 constexpr int SYSCALL_GETS = 4;
+constexpr int SYSCALL_SLEEP = 5;
 
 // IRQ numbers
 constexpr int IRQ_TIMER = 0;
@@ -35,3 +36,7 @@ struct TestPack {
     bool a9;
     short a10;
 };
+
+constexpr int ORIGIN_FREQUENCY = 1193182; // 1.19 mHz
+constexpr int FREQUENCY_WANTED = 1000;
+constexpr int64_t TICKS_PER_SECOND = FREQUENCY_WANTED;

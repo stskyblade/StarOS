@@ -346,3 +346,7 @@ extern bool Key_pressed_table[];
 void ps2_keyboard_interrupt();
 // ================== ps2_keyboard.cpp end ======================
 #include "linked_list.h"
+// ================== sleep.cpp start ======================
+extern int64_t Count_down;
+void ksleep(uint32_t seconds);
+// ================== sleep.cpp end ======================

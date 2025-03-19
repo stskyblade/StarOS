@@ -31,6 +31,7 @@ void hardware_interrupt_handler(uint32_t condition_code, TrapFrame *tf) {
     case IRQ_TIMER:
         // return to kernel scheduler only when interrupted from Process thread
         debug("timer interrupt");
+        Count_down--;
 
         if (Current_control_flow != Process_thread) {
             // fatal("Invalid source of system entry");

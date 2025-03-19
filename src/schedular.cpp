@@ -13,7 +13,7 @@ void schedular() {
             debug("Schedular switching to process...");
             switch_to_process(p);
         }
-        sleep(1);
+        ksleep(1);
         printf(".");
     }
 }

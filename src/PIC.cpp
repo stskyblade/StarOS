@@ -15,6 +15,11 @@ void init_PIT() {
     outb(PIT_COMMAND_PORT, cmd);
 
     short count = 0;                         // 65536, 18.2Hz
+    const int divider = ORIGIN_FREQUENCY / FREQUENCY_WANTED;
+    if (divider > 65536 || divider == 1) {
+        fatal("invalid frequency_wanted");
+    }
+    count = divider;
     outb(CHANNEL_0_DATA_PORT, count & 0xff); // low byte
     outb(CHANNEL_0_DATA_PORT, count >> 8);   // high byte
 }
