@@ -8,7 +8,9 @@ bool gets_enabled = false;
 int gets_count = 0;         // how many bytes to wait
 int gets_already_count = 0; // how many bytes have been read
 char *gets_buffer;
-int gets_process_id; // the id of process waiting for input
+Process *process_waiting_gets; // the id of process waiting for input
+
+LinkedList<CountDownClock> waiting_sleep_queue;
 
 void system_entry(int syscall_id, TrapFrame *tf) {
     debug("Start of system_entry");
@@ -105,7 +107,7 @@ void system_entry(int syscall_id, TrapFrame *tf) {
         gets_count = size;
         gets_already_count = 0;
         gets_buffer = (char *)pointer;
-        gets_process_id = CURRENT_PROCESS->id;
+        process_waiting_gets = CURRENT_PROCESS;
 
         // TODO:
         // move to blocking queue
@@ -115,7 +117,29 @@ void system_entry(int syscall_id, TrapFrame *tf) {
         // how to return from keyboard interrupt?
         restore_context_to_trapframe(Kernel_proc.context, tf);
 
+        Current_control_flow = Kernel_thread;
+        CURRENT_PROCESS = nullptr;
         debug("return from system_entry");
+    } break;
+    case SYSCALL_SLEEP: {
+        debug("syscall sleep");
+        uint32_t seconds = tf->ebx;
+
+        if (Current_control_flow != Process_thread) {
+            fatal("Invalid source of system entry sleep");
+        }
+        save_context_from_trapframe(CURRENT_PROCESS->context, tf);
+
+        running_queue.remove(CURRENT_PROCESS);
+        blocking_queue.push_back(CURRENT_PROCESS);
+        CURRENT_PROCESS->status = Blocking;
+
+        // add to waiting queue
+        waiting_sleep_queue.push_back(
+            {TICKS_PER_SECOND * seconds, CURRENT_PROCESS});
+        restore_context_to_trapframe(Kernel_proc.context, tf);
+        Current_control_flow = Kernel_thread;
+        CURRENT_PROCESS = nullptr;
     } break;
     default:
         printf("%d ");

@@ -17,4 +17,4 @@ int printf(char *format, ...);
 char *gets(char *buf, size_t buf_size);
 
 inline void system_call(int id);
-unsigned int sleep(unsigned int);
+void sleep(uint32_t seconds);

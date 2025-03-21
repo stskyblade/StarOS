@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 typedef uint32_t size_t;
+typedef int pid_t;
 
 // kernel space memory mappings: (keep same with kernel.ld)
 // 0x40005000 - 0x4c805000: 200MB, text, text*。权限 AX, 读取和执行
@@ -281,7 +282,14 @@ extern bool gets_enabled; // indicate that a process is waiting for user input
 extern int gets_count;    // indicate how many chars is process waiting for
 extern int gets_already_count;
 extern char *gets_buffer;
-extern int gets_process_id; // the id of process waiting for input
+extern Process *process_waiting_gets; // the id of process waiting for input
+
+struct CountDownClock {
+    int64_t count_down;
+    Process *process;
+};
+extern LinkedList<CountDownClock> waiting_sleep_queue;
+
 // ================== system_entry.cpp end ======================
 // ================== memory_management.cpp start ======================
 struct MemoryBlock {

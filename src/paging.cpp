@@ -248,6 +248,7 @@ void copy_process_mapping(void *start, uint32_t count) {
     kernel_paging_directory[dir_index] = paging_directory[dir_index];
 
     if (count > (1024 * 1024 * 4)) {
-        fatal("copy process mapping failed, count is too large");
+        fatal("copy process mapping failed, count is too large, %d 0x%x", count,
+              count);
     }
 }

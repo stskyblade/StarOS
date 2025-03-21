@@ -8,10 +8,10 @@ template <class T> class LinkedList {
         Node *next;
     };
 
+  public:
     Node head;
     Node *tail;
 
-  public:
     LinkedList() {
         head.next = nullptr;
         tail = &head;

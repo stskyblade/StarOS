@@ -10,7 +10,7 @@ void schedular() {
             p->status = Running;
             running_queue.push_back(p);
             CURRENT_PROCESS = p;
-            debug("Schedular switching to process...");
+            debug("Schedular switching to process... 0x%x", (uint32_t)p);
             switch_to_process(p);
         }
         ksleep(1);

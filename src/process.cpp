@@ -232,7 +232,7 @@ void switch_to_process(Process *p) {
 
     // switch to process address space
     __asm__ __volatile__("movl %0, %%cr3\n\t" : : "r"(cxt.page_directory));
-    info("Entering ring3: ");
+    debug("Entering ring3: ");
     __asm__ __volatile__("debug_process:\n\t" ::);
     Current_control_flow = Process_thread;
 

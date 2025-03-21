@@ -176,7 +176,7 @@ void kernel_main() {
     // execute first user program
     char *const arg1 = "arg1";
     char *const argv[1] = {arg1};
-    // execv("/test_syscall_helloworld", argv);
+    execv("/test_syscall_helloworld", argv);
     // execv("/test_print_a", argv);
     // execv("/test_print_b", argv);
     // never return

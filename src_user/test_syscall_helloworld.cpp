@@ -45,8 +45,12 @@ int main() {
         printf("Error: gets failed");
     }
 
+    printf("h");
+    printf("h");
+    printf("h");
     while (true) {
-        ;
+        printf("he");
+        sleep(3);
     }
 
     return 0;

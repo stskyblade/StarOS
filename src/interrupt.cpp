@@ -28,10 +28,33 @@ void hardware_interrupt_handler(uint32_t condition_code, TrapFrame *tf) {
     uint8_t data = 0;
     // https://wiki.osdev.org/Interrupts#Types_of_Interrupts
     switch (IRQ) {
-    case IRQ_TIMER:
+    case IRQ_TIMER: {
         // return to kernel scheduler only when interrupted from Process thread
-        debug("timer interrupt");
+        trace("timer interrupt");
         Count_down--;
+
+        // Check all waiting sleep process, move to ready queue if possible
+        auto *prev = &waiting_sleep_queue.head;
+        auto *cur = prev->next;
+        while (cur) {
+            cur->data.count_down--;
+            if (cur->data.count_down == 0) {
+                // move to ready queue
+                Process *p = cur->data.process;
+                blocking_queue.remove(p);
+                ready_queue.push_back(p);
+                p->status = Ready;
+
+                // remove cur node
+                prev->next = cur->next;
+                waiting_sleep_queue.tail = prev; // TODO
+                free(cur);
+                cur = prev->next;
+                continue;
+            }
+            prev = cur;
+            cur = cur->next;
+        }
 
         if (Current_control_flow != Process_thread) {
             // fatal("Invalid source of system entry");
@@ -46,27 +69,28 @@ void hardware_interrupt_handler(uint32_t condition_code, TrapFrame *tf) {
         CURRENT_PROCESS->status = Ready;
         restore_context_to_trapframe(Kernel_proc.context, tf);
 
+        Current_control_flow = Kernel_thread;
+
         outb(PIC1_COMMAND, EOI_CMD); // send EOI to PIC interrupt controller
-        break;
+    } break;
     case IRQ_KEYBOARD: {
         ps2_keyboard_interrupt();
 
         // resume process if possible
         if (!gets_enabled) {
             if (gets_count) {
-                Process *p = blocking_queue.locate(
-                    [](Process *p) { return p->id == gets_process_id; });
+                Process *p = process_waiting_gets;
                 p->context.eax = (uint32_t)gets_buffer;
 
                 // TODO: restore to process
-                blocking_queue.remove(CURRENT_PROCESS);
-                ready_queue.push_back(CURRENT_PROCESS);
-                CURRENT_PROCESS->status = Ready;
+                blocking_queue.remove(p);
+                ready_queue.push_back(p);
+                p->status = Ready;
 
                 gets_count = 0;
                 gets_already_count = 0;
-                gets_process_id = 0;
                 gets_buffer = nullptr;
+                process_waiting_gets = nullptr;
             }
         }
     } break;
@@ -79,7 +103,7 @@ void hardware_interrupt_handler(uint32_t condition_code, TrapFrame *tf) {
 extern "C" {
 
 void interrupt_handler(TrapFrame *tf) {
-    debug("interrupt handler");
+    trace("interrupt handler");
     auto condition_code = tf->condition_code;
     auto error_code = tf->error_code;
     auto return_addr = tf->return_addr;
@@ -87,7 +111,8 @@ void interrupt_handler(TrapFrame *tf) {
     uint32_t num = condition_code;
 
     uint8_t *addr = nullptr;
-    debug("Interrupt %d, error_code 0x%x, return 0x%x", condition_code, error_code, return_addr);
+    trace("Interrupt %d, error_code 0x%x, return 0x%x", condition_code,
+          error_code, return_addr);
     trace("eax: 0x%x    ebx: 0x%x    ecx: 0x%x    edx:0x%x", tf->eax, tf->ebx,
           tf->ecx, tf->edx);
     trace("esp: 0x%x    ebp: 0x%x    esi: 0x%x    edi:0x%x", tf->unused_esp,
@@ -157,7 +182,7 @@ void interrupt_handler(TrapFrame *tf) {
         }
         break;
     }
-    debug("return from interrupt_handler");
+    trace("return from interrupt_handler");
     return;
 }
 }
