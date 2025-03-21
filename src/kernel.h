@@ -230,12 +230,24 @@ struct Process {
     ProcessStatus status;
     Context context;
 };
+
+// next free pid, +1 after being used
 extern int allocated_process_id;
+
+// points to current running process.
+// used by interrupt service routine or system_entry to distinguish
+// between interrupt from kernel and user space program.
+// nullptr if from kernel.
+// set in scheduler.
+// maybe modified in interrupt or syscall.
 extern Process *CURRENT_PROCESS;
 extern Process Kernel_proc;
 
+// processes ready to run
 extern LinkedList<Process *> ready_queue;
+// current running process
 extern LinkedList<Process *> running_queue;
+// processes waiting for something, like sleep time, or keyboard input
 extern LinkedList<Process *> blocking_queue;
 int execv(const char *pathname, char *const argv[]);
 void switch_to_process(Process *p);
@@ -246,6 +258,9 @@ void save_context_from_trapframe(Context &cxt, TrapFrame *tf);
 
 // ================== kernel.cpp start ======================
 enum { Kernel_thread, Process_thread, Interrupt_thread };
+// be used to distinguish between interrupt from Kernel or user-level Process
+// Interrupt_thread is not used.
+// maybe modified at the end of interrupt or syscall.
 extern int Current_control_flow; // Kernel, Process, or Interrupt
 int add_to_GDT(SegmentDescriptor d);
 uint16_t descriptor_selector(uint16_t index, bool is_GDT, uint16_t RPL);
@@ -278,6 +293,8 @@ struct TrapFrame { // order should be opposite to alltraps.S
 
 // ================== system_entry.cpp start ======================
 void system_entry(int syscall_id, TrapFrame *tf);
+
+// used by syscall_gets
 extern bool gets_enabled; // indicate that a process is waiting for user input
 extern int gets_count;    // indicate how many chars is process waiting for
 extern int gets_already_count;
@@ -288,6 +305,8 @@ struct CountDownClock {
     int64_t count_down;
     Process *process;
 };
+bool operator==(CountDownClock left, CountDownClock right);
+// processes waiting for clock count down, and their count_down
 extern LinkedList<CountDownClock> waiting_sleep_queue;
 
 // ================== system_entry.cpp end ======================
@@ -356,5 +375,6 @@ void ps2_keyboard_interrupt();
 #include "linked_list.h"
 // ================== sleep.cpp start ======================
 extern int64_t Count_down;
-void ksleep(uint32_t seconds);
+void sleep(uint32_t seconds);
+void usleep(uint32_t microseconds);
 // ================== sleep.cpp end ======================

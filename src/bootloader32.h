@@ -238,6 +238,6 @@ struct Memory_layout_entry {
 
 // ====================== b32_utils.cpp start ===========================
 
-void sleep(int seconds);
+void b32sleep(int seconds);
 
 // ====================== b32_utils.cpp end ===========================

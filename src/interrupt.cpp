@@ -14,6 +14,9 @@ bool is_hardware_interrupt(uint32_t condition_code) {
     return false;
 }
 
+bool operator==(CountDownClock left, CountDownClock right) {
+    return left.count_down == right.count_down && left.process == right.process;
+}
 void hardware_interrupt_handler(uint32_t condition_code, TrapFrame *tf) {
     // FIXME: syscall gets
     // convert interrupt vector to IRQ number
@@ -46,9 +49,10 @@ void hardware_interrupt_handler(uint32_t condition_code, TrapFrame *tf) {
                 p->status = Ready;
 
                 // remove cur node
-                prev->next = cur->next;
-                waiting_sleep_queue.tail = prev; // TODO
-                free(cur);
+                waiting_sleep_queue.remove(cur->data);
+                // prev->next = cur->next;
+                // waiting_sleep_queue.tail = prev; // TODO
+                // free(cur);
                 cur = prev->next;
                 continue;
             }
