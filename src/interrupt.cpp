@@ -37,28 +37,40 @@ void hardware_interrupt_handler(uint32_t condition_code, TrapFrame *tf) {
         Count_down--;
 
         // Check all waiting sleep process, move to ready queue if possible
-        auto *prev = &waiting_sleep_queue.head;
-        auto *cur = prev->next;
-        while (cur) {
-            cur->data.count_down--;
-            if (cur->data.count_down == 0) {
-                // move to ready queue
-                Process *p = cur->data.process;
+        // auto *prev = &waiting_sleep_queue.head;
+        // auto *cur = prev->next;
+        // while (cur) {
+        //     cur->data.count_down--;
+        //     if (cur->data.count_down == 0) {
+        //         // move to ready queue
+        //         Process *p = cur->data.process;
+        //         blocking_queue.remove(p);
+        //         ready_queue.push_back(p);
+        //         p->status = Ready;
+
+        //         // remove cur node
+        //         waiting_sleep_queue.remove(cur->data);
+        //         // prev->next = cur->next;
+        //         // waiting_sleep_queue.tail = prev; // TODO
+        //         // free(cur);
+        //         cur = prev->next;
+        //         continue;
+        //     }
+        //     prev = cur;
+        //     cur = cur->next;
+        // }
+        waiting_sleep_queue.for_each([](CountDownClock &clock) {
+            clock.count_down--;
+            if (clock.count_down == 0) {
+                Process *p = clock.process;
                 blocking_queue.remove(p);
                 ready_queue.push_back(p);
                 p->status = Ready;
-
-                // remove cur node
-                waiting_sleep_queue.remove(cur->data);
-                // prev->next = cur->next;
-                // waiting_sleep_queue.tail = prev; // TODO
-                // free(cur);
-                cur = prev->next;
-                continue;
             }
-            prev = cur;
-            cur = cur->next;
-        }
+        });
+        // if count_down == 0, remove
+        waiting_sleep_queue.filter(
+            [](CountDownClock clock) { return clock.count_down > 0; });
 
         if (Current_control_flow != Process_thread) {
             // fatal("Invalid source of system entry");

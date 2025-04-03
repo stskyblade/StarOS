@@ -57,6 +57,34 @@ template <class T> class LinkedList {
         fatal("Element not found in linked list");
     }
 
+    // execute func on each element.
+    void for_each(void (*func)(T&)) {
+        Node *cur = head.next;
+        while (cur) {
+            func(cur->data);
+            cur = cur->next;
+        }
+    }
+
+    // only keep elements if filter return true.
+    void filter(bool (*filter)(T)) {
+        Node *prev = &head;
+        Node *cur = prev->next;
+        while (cur) {
+            if (!filter(cur->data)) {
+                prev->next = cur->next;
+                free(cur);
+                if (tail == cur) {
+                    tail = prev;
+                }
+                cur = prev->next;
+                continue;
+            }
+            prev = cur;
+            cur = cur->next;
+        }
+    }
+
     bool is_empty() {
         return head.next == nullptr;
     }
